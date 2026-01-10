@@ -2,7 +2,7 @@
 
 A Django-based web application for predicting onion prices using machine learning models. The system includes a custom admin panel for managing price data, predictions, users, and market analytics.
 
-## 🌟 Features
+##  Features
 
 ### **Admin Panel**
 - **Dashboard**: Overview with statistics and recent data
@@ -28,7 +28,7 @@ A Django-based web application for predicting onion prices using machine learnin
 - Government Officials
 - Researchers
 
-## 🚀 Quick Start
+##  Quick Start
 
 ### **Prerequisites**
 - Python 3.8+
@@ -79,7 +79,7 @@ python manage.py runserver
 - Admin panel: http://127.0.0.1:8000/admin-panel/
 - Django admin: http://127.0.0.1:8000/admin/
 
-## 📁 Project Structure
+##  Project Structure
 
 ```
 onion-price-forecast/
@@ -102,7 +102,7 @@ onion-price-forecast/
 └── requirements.txt        # Python dependencies
 ```
 
-## 🔧 Configuration
+##  Configuration
 
 ### **Settings**
 The main configuration is in `settings.py`:
@@ -138,7 +138,7 @@ urlpatterns = [
 ]
 ```
 
-## 📊 Data Models
+##  Data Models
 
 ### **OnionPrice**
 - Stores historical onion price data
@@ -156,7 +156,7 @@ urlpatterns = [
 - Extended user information
 - Fields: user type, phone, location, preferences
 
-## 🎯 Admin Panel Features
+##  Admin Panel Features
 
 ### **Price Management**
 - Add/Edit/Delete price records
@@ -182,7 +182,7 @@ urlpatterns = [
 - User activity metrics
 - System performance monitoring
 
-## 🤖 Machine Learning Models
+##  Machine Learning Models
 
 ### **Model Training**
 The system supports multiple ML models:
@@ -198,7 +198,7 @@ The system supports multiple ML models:
 - Date features (month, day, season)
 - Lag features and rolling statistics
 
-## 🔐 Security Features
+##  Security Features
 
 - Admin authentication required for sensitive operations
 - CSRF protection
@@ -207,7 +207,7 @@ The system supports multiple ML models:
 - Session-based authentication
 - Permission-based access control
 
-## 📱 Responsive Design
+##  Responsive Design
 
 - Bootstrap 5 for responsive layout
 - Mobile-friendly interface
@@ -215,7 +215,7 @@ The system supports multiple ML models:
 - Interactive charts and tables
 - Intuitive navigation
 
-## 🧪 Testing
+##  Testing
 
 Run tests with:
 ```bash
@@ -229,7 +229,7 @@ Test coverage includes:
 - Form submissions
 - Authentication
 
-## 📈 Deployment
+##  Deployment
 
 ### **Production Deployment Steps**
 
@@ -269,7 +269,7 @@ pip install gunicorn
 - Set up SSL certificates
 - Configure static/media file serving
 
-## 🔄 Data Import/Export
+##  Data Import/Export
 
 ### **Supported Formats**
 - CSV files
@@ -287,7 +287,7 @@ date,market,state,district,variety,min_price,max_price,modal_price,arrival_quant
 - Download prediction reports
 - Generate analytics reports
 
-## 📚 API Endpoints
+##  API Endpoints
 
 ### **Available APIs**
 - `GET /api/prices/` - Get price data
@@ -303,7 +303,7 @@ curl http://127.0.0.1:8000/api/prices/?days=30
 curl http://127.0.0.1:8000/api/predict/?market=Lasalgaon&days=7
 ```
 
-## 🐛 Troubleshooting
+##  Troubleshooting
 
 ### **Common Issues**
 
@@ -334,7 +334,7 @@ Enable debug mode in development:
 DEBUG = True
 ```
 
-## 🔮 Future Enhancements
+##  Future Enhancements
 
 1. **Real-time Data Integration**
    - Live market data feeds
@@ -362,7 +362,7 @@ DEBUG = True
    - API rate limiting
    - Advanced reporting
 
-## 🤝 Contributing
+##  Contributing
 
 1. Fork the repository
 2. Create a feature branch
@@ -376,14 +376,14 @@ DEBUG = True
 - Add comments for complex logic
 - Write docstrings for functions
 
-## 🙏 Acknowledgments
+##  Acknowledgments
 
 - Django framework and community
 - Bootstrap for responsive design
 - Chart.js for data visualization
 - All contributors and testers
 
-## 📞 Support
+##  Support
 
 For support, please:
 1. Check the troubleshooting section
