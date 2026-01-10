@@ -1,0 +1,374 @@
+<!-- forecast_app/templates/forecast_app/historical.html -->
+{% extends 'forecast_app/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="hero-section">
+            <div class="container">
+                <h1 class="display-5 fw-bold">Historical Price Data</h1>
+                <p class="lead">Analyze past onion price trends and patterns across different markets</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="card mb-4">
+    <div class="card-header">
+        <h5 class="mb-0"><i class="fas fa-filter me-2"></i>Filter Data</h5>
+    </div>
+    <div class="card-body">
+        <form method="get" id="filterForm">
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="mb-3">
+                        <label for="market" class="form-label">Select Market</label>
+                        <select class="form-select" id="market" name="market">
+                            <option value="">All Markets</option>
+                            {% for market in markets %}
+                            <option value="{{ market }}" {% if selected_market == market %}selected{% endif %}>
+                                {{ market }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="mb-3">
+                        <label for="start_date" class="form-label">Start Date</label>
+                        <input type="date" class="form-control" id="start_date" name="start_date" value="{{ start_date }}">
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="mb-3">
+                        <label for="end_date" class="form-label">End Date</label>
+                        <input type="date" class="form-control" id="end_date" name="end_date" value="{{ end_date }}">
+                    </div>
+                </div>
+            </div>
+            <div class="d-flex justify-content-between">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-search me-2"></i>Apply Filters
+                </button>
+                <button type="button" class="btn btn-outline-secondary" onclick="resetFilters()">
+                    <i class="fas fa-redo me-2"></i>Reset Filters
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Data Table -->
+<div class="card">
+    <div class="card-header">
+        <div class="d-flex justify-content-between align-items-center">
+            <h5 class="mb-0"><i class="fas fa-table me-2"></i>Price Data</h5>
+            <div>
+                <button class="btn btn-sm btn-outline-success" onclick="exportToCSV()">
+                    <i class="fas fa-download me-1"></i>Export CSV
+                </button>
+                <button class="btn btn-sm btn-outline-info ms-2" onclick="showChartView()">
+                    <i class="fas fa-chart-bar me-1"></i>Chart View
+                </button>
+            </div>
+        </div>
+    </div>
+    <div class="card-body">
+        {% if data %}
+        <div class="table-responsive">
+            <table class="table table-hover" id="priceTable">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Market</th>
+                        <th>State</th>
+                        <th>District</th>
+                        <th>Variety</th>
+                        <th>Min Price (₹)</th>
+                        <th>Max Price (₹)</th>
+                        <th>Modal Price (₹)</th>
+                        <th>Arrival (Quintal)</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in data %}
+                    <tr>
+                        <td>{{ item.date }}</td>
+                        <td>{{ item.market }}</td>
+                        <td>{{ item.state }}</td>
+                        <td>{{ item.district }}</td>
+                        <td>{{ item.variety }}</td>
+                        <td>₹{{ item.min_price|floatformat:2 }}</td>
+                        <td>₹{{ item.max_price|floatformat:2 }}</td>
+                        <td><strong>₹{{ item.modal_price|floatformat:2 }}</strong></td>
+                        <td>{{ item.arrival_quantity|floatformat:2 }}</td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-primary" onclick="analyzeRecord('{{ item.date }}', '{{ item.market }}')">
+                                <i class="fas fa-chart-line"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Pagination -->
+        <nav aria-label="Page navigation">
+            <ul class="pagination justify-content-center">
+                <li class="page-item disabled">
+                    <a class="page-link" href="#" tabindex="-1">Previous</a>
+                </li>
+                <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                <li class="page-item"><a class="page-link" href="#">2</a></li>
+                <li class="page-item"><a class="page-link" href="#">3</a></li>
+                <li class="page-item">
+                    <a class="page-link" href="#">Next</a>
+                </li>
+            </ul>
+        </nav>
+        
+        <div class="alert alert-info mt-3">
+            <i class="fas fa-info-circle me-2"></i>
+            Showing {{ data|length }} records. Total records in database: <span id="totalRecords">Loading...</span>
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <i class="fas fa-database fa-3x text-muted mb-3"></i>
+            <h4>No Data Found</h4>
+            <p class="text-muted">No price data available for the selected filters.</p>
+            <a href="/admin/forecast_app/onionprice/add/" class="btn btn-primary">
+                <i class="fas fa-plus me-2"></i>Add New Price Data
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Chart Modal -->
+<div class="modal fade" id="chartModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Price Chart View</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="chart-container" style="height: 400px;">
+                    <canvas id="historicalChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+let historicalChart = null;
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Load total records count
+    loadTotalRecords();
+    
+    // Initialize DataTable if we have data
+    if (document.getElementById('priceTable')) {
+        initializeDataTable();
+    }
+});
+
+function resetFilters() {
+    document.getElementById('market').value = '';
+    document.getElementById('start_date').value = '';
+    document.getElementById('end_date').value = '';
+    document.getElementById('filterForm').submit();
+}
+
+async function loadTotalRecords() {
+    try {
+        const response = await fetch('/api/prices/');
+        const data = await response.json();
+        if (data.data) {
+            document.getElementById('totalRecords').textContent = data.data.length;
+        }
+    } catch (error) {
+        console.error('Error loading total records:', error);
+        document.getElementById('totalRecords').textContent = 'Error';
+    }
+}
+
+function initializeDataTable() {
+    // Simple client-side sorting/filtering
+    const table = document.getElementById('priceTable');
+    if (table) {
+        // Add click handlers for sorting
+        const headers = table.querySelectorAll('th');
+        headers.forEach((header, index) => {
+            if (index < headers.length - 1) { // Exclude actions column
+                header.style.cursor = 'pointer';
+                header.addEventListener('click', () => sortTable(index));
+            }
+        });
+    }
+}
+
+function sortTable(columnIndex) {
+    const table = document.getElementById('priceTable');
+    const tbody = table.querySelector('tbody');
+    const rows = Array.from(tbody.querySelectorAll('tr'));
+    
+    rows.sort((a, b) => {
+        const aVal = a.cells[columnIndex].textContent.trim();
+        const bVal = b.cells[columnIndex].textContent.trim();
+        
+        // Try to parse as number
+        const aNum = parseFloat(aVal.replace(/[^0-9.-]+/g, ''));
+        const bNum = parseFloat(bVal.replace(/[^0-9.-]+/g, ''));
+        
+        if (!isNaN(aNum) && !isNaN(bNum)) {
+            return aNum - bNum;
+        }
+        
+        return aVal.localeCompare(bVal);
+    });
+    
+    // Toggle sort order
+    if (table.dataset.sortColumn === String(columnIndex)) {
+        rows.reverse();
+        table.dataset.sortOrder = table.dataset.sortOrder === 'asc' ? 'desc' : 'asc';
+    } else {
+        table.dataset.sortColumn = columnIndex;
+        table.dataset.sortOrder = 'asc';
+    }
+    
+    // Re-append rows
+    rows.forEach(row => tbody.appendChild(row));
+}
+
+function exportToCSV() {
+    const rows = document.querySelectorAll('#priceTable tbody tr');
+    let csv = 'Date,Market,State,District,Variety,Min Price,Max Price,Modal Price,Arrival Quantity\n';
+    
+    rows.forEach(row => {
+        const cells = row.querySelectorAll('td');
+        const rowData = Array.from(cells).slice(0, -1).map(cell => {
+            let text = cell.textContent.trim();
+            // Handle commas in values
+            if (text.includes(',') || text.includes('"')) {
+                text = '"' + text.replace(/"/g, '""') + '"';
+            }
+            return text;
+        });
+        csv += rowData.join(',') + '\n';
+    });
+    
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `onion_prices_${new Date().toISOString().slice(0,10)}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+}
+
+function showChartView() {
+    // Load data for chart
+    const market = document.getElementById('market').value;
+    const startDate = document.getElementById('start_date').value;
+    const endDate = document.getElementById('end_date').value;
+    
+    let url = '/api/prices/?days=90';
+    if (market) url += `&market=${encodeURIComponent(market)}`;
+    
+    fetch(url)
+        .then(response => response.json())
+        .then(data => {
+            if (data.data && data.data.length > 0) {
+                showHistoricalChart(data.data);
+                const modal = new bootstrap.Modal(document.getElementById('chartModal'));
+                modal.show();
+            } else {
+                alert('No data available for chart');
+            }
+        })
+        .catch(error => {
+            console.error('Error loading chart data:', error);
+            alert('Error loading chart data');
+        });
+}
+
+function showHistoricalChart(data) {
+    const ctx = document.getElementById('historicalChart').getContext('2d');
+    
+    if (historicalChart) {
+        historicalChart.destroy();
+    }
+    
+    const dates = data.map(item => item.date);
+    const prices = data.map(item => item.modal_price);
+    
+    historicalChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: dates,
+            datasets: [{
+                label: 'Modal Price (₹)',
+                data: prices,
+                borderColor: '#e67e22',
+                backgroundColor: 'rgba(230, 126, 34, 0.1)',
+                borderWidth: 2,
+                fill: true,
+                tension: 0.4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: true
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return `Price: ₹${context.parsed.y.toLocaleString('en-IN')}`;
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: false,
+                    title: {
+                        display: true,
+                        text: 'Price (₹)'
+                    },
+                    ticks: {
+                        callback: function(value) {
+                            return '₹' + value.toLocaleString('en-IN');
+                        }
+                    }
+                },
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Date'
+                    }
+                }
+            }
+        }
+    });
+}
+
+function analyzeRecord(date, market) {
+    // Show analysis for specific record
+    alert(`Analysis for ${market} on ${date}\n\nFeature coming soon: Detailed analysis with ML insights`);
+}
+</script>
+{% endblock %}

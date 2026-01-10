@@ -1,0 +1,415 @@
+<!-- forecast_app/templates/forecast_app/dashboard.html -->
+{% extends 'forecast_app/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="hero-section">
+            <div class="container">
+                <h1 class="display-5 fw-bold">Price Analytics Dashboard</h1>
+                <p class="lead">Real-time monitoring and analysis of onion price trends across India</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Current Price Stats -->
+<div class="row mb-4">
+    <div class="col-md-3 col-sm-6">
+        <div class="stat-card">
+            <h6>Current Price</h6>
+            <h3 class="text-primary">₹{{ trend_data.current_price|floatformat:2 }}</h3>
+            <p>Per quintal</p>
+            <small class="text-muted">Latest market price</small>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6">
+        <div class="stat-card">
+            <h6>Price Trend</h6>
+            <h3 class="
+                {% if 'Increasing' in trend_data.trend %}
+                    price-up
+                {% elif 'Decreasing' in trend_data.trend %}
+                    price-down
+                {% else %}
+                    price-stable
+                {% endif %}
+            ">
+                {{ trend_data.trend }}
+            </h3>
+            <p>Last 30 days</p>
+            <small class="text-muted">Market direction</small>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6">
+        <div class="stat-card">
+            <h6>30-Day Average</h6>
+            <h3 class="text-info">₹{{ trend_data.avg_30d|floatformat:2 }}</h3>
+            <p>Average price</p>
+            <small class="text-muted">Historical average</small>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6">
+        <div class="stat-card">
+            <h6>Price Range</h6>
+            <h5 class="text-success">₹{{ trend_data.min_30d|floatformat:2 }}</h5>
+            <h5 class="text-danger">₹{{ trend_data.max_30d|floatformat:2 }}</h5>
+            <p>Min - Max (30 days)</p>
+            <small class="text-muted">Price volatility</small>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Price Trends Chart -->
+    <div class="col-lg-8">
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="fas fa-chart-line me-2"></i>Price Trends & Analysis</h5>
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="priceChart"></canvas>
+                </div>
+                <div class="mt-3">
+                    <button class="btn btn-outline-primary btn-sm" onclick="loadPriceData(7)">7 Days</button>
+                    <button class="btn btn-outline-primary btn-sm" onclick="loadPriceData(30)">30 Days</button>
+                    <button class="btn btn-outline-primary btn-sm" onclick="loadPriceData(90)">90 Days</button>
+                    <button class="btn btn-outline-primary btn-sm" onclick="loadPriceData(180)">6 Months</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Market Comparison -->
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0"><i class="fas fa-balance-scale me-2"></i>Market Comparison</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Market</th>
+                                <th>Current Price</th>
+                                <th>7-Day Trend</th>
+                                <th>30-Day Avg</th>
+                                <th>Volatility</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- This data will come from API -->
+                            <tr id="marketComparisonRow">
+                                <td colspan="6" class="text-center">
+                                    <div class="loading-spinner"></div>
+                                    <p>Loading market data...</p>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Sidebar -->
+    <div class="col-lg-4">
+        <!-- Forecast Chart -->
+        <div class="card mb-4">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0"><i class="fas fa-crystal-ball me-2"></i>7-Day Forecast</h5>
+            </div>
+            <div class="card-body">
+                <div class="chart-container" style="height: 200px;">
+                    <canvas id="forecastChart"></canvas>
+                </div>
+                <div class="mt-3">
+                    {% if predictions %}
+                    <div class="alert alert-success">
+                        <i class="fas fa-check-circle me-2"></i>
+                        {{ predictions|length }} predictions loaded
+                    </div>
+                    {% endif %}
+                    <a href="{% url 'predict' %}" class="btn btn-success btn-sm w-100">
+                        <i class="fas fa-magic me-2"></i>Generate New Forecast
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Market Factors Impact -->
+        <div class="card mb-4">
+            <div class="card-header bg-warning text-dark">
+                <h5 class="mb-0"><i class="fas fa-exclamation-triangle me-2"></i>Market Factors Impact</h5>
+            </div>
+            <div class="card-body">
+                {% for factor in factors %}
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span>{{ factor.name }}</span>
+                    <div>
+                        <span class="badge bg-{% if factor.impact_score > 0 %}danger{% else %}success{% endif %}">
+                            {{ factor.impact_score|floatformat:2 }}
+                        </span>
+                        <span class="badge bg-secondary ms-1">{{ factor.get_factor_type_display }}</span>
+                    </div>
+                </div>
+                <div class="progress mb-3" style="height: 8px;">
+                    <div class="progress-bar bg-{% if factor.impact_score > 0 %}danger{% else %}success{% endif %}" 
+                        ></div>
+                </div>
+                {% empty %}
+                <p class="text-muted">No market factors data available</p>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Quick Insights -->
+        <div class="card">
+            <div class="card-header bg-dark text-white">
+                <h5 class="mb-0"><i class="fas fa-lightbulb me-2"></i>Quick Insights</h5>
+            </div>
+            <div class="card-body">
+                <!-- Dynamic insights based on data -->
+                <div class="insights-container">
+                    <!-- Will be populated by JavaScript -->
+                    <div class="text-center">
+                        <div class="loading-spinner"></div>
+                        <p>Analyzing data for insights...</p>
+                    </div>
+                </div>
+                <div class="text-center mt-3">
+                    <a href="{% url 'recommendations' %}" class="btn btn-outline-dark">
+                        <i class="fas fa-user-check me-2"></i>Get Personalized Recommendations
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Predictions -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-secondary text-white">
+                <h5 class="mb-0"><i class="fas fa-history me-2"></i>Recent Predictions</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Prediction Date</th>
+                                <th>Forecast Date</th>
+                                <th>Market</th>
+                                <th>Predicted Price</th>
+                                <th>Min Price</th>
+                                <th>Max Price</th>
+                                <th>Confidence</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for pred in predictions %}
+                            <tr>
+                                <td>{{ pred.prediction_date }}</td>
+                                <td>{{ pred.forecast_date }}</td>
+                                <td>{{ pred.market }}</td>
+                                <td><strong>₹{{ pred.predicted_modal_price|floatformat:2 }}</strong></td>
+                                <td>₹{{ pred.predicted_min_price|floatformat:2 }}</td>
+                                <td>₹{{ pred.predicted_max_price|floatformat:2 }}</td>
+                                <td>
+                                    <span class="badge bg-success">{{ pred.confidence_interval|floatformat:1 }}%</span>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="7" class="text-center">No predictions available. <a href="{% url 'predict' %}">Generate predictions</a></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <div class="text-center mt-3">
+                    <a href="{% url 'prediction_results' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-list me-2"></i>View All Predictions
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="{% static 'js/charts.js' %}"></script>
+<script>
+// Initialize dashboard charts
+document.addEventListener('DOMContentLoaded', function() {
+    // Load price chart
+    if (document.getElementById('priceChart')) {
+        loadPriceData(30);
+    }
+    
+    // Load forecast chart
+    if (document.getElementById('forecastChart')) {
+        loadPredictionData();
+    }
+    
+    // Load market comparison data
+    loadMarketComparison();
+    
+    // Generate insights
+    generateInsights();
+    
+    // Auto-refresh data every 2 minutes
+    setInterval(function() {
+        loadPriceData(30);
+        loadPredictionData();
+        loadMarketComparison();
+        generateInsights();
+    }, 120000);
+});
+
+// Function to load market comparison data
+async function loadMarketComparison() {
+    try {
+        const response = await fetch('/api/prices/?days=30');
+        const data = await response.json();
+        
+        if (data.data && data.data.length > 0) {
+            // Group by market and calculate statistics
+            const marketStats = {};
+            
+            data.data.forEach(item => {
+                if (!marketStats[item.market]) {
+                    marketStats[item.market] = {
+                        prices: [],
+                        min: Infinity,
+                        max: -Infinity
+                    };
+                }
+                marketStats[item.market].prices.push(item.modal_price);
+                marketStats[item.market].min = Math.min(marketStats[item.market].min, item.modal_price);
+                marketStats[item.market].max = Math.max(marketStats[item.market].max, item.modal_price);
+            });
+            
+            // Calculate statistics for each market
+            const tableBody = document.querySelector('#marketComparisonRow').parentElement;
+            tableBody.innerHTML = '';
+            
+            Object.entries(marketStats).slice(0, 5).forEach(([market, stats]) => {
+                const prices = stats.prices;
+                const currentPrice = prices[prices.length - 1];
+                const weekAgoPrice = prices.length >= 7 ? prices[prices.length - 7] : prices[0];
+                const avgPrice = prices.reduce((a, b) => a + b, 0) / prices.length;
+                const trend = ((currentPrice - weekAgoPrice) / weekAgoPrice * 100).toFixed(1);
+                const volatility = ((stats.max - stats.min) / avgPrice * 100).toFixed(1);
+                
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td><strong>${market}</strong></td>
+                    <td>₹${currentPrice.toLocaleString('en-IN', {minimumFractionDigits: 2})}</td>
+                    <td>
+                        <span class="badge ${trend >= 0 ? 'bg-success' : 'bg-danger'}">
+                            ${trend >= 0 ? '+' : ''}${trend}%
+                        </span>
+                    </td>
+                    <td>₹${avgPrice.toLocaleString('en-IN', {minimumFractionDigits: 2})}</td>
+                    <td>
+                        <span class="badge ${volatility > 20 ? 'bg-danger' : volatility > 10 ? 'bg-warning' : 'bg-success'}">
+                            ${volatility > 20 ? 'High' : volatility > 10 ? 'Medium' : 'Low'}
+                        </span>
+                    </td>
+                    <td>
+                        <a href="{% url 'historical' %}?market=${encodeURIComponent(market)}" class="btn btn-sm btn-outline-primary">
+                            Analyze
+                        </a>
+                    </td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+    } catch (error) {
+        console.error('Error loading market comparison:', error);
+    }
+}
+
+// Function to generate dynamic insights
+async function generateInsights() {
+    try {
+        const response = await fetch('/api/prices/?days=60');
+        const data = await response.json();
+        
+        if (data.data && data.data.length > 0) {
+            const insightsContainer = document.querySelector('.insights-container');
+            insightsContainer.innerHTML = '';
+            
+            // Calculate insights
+            const prices = data.data.map(item => item.modal_price);
+            const currentPrice = prices[prices.length - 1];
+            const avgPrice = prices.reduce((a, b) => a + b, 0) / prices.length;
+            const minPrice = Math.min(...prices);
+            const maxPrice = Math.max(...prices);
+            
+            // Insight 1: Price position
+            const pricePosition = ((currentPrice - minPrice) / (maxPrice - minPrice) * 100).toFixed(1);
+            let insight1 = '';
+            if (pricePosition > 80) {
+                insight1 = `<div class="alert alert-danger-custom">
+                    <i class="fas fa-arrow-up me-2"></i>
+                    <strong>High Price Alert:</strong> Current price is in top 20% of historical range
+                </div>`;
+            } else if (pricePosition < 20) {
+                insight1 = `<div class="alert alert-success-custom">
+                    <i class="fas fa-arrow-down me-2"></i>
+                    <strong>Buying Opportunity:</strong> Current price is in bottom 20% of historical range
+                </div>`;
+            } else {
+                insight1 = `<div class="alert alert-info">
+                    <i class="fas fa-balance-scale me-2"></i>
+                    <strong>Stable Range:</strong> Price is in normal historical range
+                </div>`;
+            }
+            
+            // Insight 2: Trend analysis
+            const recentPrices = prices.slice(-7);
+            const weekTrend = ((recentPrices[recentPrices.length - 1] - recentPrices[0]) / recentPrices[0] * 100).toFixed(1);
+            let insight2 = '';
+            if (weekTrend > 5) {
+                insight2 = `<div class="alert alert-warning-custom">
+                    <i class="fas fa-chart-line me-2"></i>
+                    <strong>Strong Uptrend:</strong> Prices increased ${Math.abs(weekTrend)}% this week
+                </div>`;
+            } else if (weekTrend < -5) {
+                insight2 = `<div class="alert alert-warning-custom">
+                    <i class="fas fa-chart-line me-2"></i>
+                    <strong>Strong Downtrend:</strong> Prices decreased ${Math.abs(weekTrend)}% this week
+                </div>`;
+            }
+            
+            // Insight 3: Volatility
+            const volatility = ((maxPrice - minPrice) / avgPrice * 100).toFixed(1);
+            let insight3 = '';
+            if (volatility > 25) {
+                insight3 = `<div class="alert alert-warning-custom">
+                    <i class="fas fa-bolt me-2"></i>
+                    <strong>High Volatility:</strong> Price fluctuations of ${volatility}% observed
+                </div>`;
+            }
+            
+            // Add insights to container
+            insightsContainer.innerHTML = insight1 + insight2 + insight3;
+            
+            if (!insight1 && !insight2 && !insight3) {
+                insightsContainer.innerHTML = '<p class="text-muted">No significant insights detected</p>';
+            }
+        }
+    } catch (error) {
+        console.error('Error generating insights:', error);
+    }
+}
+</script>
+{% endblock %}

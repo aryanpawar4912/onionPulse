@@ -1,0 +1,324 @@
+<!-- forecast_app/templates/forecast_app/contact.html -->
+{% extends 'forecast_app/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="hero-section">
+            <div class="container">
+                <h1 class="display-5 fw-bold">Contact Us</h1>
+                <p class="lead">Get in touch with our team for support, partnerships, or inquiries</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <div class="row">
+        <!-- Contact Form -->
+        <div class="col-lg-8">
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-envelope me-2"></i>Send us a Message</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="name" class="form-label">Your Name *</label>
+                                    <input type="text" class="form-control" id="name" name="name" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="email" class="form-label">Email Address *</label>
+                                    <input type="email" class="form-control" id="email" name="email" required>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="subject" class="form-label">Subject</label>
+                            <select class="form-select" id="subject" name="subject">
+                                <option value="">Select a subject</option>
+                                <option value="General Inquiry">General Inquiry</option>
+                                <option value="Technical Support">Technical Support</option>
+                                <option value="Partnership">Partnership/合作</option>
+                                <option value="Data Access">Data Access Request</option>
+                                <option value="Feedback">Feedback/Suggestions</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="message" class="form-label">Message *</label>
+                            <textarea class="form-control" id="message" name="message" rows="5" required placeholder="Please describe your inquiry in detail..."></textarea>
+                        </div>
+                        
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-paper-plane me-2"></i>Send Message
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Contact Information -->
+        <div class="col-lg-4">
+            <!-- Contact Info Card -->
+            <div class="card mb-4">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>Contact Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="contact-item mb-4">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="contact-icon bg-primary text-white rounded-circle p-3 me-3">
+                                <i class="fas fa-map-marker-alt fa-lg"></i>
+                            </div>
+                            <div>
+                                <h6 class="mb-1">Office Address</h6>
+                                <p class="text-muted mb-0">Agriculture Tech Park<br>New Delhi, India 110001</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="contact-item mb-4">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="contact-icon bg-success text-white rounded-circle p-3 me-3">
+                                <i class="fas fa-phone fa-lg"></i>
+                            </div>
+                            <div>
+                                <h6 class="mb-1">Phone Numbers</h6>
+                                <p class="text-muted mb-0">+91 98765 43210 (Support)<br>+91 91234 56789 (Sales)</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="contact-item mb-4">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="contact-icon bg-info text-white rounded-circle p-3 me-3">
+                                <i class="fas fa-envelope fa-lg"></i>
+                            </div>
+                            <div>
+                                <h6 class="mb-1">Email Addresses</h6>
+                                <p class="text-muted mb-0">support@onionforecast.com<br>info@onionforecast.com</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="contact-item">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="contact-icon bg-warning text-white rounded-circle p-3 me-3">
+                                <i class="fas fa-clock fa-lg"></i>
+                            </div>
+                            <div>
+                                <h6 class="mb-1">Business Hours</h6>
+                                <p class="text-muted mb-0">Mon-Fri: 9:00 AM - 6:00 PM<br>Sat: 10:00 AM - 2:00 PM</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- FAQ Card -->
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="fas fa-question-circle me-2"></i>Quick FAQ</h5>
+                </div>
+                <div class="card-body">
+                    <div class="accordion" id="faqAccordion">
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq1">
+                                    How accurate are the predictions?
+                                </button>
+                            </h2>
+                            <div id="faq1" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                                <div class="accordion-body">
+                                    Our models achieve 85%+ accuracy for 7-day forecasts and 75%+ accuracy for 30-day forecasts.
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq2">
+                                    Is there a free trial?
+                                </button>
+                            </h2>
+                            <div id="faq2" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                                <div class="accordion-body">
+                                    Yes! Sign up for a free account to access basic predictions and market trends.
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq3">
+                                    Can I get API access?
+                                </button>
+                            </h2>
+                            <div id="faq3" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                                <div class="accordion-body">
+                                    API access is available for enterprise clients. Contact us for pricing and details.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Map Section -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-dark text-white">
+                    <h5 class="mb-0"><i class="fas fa-map me-2"></i>Find Us</h5>
+                </div>
+                <div class="card-body">
+                    <div class="map-container" style="height: 300px; background-color: #f8f9fa; border-radius: 8px; overflow: hidden;">
+                        <div class="text-center py-5">
+                            <i class="fas fa-map-marked-alt fa-3x text-muted mb-3"></i>
+                            <h5>New Delhi Office</h5>
+                            <p class="text-muted">Agriculture Tech Park, Near Ministry of Agriculture</p>
+                            <p class="text-muted">Latitude: 28.6139° N, Longitude: 77.2090° E</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Support Channels -->
+    <div class="row mt-4">
+        <div class="col-md-4 mb-3">
+            <div class="card text-center h-100">
+                <div class="card-body">
+                    <i class="fas fa-headset fa-3x text-primary mb-3"></i>
+                    <h5>Technical Support</h5>
+                    <p class="text-muted">Get help with platform features, data access, and technical issues.</p>
+                    <a href="mailto:support@onionforecast.com" class="btn btn-outline-primary">Email Support</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4 mb-3">
+            <div class="card text-center h-100">
+                <div class="card-body">
+                    <i class="fas fa-handshake fa-3x text-success mb-3"></i>
+                    <h5>Partnerships</h5>
+                    <p class="text-muted">Interested in collaborating? Contact our partnership team.</p>
+                    <a href="mailto:partners@onionforecast.com" class="btn btn-outline-success">Partner With Us</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4 mb-3">
+            <div class="card text-center h-100">
+                <div class="card-body">
+                    <i class="fas fa-database fa-3x text-info mb-3"></i>
+                    <h5>Data Services</h5>
+                    <p class="text-muted">Need historical data or custom reports? Contact our data team.</p>
+                    <a href="mailto:data@onionforecast.com" class="btn btn-outline-info">Request Data</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .hero-section {
+        background: linear-gradient(135deg, #4a6fa5 0%, #166088 100%);
+        color: white;
+        padding: 80px 0;
+        border-radius: 15px;
+        margin-top: 20px;
+    }
+    
+    .contact-icon {
+        width: 60px;
+        height: 60px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .contact-item {
+        transition: transform 0.3s;
+    }
+    
+    .contact-item:hover {
+        transform: translateX(5px);
+    }
+    
+    .map-container {
+        position: relative;
+        background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+    }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Form validation
+    const contactForm = document.querySelector('form');
+    if (contactForm) {
+        contactForm.addEventListener('submit', function(e) {
+            const name = document.getElementById('name').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const message = document.getElementById('message').value.trim();
+            
+            if (!name || !email || !message) {
+                e.preventDefault();
+                alert('Please fill in all required fields marked with *');
+                return false;
+            }
+            
+            // Email validation
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                e.preventDefault();
+                alert('Please enter a valid email address');
+                return false;
+            }
+            
+            // Show loading indicator
+            const submitBtn = contactForm.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Sending...';
+            submitBtn.disabled = true;
+            
+            // Simulate sending (remove this in production)
+            setTimeout(() => {
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+            }, 2000);
+        });
+    }
+    
+    // Auto-fill for testing
+    const testFillBtn = document.createElement('button');
+    testFillBtn.className = 'btn btn-sm btn-outline-secondary position-fixed';
+    testFillBtn.style.bottom = '20px';
+    testFillBtn.style.right = '20px';
+    testFillBtn.style.zIndex = '1000';
+    testFillBtn.innerHTML = '<i class="fas fa-vial me-1"></i> Fill Test Data';
+    testFillBtn.onclick = function() {
+        document.getElementById('name').value = 'Test User';
+        document.getElementById('email').value = 'test@example.com';
+        document.getElementById('subject').value = 'General Inquiry';
+        document.getElementById('message').value = 'This is a test message to check the contact form functionality. Please ignore.';
+    };
+    document.body.appendChild(testFillBtn);
+});
+</script>
+{% endblock %}

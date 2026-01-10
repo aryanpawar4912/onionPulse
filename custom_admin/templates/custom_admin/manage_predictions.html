@@ -1,0 +1,360 @@
+{% extends 'custom_admin/base.html' %}
+{% load custom_filters %}
+
+{% block title %}Manage Predictions - Admin{% endblock %}
+
+{% block content %}
+<!-- ================= HEADER ================= -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="fw-semibold mb-2">Manage Predictions</h2>
+        <p class="text-muted mb-0">{{ predictions.paginator.count|default:0 }} predictions generated</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{% url 'admin_dashboard' %}" class="btn btn-admin btn-admin-secondary">
+            <i class="fas fa-arrow-left me-1"></i> Back
+        </a>
+        <button class="btn btn-admin btn-admin-primary" data-bs-toggle="modal" data-bs-target="#generateModal">
+            <i class="fas fa-bolt me-1"></i> Generate New
+        </button>
+    </div>
+</div>
+
+<!-- ================= FILTERS ================= -->
+<div class="table-container mb-4">
+    <div class="p-3 border-bottom">
+        <h5 class="mb-0">Filter Predictions</h5>
+    </div>
+    <div class="p-3">
+        <form method="get" class="row g-3">
+            <div class="col-md-3">
+                <label class="form-label">Market</label>
+                <input type="text" name="market" class="form-control" placeholder="Market..." 
+                       value="{{ request.GET.market }}">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Start Date</label>
+                <input type="date" name="start_date" class="form-control" 
+                       value="{{ request.GET.start_date }}">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">End Date</label>
+                <input type="date" name="end_date" class="form-control" 
+                       value="{{ request.GET.end_date }}">
+            </div>
+            <div class="col-md-3 d-flex align-items-end">
+                <button type="submit" class="btn btn-admin btn-admin-primary w-100">
+                    <i class="fas fa-search me-1"></i> Filter
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ================= PREDICTIONS TABLE ================= -->
+<div class="table-container">
+    <div class="p-3 border-bottom d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">All Predictions</h5>
+        <div class="d-flex gap-2">
+            <span class="badge bg-success">High Confidence: {{ high_confidence_count|default:0 }}</span>
+            <span class="badge bg-warning">Medium Confidence: {{ medium_confidence_count|default:0 }}</span>
+            <span class="badge bg-danger">Low Confidence: {{ low_confidence_count|default:0 }}</span>
+        </div>
+    </div>
+    
+    <div class="table-responsive">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Forecast Date</th>
+                    <th>Market</th>
+                    <th>Prediction Details</th>
+                    <th>Confidence</th>
+                    <th>Accuracy</th>
+                    <th>Created</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for prediction in predictions %}
+                <tr>
+                    <td>
+                        <strong>{{ prediction.forecast_date|date:"d M Y"|default:"-" }}</strong>
+                        <br>
+                        <small class="text-muted">
+                            Predicted: {{ prediction.prediction_date|date:"d M"|default:"-" }}
+                        </small>
+                    </td>
+                    <td>
+                        <div class="fw-medium">{{ prediction.market|default:"-" }}</div>
+                        {% if prediction.model_used %}
+                        <small class="text-muted">{{ prediction.model_used.name|default:"" }}</small>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="mb-1">
+                            <span class="badge bg-success-subtle text-success">
+                                Min: ₹{{ prediction.predicted_min_price|floatformat:2|default:"0.00" }}
+                            </span>
+                            <span class="badge bg-primary-subtle text-primary">
+                                Modal: ₹{{ prediction.predicted_modal_price|floatformat:2|default:"0.00" }}
+                            </span>
+                            <span class="badge bg-danger-subtle text-danger">
+                                Max: ₹{{ prediction.predicted_max_price|floatformat:2|default:"0.00" }}
+                            </span>
+                        </div>
+                        {% if prediction.actual_price %}
+                        <div>
+                            <small class="text-muted">
+                                Actual: ₹{{ prediction.actual_price|floatformat:2|default:"0.00" }}
+                                {% if prediction.predicted_modal_price and prediction.actual_price %}
+                                {% with diff=prediction.predicted_modal_price|subtract:prediction.actual_price %}
+                                (Diff: ₹{{ diff|abs_value|floatformat:2 }})
+                                {% endwith %}
+                                {% endif %}
+                            </small>
+                        </div>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="mb-1">
+                            {% with confidence=prediction.confidence_interval|default:0 %}
+                            <span class="badge-price 
+                                {% if confidence >= 80 %}badge-confidence-high
+                                {% elif confidence >= 60 %}badge-confidence-medium
+                                {% else %}badge-confidence-low{% endif %}">
+                                {{ confidence|floatformat:0 }}%
+                            </span>
+                            {% endwith %}
+                        </div>
+                        <div class="progress" style="height: 5px;">
+                            {% with confidence=prediction.confidence_interval|default:0 %}
+                            <div class="progress-bar 
+                                {% if confidence >= 80 %}bg-success
+                                {% elif confidence >= 60 %}bg-warning
+                                {% else %}bg-danger{% endif %}" 
+                                {{ confidence }}%>
+                            </div>
+                            {% endwith %}
+                        </div>
+                    </td>
+                    <td>
+                        {% if prediction.actual_price and prediction.predicted_modal_price %}
+                            {% with accuracy=prediction.predicted_modal_price|calculate_accuracy:prediction.actual_price %}
+                                {% if accuracy > 90 %}
+                                <span class="badge bg-success">Excellent</span>
+                                {% elif accuracy > 80 %}
+                                <span class="badge bg-success">Good</span>
+                                {% elif accuracy > 70 %}
+                                <span class="badge bg-warning">Fair</span>
+                                {% else %}
+                                <span class="badge bg-danger">Poor</span>
+                                {% endif %}
+                                <br>
+                                <small class="text-muted">{{ accuracy|floatformat:1 }}%</small>
+                            {% endwith %}
+                        {% else %}
+                            <span class="badge bg-secondary">Pending</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ prediction.created_at|date:"d M Y"|default:"-" }}</td>
+                    <td>
+                        <div class="btn-group" role="group">
+                            <button class="btn btn-sm btn-outline-primary" 
+                                    data-bs-toggle="modal" 
+                                    data-bs-target="#detailModal{{ prediction.id }}">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <a href="/admin/forecast_app/priceprediction/{{ prediction.id }}/delete/" 
+                               class="btn btn-sm btn-outline-danger" target="_blank" title="Delete">
+                                <i class="fas fa-trash"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+
+                <!-- Detail Modal -->
+                <div class="modal fade" id="detailModal{{ prediction.id }}" tabindex="-1">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">Prediction Details</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="row">
+                                    <div class="col-6">
+                                        <p class="mb-2"><strong>Market:</strong></p>
+                                        <p>{{ prediction.market|default:"-" }}</p>
+                                    </div>
+                                    <div class="col-6">
+                                        <p class="mb-2"><strong>Forecast Date:</strong></p>
+                                        <p>{{ prediction.forecast_date|date:"d M Y"|default:"-" }}</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="row mt-3">
+                                    <div class="col-4">
+                                        <div class="card bg-light-subtle">
+                                            <div class="card-body text-center p-2">
+                                                <small class="text-muted">Min Price</small>
+                                                <h6 class="mb-0">₹{{ prediction.predicted_min_price|floatformat:2|default:"0.00" }}</h6>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-4">
+                                        <div class="card bg-light-subtle">
+                                            <div class="card-body text-center p-2">
+                                                <small class="text-muted">Modal Price</small>
+                                                <h6 class="mb-0">₹{{ prediction.predicted_modal_price|floatformat:2|default:"0.00" }}</h6>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-4">
+                                        <div class="card bg-light-subtle">
+                                            <div class="card-body text-center p-2">
+                                                <small class="text-muted">Max Price</small>
+                                                <h6 class="mb-0">₹{{ prediction.predicted_max_price|floatformat:2|default:"0.00" }}</h6>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="mt-3">
+                                    <p class="mb-1"><strong>Confidence:</strong> {{ prediction.confidence_interval|default:"-" }}%</p>
+                                    <p class="mb-1"><strong>Model Used:</strong> {{ prediction.model_used.name|default:"N/A" }}</p>
+                                    {% if prediction.actual_price %}
+                                    <p class="mb-1"><strong>Actual Price:</strong> ₹{{ prediction.actual_price|floatformat:2|default:"0.00" }}</p>
+                                    {% with accuracy=prediction.predicted_modal_price|calculate_accuracy:prediction.actual_price %}
+                                    <p class="mb-0"><strong>Accuracy:</strong> {{ accuracy|floatformat:1 }}%</p>
+                                    {% endwith %}
+                                    {% endif %}
+                                    <p class="mb-0"><strong>Created:</strong> {{ prediction.created_at|date:"d M Y H:i"|default:"-" }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="text-center py-4">
+                        <i class="fas fa-crystal-ball fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">No predictions available</p>
+                        <button class="btn btn-admin btn-admin-primary" data-bs-toggle="modal" data-bs-target="#generateModal">
+                            <i class="fas fa-bolt me-1"></i> Generate First Prediction
+                        </button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    <!-- Pagination -->
+    {% if predictions.paginator.num_pages > 1 %}
+    <div class="p-3 border-top">
+        <nav>
+            <ul class="pagination justify-content-center mb-0">
+                {% if predictions.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page=1{% if request.GET.market %}&market={{ request.GET.market }}{% endif %}">First</a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ predictions.previous_page_number }}{% if request.GET.market %}&market={{ request.GET.market }}{% endif %}">Previous</a>
+                </li>
+                {% endif %}
+
+                {% for num in predictions.paginator.page_range %}
+                    {% if predictions.number == num %}
+                    <li class="page-item active">
+                        <span class="page-link">{{ num }}</span>
+                    </li>
+                    {% elif num > predictions.number|add:'-3' and num < predictions.number|add:'3' %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ num }}{% if request.GET.market %}&market={{ request.GET.market }}{% endif %}">{{ num }}</a>
+                    </li>
+                    {% endif %}
+                {% endfor %}
+
+                {% if predictions.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ predictions.next_page_number }}{% if request.GET.market %}&market={{ request.GET.market }}{% endif %}">Next</a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ predictions.paginator.num_pages }}{% if request.GET.market %}&market={{ request.GET.market }}{% endif %}">Last</a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Generate Prediction Modal -->
+<div class="modal fade" id="generateModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Generate New Prediction</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Prediction generation requires sufficient historical data.
+                </div>
+                <form method="post" action="{% url 'generate_prediction' %}">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label">Select Market</label>
+                        <select class="form-select" name="market" required>
+                            <option value="">Choose market...</option>
+                            {% for market in markets %}
+                            <option value="{{ market }}">{{ market }}</option>
+                            {% empty %}
+                            <option value="general">General Market</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Days Ahead</label>
+                        <input type="number" class="form-control" name="days_ahead" value="7" min="1" max="30" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Model Type</label>
+                        <select class="form-select" name="model_type" required>
+                            <option value="lstm">LSTM Neural Network</option>
+                            <option value="rf">Random Forest</option>
+                            <option value="xgb">XGBoost</option>
+                            <option value="prophet">Facebook Prophet</option>
+                        </select>
+                    </div>
+                    <div class="text-end">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-admin btn-admin-primary">
+                            <i class="fas fa-bolt me-1"></i> Generate
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Initialize progress bars with proper width
+    document.addEventListener('DOMContentLoaded', function() {
+        const progressBars = document.querySelectorAll('.progress-bar');
+        progressBars.forEach(bar => {
+            // Ensure width has % unit
+            let width = bar.style.width;
+            if (width && !width.includes('%')) {
+                // Add % if missing
+                bar.style.width = width + '%';
+            }
+        });
+    });
+</script>
+{% endblock %}

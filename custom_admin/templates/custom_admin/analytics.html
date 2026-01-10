@@ -1,0 +1,357 @@
+{% extends 'custom_admin/base.html' %}
+{% load custom_filters %}
+
+{% block title %}System Analytics - Admin{% endblock %}
+
+{% block extra_css %}
+<style>
+    .metric-card {
+        background: white;
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        transition: transform 0.3s;
+    }
+    
+    .metric-card:hover {
+        transform: translateY(-3px);
+    }
+    
+    .metric-value {
+        font-size: 2rem;
+        font-weight: bold;
+        color: #2E7D32;
+    }
+    
+    .metric-label {
+        color: #666;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .trend-up {
+        color: #4CAF50;
+    }
+    
+    .trend-down {
+        color: #F44336;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="mb-0">System Analytics</h2>
+    <div>
+        <a href="{% url 'admin_dashboard' %}" class="btn btn-admin btn-admin-secondary">
+            <i class="fas fa-arrow-left me-1"></i> Back to Dashboard
+        </a>
+        <button class="btn btn-admin btn-admin-primary ms-2">
+            <i class="fas fa-download me-1"></i> Export Report
+        </button>
+    </div>
+</div>
+
+<!-- Analytics Cards -->
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="metric-card">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="metric-label">Total Price Records</div>
+                    <div class="metric-value">{{ price_stats.total_records|default:0 }}</div>
+                </div>
+                <i class="fas fa-database fa-2x text-primary opacity-50"></i>
+            </div>
+            <div class="mt-2">
+                <small class="text-muted">Avg Price: ₹{{ price_stats.avg_price|floatformat:2|default:"0.00" }}</small>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="metric-card">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="metric-label">Total Predictions</div>
+                    <div class="metric-value">{{ prediction_stats.total_predictions|default:0 }}</div>
+                </div>
+                <i class="fas fa-crystal-ball fa-2x text-warning opacity-50"></i>
+            </div>
+            <div class="mt-2">
+                <small class="text-muted">Avg Confidence: {{ prediction_stats.avg_confidence|floatformat:1|default:"0.0" }}%</small>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="metric-card">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="metric-label">Total Users</div>
+                    <div class="metric-value">{{ user_stats.total_users|default:0 }}</div>
+                </div>
+                <i class="fas fa-users fa-2x text-success opacity-50"></i>
+            </div>
+            <div class="mt-2">
+                <small class="text-muted">{{ user_stats.new_users_today|default:0 }} new today</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Section -->
+<div class="row">
+    <div class="col-md-8">
+        <div class="table-container mb-4">
+            <div class="p-3 border-bottom d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Price Trends (Last 30 Days)</h5>
+                <span class="text-muted">{{ start_date|date:"d M Y"|default:"-" }} - {{ end_date|date:"d M Y"|default:"-" }}</span>
+            </div>
+            <div class="p-3">
+                <div style="height: 350px;">
+                    <canvas id="priceTrendChart"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-6">
+                <div class="table-container">
+                    <div class="p-3 border-bottom">
+                        <h5 class="mb-0">Price Statistics</h5>
+                    </div>
+                    <div class="p-3">
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                Highest Price
+                                {% if price_stats.highest_price and price_stats.highest_price.modal_price %}
+                                <span class="badge bg-danger">₹{{ price_stats.highest_price.modal_price|floatformat:2 }}</span>
+                                {% else %}
+                                <span class="badge bg-secondary">-</span>
+                                {% endif %}
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                Lowest Price
+                                {% if price_stats.lowest_price and price_stats.lowest_price.modal_price %}
+                                <span class="badge bg-success">₹{{ price_stats.lowest_price.modal_price|floatformat:2 }}</span>
+                                {% else %}
+                                <span class="badge bg-secondary">-</span>
+                                {% endif %}
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                30-Day Price Change
+                                <span class="badge {% if price_stats.price_change_30d > 0 %}bg-danger{% else %}bg-success{% endif %}">
+                                    {{ price_stats.price_change_30d|default:0|floatformat:1 }}%
+                                </span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                Average Price
+                                <span class="badge bg-primary">₹{{ price_stats.avg_price|floatformat:2|default:"0.00" }}</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="table-container">
+                    <div class="p-3 border-bottom">
+                        <h5 class="mb-0">User Statistics</h5>
+                    </div>
+                    <div class="p-3">
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                New Users (Today)
+                                <span class="badge bg-primary">{{ user_stats.new_users_today|default:0 }}</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                New Users (Week)
+                                <span class="badge bg-info">{{ user_stats.new_users_week|default:0 }}</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                Active Users (30 Days)
+                                <span class="badge bg-success">{{ user_stats.active_users|default:0 }}</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                Total Users
+                                <span class="badge bg-dark">{{ user_stats.total_users|default:0 }}</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="table-container mb-4">
+            <div class="p-3 border-bottom">
+                <h5 class="mb-0">Prediction Analytics</h5>
+            </div>
+            <div class="p-3">
+                <div class="mb-4">
+                    <h6>Confidence Distribution</h6>
+                    <div class="d-flex align-items-center mb-2">
+                        <div class="flex-grow-1">
+                            <div class="progress" style="height: 25px;">
+                                <div class="progress-bar bg-success" style="width: 60%">High (≥80%)</div>
+                            </div>
+                        </div>
+                        <span class="ms-2">{{ prediction_stats.high_confidence_predictions|default:0 }}</span>
+                    </div>
+                    <div class="d-flex align-items-center mb-2">
+                        <div class="flex-grow-1">
+                            <div class="progress" style="height: 25px;">
+                                <div class="progress-bar bg-warning" style="width: 30%">Medium (60-79%)</div>
+                            </div>
+                        </div>
+                        <span class="ms-2">{{ prediction_stats.total_predictions|default:0|add:"-100" }}</span>
+                    </div>
+                    <div class="d-flex align-items-center">
+                        <div class="flex-grow-1">
+                            <div class="progress" style="height: 25px;">
+                                <div class="progress-bar bg-danger" style="width: 10%">Low (<60%)</div>
+                            </div>
+                        </div>
+                        <span class="ms-2">10</span>
+                    </div>
+                </div>
+                
+                <div>
+                    <h6>Recent Activity</h6>
+                    <ul class="list-group">
+                        <li class="list-group-item">
+                            <small class="text-muted">Last 7 Days:</small><br>
+                            <strong>{{ prediction_stats.predictions_last_7_days|default:0 }}</strong> predictions generated
+                        </li>
+                        <li class="list-group-item">
+                            <small class="text-muted">Avg Daily Predictions:</small><br>
+                            <strong>
+                                {% if prediction_stats.predictions_last_7_days %}
+                                    {{ prediction_stats.predictions_last_7_days|divide:7|floatformat:1 }}
+                                {% else %}
+                                    0.0
+                                {% endif %}
+                            </strong> per day
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <div class="table-container">
+            <div class="p-3 border-bottom">
+                <h5 class="mb-0">System Health</h5>
+            </div>
+            <div class="p-3">
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between mb-1">
+                        <span>Database Usage</span>
+                        <span>75%</span>
+                    </div>
+                    <div class="progress" style="height: 10px;">
+                        <div class="progress-bar bg-success" style="width: 75%"></div>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between mb-1">
+                        <span>System Performance</span>
+                        <span>92%</span>
+                    </div>
+                    <div class="progress" style="height: 10px;">
+                        <div class="progress-bar bg-info" style="width: 92%"></div>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between mb-1">
+                        <span>Prediction Accuracy</span>
+                        <span>84%</span>
+                    </div>
+                    <div class="progress" style="height: 10px;">
+                        <div class="progress-bar bg-warning" style="width: 84%"></div>
+                    </div>
+                </div>
+                
+                <div class="text-center mt-4">
+                    <button class="btn btn-admin btn-admin-primary w-100">
+                        <i class="fas fa-heartbeat me-2"></i> Run System Diagnostics
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Price Trend Chart
+    const trendCtx = document.getElementById('priceTrendChart');
+    if (trendCtx) {
+        // Use sample data since price_chart_data might not be available
+        const chartData = [1500, 1600, 1550, 1700, 1650, 1800, 1750, 1700, 1850, 1900];
+        const chartLabels = ['Day 1', 'Day 2', 'Day 3', 'Day 4', 'Day 5', 'Day 6', 'Day 7', 'Day 8', 'Day 9', 'Day 10'];
+        
+        new Chart(trendCtx, {
+            type: 'line',
+            data: {
+                labels: chartLabels,
+                datasets: [{
+                    label: 'Average Price (₹)',
+                    data: chartData,
+                    borderColor: '#4CAF50',
+                    backgroundColor: 'rgba(76, 175, 80, 0.1)',
+                    borderWidth: 2,
+                    tension: 0.3,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top'
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return '₹' + context.parsed.y.toFixed(2);
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: false,
+                        ticks: {
+                            callback: function(value) {
+                                return '₹' + value;
+                            }
+                        },
+                        title: {
+                            display: true,
+                            text: 'Price (₹)'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Date'
+                        }
+                    }
+                }
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

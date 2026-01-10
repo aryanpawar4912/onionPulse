@@ -1,0 +1,280 @@
+/* forecast_app/static/css/style.css */
+/* ===== ONION PRICE FORECAST STYLES ===== */
+
+:root {
+    --primary-color: #e67e22;
+    --secondary-color: #d35400;
+    --success-color: #27ae60;
+    --danger-color: #e74c3c;
+    --warning-color: #f39c12;
+    --info-color: #3498db;
+    --dark-color: #2c3e50;
+    --light-color: #ecf0f1;
+    --white-color: #ffffff;
+}
+
+/* Base Styles */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f8f9fa;
+    color: #333;
+    line-height: 1.6;
+}
+
+/* Navbar */
+.navbar-brand {
+    color: var(--secondary-color) !important;
+    font-weight: 700;
+    font-size: 1.5rem;
+}
+
+.navbar-brand i {
+    color: var(--primary-color);
+}
+
+.nav-link {
+    color: var(--dark-color) !important;
+    font-weight: 500;
+    transition: color 0.3s;
+}
+
+.nav-link:hover {
+    color: var(--primary-color) !important;
+}
+
+/* Hero Section */
+.hero-section {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    color: white;
+    padding: 80px 0;
+    margin-bottom: 40px;
+    border-radius: 10px;
+    position: relative;
+    overflow: hidden;
+}
+
+.hero-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" preserveAspectRatio="none"><path d="M0,0 L100,0 L100,100 Z" fill="rgba(255,255,255,0.1)"/></svg>');
+    background-size: cover;
+}
+
+/* Cards */
+.card {
+    border: none;
+    border-radius: 15px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s, box-shadow 0.3s;
+    margin-bottom: 20px;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+}
+
+.card-header {
+    background-color: var(--white-color);
+    border-bottom: 2px solid var(--primary-color);
+    font-weight: 600;
+    border-radius: 15px 15px 0 0 !important;
+}
+
+/* Price Indicators */
+.price-up {
+    color: var(--success-color);
+    font-weight: 600;
+}
+
+.price-down {
+    color: var(--danger-color);
+    font-weight: 600;
+}
+
+.price-stable {
+    color: var(--warning-color);
+    font-weight: 600;
+}
+
+/* Stat Cards */
+.stat-card {
+    background: white;
+    border-radius: 10px;
+    padding: 20px;
+    text-align: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    border-left: 4px solid var(--primary-color);
+}
+
+.stat-card h3 {
+    color: var(--primary-color);
+    font-weight: 700;
+    margin-bottom: 10px;
+}
+
+/* Tables */
+.table-hover tbody tr:hover {
+    background-color: rgba(230, 126, 34, 0.1);
+}
+
+.table thead th {
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    font-weight: 600;
+}
+
+/* Buttons */
+.btn-primary {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+    font-weight: 600;
+}
+
+.btn-primary:hover {
+    background-color: var(--secondary-color);
+    border-color: var(--secondary-color);
+}
+
+.btn-outline-primary {
+    color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.btn-outline-primary:hover {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+/* Badges */
+.badge {
+    padding: 5px 10px;
+    font-weight: 500;
+    border-radius: 20px;
+}
+
+/* Charts */
+.chart-container {
+    position: relative;
+    height: 300px;
+    width: 100%;
+}
+
+/* Market Factors */
+.factor-card {
+    border-left: 4px solid;
+    padding-left: 15px;
+    margin-bottom: 15px;
+}
+
+.factor-positive {
+    border-left-color: var(--success-color);
+}
+
+.factor-negative {
+    border-left-color: var(--danger-color);
+}
+
+.factor-neutral {
+    border-left-color: var(--warning-color);
+}
+
+/* Footer */
+footer {
+    background-color: var(--dark-color);
+    color: white;
+    margin-top: 50px;
+}
+
+footer a {
+    color: var(--light-color);
+    text-decoration: none;
+    transition: color 0.3s;
+}
+
+footer a:hover {
+    color: var(--primary-color);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .hero-section {
+        padding: 50px 0;
+    }
+    
+    .stat-card {
+        margin-bottom: 15px;
+    }
+    
+    .card {
+        margin-bottom: 15px;
+    }
+}
+
+/* Loading Animation */
+.loading-spinner {
+    border: 4px solid rgba(0, 0, 0, 0.1);
+    border-radius: 50%;
+    border-top: 4px solid var(--primary-color);
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+    margin: 20px auto;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Alerts */
+.alert-custom {
+    border-left: 4px solid;
+    border-radius: 8px;
+}
+
+.alert-success-custom {
+    background-color: rgba(39, 174, 96, 0.1);
+    border-left-color: var(--success-color);
+    color: #155724;
+}
+
+.alert-warning-custom {
+    background-color: rgba(243, 156, 18, 0.1);
+    border-left-color: var(--warning-color);
+    color: #856404;
+}
+
+.alert-danger-custom {
+    background-color: rgba(231, 76, 60, 0.1);
+    border-left-color: var(--danger-color);
+    color: #721c24;
+}
+
+/* Price Range Bar */
+.price-range-bar {
+    height: 10px;
+    background: linear-gradient(to right, var(--success-color), var(--warning-color), var(--danger-color));
+    border-radius: 5px;
+    margin: 10px 0;
+}
+
+/* Prediction Cards */
+.prediction-card {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 15px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.prediction-card h5 {
+    color: white;
+    font-weight: 600;
+}

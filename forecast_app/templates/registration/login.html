@@ -1,0 +1,79 @@
+<!-- forecast_app/templates/login.html -->
+{% extends 'forecast_app/base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-4">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white text-center">
+                    <h4><i class="fas fa-sign-in-alt me-2"></i>Login Required</h4>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        {% if form.errors %}
+                        <div class="alert alert-danger">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            Invalid username or password.
+                        </div>
+                        {% endif %}
+                        
+                        <div class="mb-3">
+                            <label for="username" class="form-label">Username</label>
+                            <input type="text" name="username" class="form-control" id="username" required autofocus>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="password" class="form-label">Password</label>
+                            <input type="password" name="password" class="form-control" id="password" required>
+                        </div>
+                        
+                        <input type="hidden" name="next" value="{{ next }}">
+                        
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-sign-in-alt me-2"></i>Login
+                            </button>
+                        </div>
+                    </form>
+                    
+                    <hr class="my-4">
+                    
+                    <div class="text-center">
+                        <p class="mb-2">Don't have an account?</p>
+                        <div class="d-flex justify-content-center gap-2">
+                            <a href="/admin/" class="btn btn-outline-secondary btn-sm">
+                                <i class="fas fa-user-cog me-1"></i>Admin Panel
+                            </a>
+                            <button onclick="useTestCredentials()" class="btn btn-outline-info btn-sm">
+                                <i class="fas fa-vial me-1"></i>Use Test Account
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Quick Login Info -->
+            <div class="card mt-3">
+                <div class="card-body">
+                    <h6 class="card-title">Quick Login for Testing:</h6>
+                    <p class="mb-1"><strong>Username:</strong> admin</p>
+                    <p class="mb-0"><strong>Password:</strong> admin123</p>
+                    <small class="text-muted">(Use Django admin to create users)</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function useTestCredentials() {
+    document.getElementById('username').value = 'admin';
+    document.getElementById('password').value = 'admin123';
+}
+</script>
+{% endblock %}

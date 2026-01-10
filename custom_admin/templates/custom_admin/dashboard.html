@@ -1,0 +1,320 @@
+{% extends 'custom_admin/base.html' %}
+{% load static %}
+
+{% block title %}Dashboard - Admin{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* ================= STAT CARDS ================= */
+    .stat-card {
+        background: #fff;
+        border-radius: 20px;
+        padding: 25px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+        transition: 0.3s;
+        height: 100%;
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+    }
+    
+    .stat-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 18px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 26px;
+    }
+    
+    .bg-green { background: linear-gradient(135deg, #2ecc71, #27ae60); }
+    .bg-blue { background: linear-gradient(135deg, #3498db, #2980b9); }
+    .bg-orange { background: linear-gradient(135deg, #ff8c32, #ff6b00); }
+    .bg-purple { background: linear-gradient(135deg, #9b59b6, #8e44ad); }
+    
+    .stat-card h3 {
+        font-weight: 700;
+        margin-top: 15px;
+        margin-bottom: 5px;
+    }
+    
+    .stat-card p {
+        color: #777;
+        font-size: 14px;
+        margin-bottom: 0;
+    }
+    
+    /* ================= TABLE ================= */
+    .data-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    
+    .data-table thead {
+        background: #fff6ed;
+    }
+    
+    .data-table th,
+    .data-table td {
+        padding: 14px;
+        font-size: 14px;
+        vertical-align: middle;
+    }
+    
+    .data-table th {
+        font-weight: 600;
+        color: #555;
+    }
+    
+    .data-table td {
+        border-top: 1px solid #f1f1f1;
+    }
+    
+    .data-table tr:hover {
+        background: #fffaf5;
+    }
+    
+    /* ================= BADGES ================= */
+    .badge-price {
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 13px;
+        display: inline-block;
+    }
+    
+    /* ================= DASHBOARD HEADER ================= */
+    .dashboard-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 25px;
+    }
+    
+    .dashboard-header h2 {
+        font-weight: 600;
+        margin: 0;
+    }
+    
+    .dashboard-header p {
+        color: #666;
+        margin: 0;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- ================= HEADER ================= -->
+<div class="dashboard-header">
+    <div>
+        <h2>Dashboard Overview</h2>
+        <p class="text-muted">Welcome back, {{ request.user.username }}</p>
+    </div>
+    <div class="d-flex gap-2">
+        <input type="text" class="form-control" placeholder="Search..." style="border-radius: 25px;">
+        <a href="{% url 'manage_onion_prices' %}" class="btn btn-admin btn-admin-primary">
+            <i class="fas fa-plus me-1"></i> Add Price
+        </a>
+    </div>
+</div>
+
+<!-- ================= STAT CARDS ================= -->
+<div class="row g-4 mb-4">
+    <div class="col-md-3 col-sm-6">
+        <div class="stat-card">
+            <div class="stat-icon bg-green">
+                <i class="fas fa-rupee-sign"></i>
+            </div>
+            <h3>{{ stats.total_prices|default:0 }}</h3>
+            <p>Price Records</p>
+        </div>
+    </div>
+
+    <div class="col-md-3 col-sm-6">
+        <div class="stat-card">
+            <div class="stat-icon bg-blue">
+                <i class="fas fa-chart-line"></i>
+            </div>
+            <h3>{{ stats.total_predictions|default:0 }}</h3>
+            <p>Predictions</p>
+        </div>
+    </div>
+
+    <div class="col-md-3 col-sm-6">
+        <div class="stat-card">
+            <div class="stat-icon bg-orange">
+                <i class="fas fa-users"></i>
+            </div>
+            <h3>{{ stats.total_users|default:0 }}</h3>
+            <p>Total Users</p>
+        </div>
+    </div>
+
+    <div class="col-md-3 col-sm-6">
+        <div class="stat-card">
+            <div class="stat-icon bg-purple">
+                <i class="fas fa-wallet"></i>
+            </div>
+            <h3>₹{{ stats.avg_price|default:0|floatformat:2 }}</h3>
+            <p>Average Price</p>
+        </div>
+    </div>
+</div>
+
+<!-- ================= TABLES ================= -->
+<div class="row g-4">
+    <!-- Recent Price Data -->
+    <div class="col-lg-6">
+        <div class="table-container">
+            <div class="p-3 border-bottom d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Recent Price Data</h5>
+                <a href="{% url 'manage_onion_prices' %}" class="btn btn-sm btn-admin btn-admin-secondary">View All</a>
+            </div>
+            <div class="table-responsive">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Market</th>
+                            <th>State</th>
+                            <th>Price</th>
+                            <th>Arrival</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for price in recent_prices %}
+                        <tr>
+                            <td>{{ price.date|date:"d M" }}</td>
+                            <td>
+                                <div class="fw-medium">{{ price.market|truncatechars:15 }}</div>
+                                <small class="text-muted">{{ price.district }}</small>
+                            </td>
+                            <td>{{ price.state|truncatechars:10 }}</td>
+                            <td>
+                                <span class="badge-price 
+                                    {% if price.modal_price < 1500 %}badge-price-low
+                                    {% elif price.modal_price < 3000 %}badge-price-medium
+                                    {% else %}badge-price-high{% endif %}">
+                                    ₹{{ price.modal_price|floatformat:2 }}
+                                </span>
+                            </td>
+                            <td>{{ price.arrival_quantity|floatformat:0 }} qtl</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center py-4">
+                                <i class="fas fa-database fa-2x text-muted mb-3"></i>
+                                <p class="text-muted">No price data available</p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Predictions -->
+    <div class="col-lg-6">
+        <div class="table-container">
+            <div class="p-3 border-bottom d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Recent Predictions</h5>
+                <a href="{% url 'manage_predictions' %}" class="btn btn-sm btn-admin btn-admin-secondary">View All</a>
+            </div>
+            <div class="table-responsive">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Forecast Date</th>
+                            <th>Market</th>
+                            <th>Predicted Price</th>
+                            <th>Confidence</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for prediction in recent_predictions %}
+                        <tr>
+                            <td>{{ prediction.forecast_date|date:"d M" }}</td>
+                            <td>{{ prediction.market|truncatechars:15 }}</td>
+                            <td>
+                                <strong>₹{{ prediction.predicted_modal_price|floatformat:2 }}</strong>
+                                {% if prediction.actual_price %}
+                                <br>
+                                <small class="text-muted">
+                                    Actual: ₹{{ prediction.actual_price|floatformat:2 }}
+                                </small>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="badge-price 
+                                    {% if prediction.confidence_interval >= 80 %}badge-confidence-high
+                                    {% elif prediction.confidence_interval >= 60 %}badge-confidence-medium
+                                    {% else %}badge-confidence-low{% endif %}">
+                                    {{ prediction.confidence_interval|floatformat:0 }}%
+                                </span>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="text-center py-4">
+                                <i class="fas fa-crystal-ball fa-2x text-muted mb-3"></i>
+                                <p class="text-muted">No predictions available</p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ================= QUICK ACTIONS ================= -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="table-container p-4">
+            <h5 class="mb-4">Quick Actions</h5>
+            <div class="row g-3">
+                <div class="col-md-3 col-sm-6">
+                    <a href="{% url 'manage_onion_prices' %}" class="btn btn-outline-primary w-100 rounded-pill py-3">
+                        <i class="fas fa-upload me-2"></i> Import Data
+                    </a>
+                </div>
+                <div class="col-md-3 col-sm-6">
+                    <a href="{% url 'manage_predictions' %}" class="btn btn-outline-success w-100 rounded-pill py-3">
+                        <i class="fas fa-bolt me-2"></i> Generate Predictions
+                    </a>
+                </div>
+                <div class="col-md-3 col-sm-6">
+                    <a href="{% url 'manage_users' %}" class="btn btn-outline-warning w-100 rounded-pill py-3">
+                        <i class="fas fa-user-plus me-2"></i> Add User
+                    </a>
+                </div>
+                <div class="col-md-3 col-sm-6">
+                    <a href="{% url 'system_settings' %}" class="btn btn-outline-info w-100 rounded-pill py-3">
+                        <i class="fas fa-cog me-2"></i> Settings
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Add active class to table rows on hover
+    document.querySelectorAll('.data-table tr').forEach(row => {
+        row.addEventListener('mouseenter', function() {
+            this.style.backgroundColor = '#fffaf5';
+        });
+        row.addEventListener('mouseleave', function() {
+            this.style.backgroundColor = '';
+        });
+    });
+</script>
+{% endblock %}

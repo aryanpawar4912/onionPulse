@@ -1,0 +1,239 @@
+{% extends 'custom_admin/base.html' %}
+
+{% block title %}Manage Price Data - Admin{% endblock %}
+
+{% block content %}
+<!-- ================= HEADER ================= -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="fw-semibold mb-2">Manage Price Data</h2>
+        <p class="text-muted mb-0">Total {{ prices.paginator.count|default:0 }} price records</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{% url 'admin_dashboard' %}" class="btn btn-admin btn-admin-secondary">
+            <i class="fas fa-arrow-left me-1"></i> Back
+        </a>
+        <button class="btn btn-admin btn-admin-primary" data-bs-toggle="modal" data-bs-target="#addPriceModal">
+            <i class="fas fa-plus me-1"></i> Add Price
+        </button>
+    </div>
+</div>
+
+<!-- ================= FILTERS ================= -->
+<div class="table-container mb-4">
+    <div class="p-3 border-bottom">
+        <h5 class="mb-0">Filter & Search</h5>
+    </div>
+    <div class="p-3">
+        <form method="get" class="row g-3">
+            <div class="col-md-3">
+                <label class="form-label">Market</label>
+                <input type="text" name="market" class="form-control" placeholder="Market name..." 
+                       value="{{ request.GET.market }}">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">State</label>
+                <input type="text" name="state" class="form-control" placeholder="State..." 
+                       value="{{ request.GET.state }}">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Start Date</label>
+                <input type="date" name="start_date" class="form-control" 
+                       value="{{ request.GET.start_date }}">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">End Date</label>
+                <input type="date" name="end_date" class="form-control" 
+                       value="{{ request.GET.end_date }}">
+            </div>
+            <div class="col-md-2 d-flex align-items-end">
+                <button type="submit" class="btn btn-admin btn-admin-primary w-100">
+                    <i class="fas fa-search me-1"></i> Filter
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ================= PRICE TABLE ================= -->
+<div class="table-container">
+    <div class="p-3 border-bottom d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">All Price Records</h5>
+        <div>
+            <a href="?export=csv" class="btn btn-sm btn-outline-success me-2">
+                <i class="fas fa-download me-1"></i> Export CSV
+            </a>
+        </div>
+    </div>
+    
+    <div class="table-responsive">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Market</th>
+                    <th>State/District</th>
+                    <th>Variety</th>
+                    <th>Min Price</th>
+                    <th>Max Price</th>
+                    <th>Modal Price</th>
+                    <th>Arrival (qtl)</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for price in prices %}
+                <tr>
+                    <td>{{ price.date|date:"d M Y" }}</td>
+                    <td>
+                        <div class="fw-medium">{{ price.market }}</div>
+                    </td>
+                    <td>
+                        <div>{{ price.state }}</div>
+                        <small class="text-muted">{{ price.district }}</small>
+                    </td>
+                    <td>
+                        <span class="badge bg-info-subtle text-info">{{ price.variety }}</span>
+                    </td>
+                    <td>
+                        <span class="badge bg-success-subtle text-success">
+                            ₹{{ price.min_price|floatformat:2 }}
+                        </span>
+                    </td>
+                    <td>
+                        <span class="badge bg-danger-subtle text-danger">
+                            ₹{{ price.max_price|floatformat:2 }}
+                        </span>
+                    </td>
+                    <td>
+                        <span class="badge-price 
+                            {% if price.modal_price < 1500 %}badge-price-low
+                            {% elif price.modal_price < 3000 %}badge-price-medium
+                            {% else %}badge-price-high{% endif %}">
+                            ₹{{ price.modal_price|floatformat:2 }}
+                        </span>
+                    </td>
+                    <td>{{ price.arrival_quantity|floatformat:0 }}</td>
+                    <td>
+                        <div class="btn-group" role="group">
+                            <a href="{% url 'admin:forecast_app_onionprice_change' price.id %}" 
+                               class="btn btn-sm btn-outline-primary" target="_blank" title="Edit">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <button type="button" class="btn btn-sm btn-outline-danger" 
+                                    data-bs-toggle="modal" data-bs-target="#deleteModal{{ price.id }}">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+
+                <!-- Delete Modal -->
+                <div class="modal fade" id="deleteModal{{ price.id }}" tabindex="-1">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">Confirm Delete</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body">
+                                Are you sure you want to delete price record for 
+                                <strong>{{ price.market }}</strong> on {{ price.date|date:"d M Y" }}?
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                <form method="post" action="{% url 'admin:forecast_app_onionprice_delete' price.id %}">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-danger">Delete</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <tr>
+                    <td colspan="9" class="text-center py-4">
+                        <i class="fas fa-database fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">No price records found</p>
+                        <button class="btn btn-admin btn-admin-primary" data-bs-toggle="modal" data-bs-target="#addPriceModal">
+                            <i class="fas fa-plus me-1"></i> Add First Price
+                        </button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    <!-- Pagination -->
+    {% if prices.paginator.num_pages > 1 %}
+    <div class="p-3 border-top">
+        <nav>
+            <ul class="pagination justify-content-center mb-0">
+                {% if prices.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page=1{% if request.GET.market %}&market={{ request.GET.market }}{% endif %}{% if request.GET.state %}&state={{ request.GET.state }}{% endif %}">
+                        First
+                    </a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ prices.previous_page_number }}{% if request.GET.market %}&market={{ request.GET.market }}{% endif %}{% if request.GET.state %}&state={{ request.GET.state }}{% endif %}">
+                        Previous
+                    </a>
+                </li>
+                {% endif %}
+
+                {% for num in prices.paginator.page_range %}
+                    {% if prices.number == num %}
+                    <li class="page-item active">
+                        <span class="page-link">{{ num }}</span>
+                    </li>
+                    {% elif num > prices.number|add:'-3' and num < prices.number|add:'3' %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ num }}{% if request.GET.market %}&market={{ request.GET.market }}{% endif %}{% if request.GET.state %}&state={{ request.GET.state }}{% endif %}">
+                            {{ num }}
+                        </a>
+                    </li>
+                    {% endif %}
+                {% endfor %}
+
+                {% if prices.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ prices.next_page_number }}{% if request.GET.market %}&market={{ request.GET.market }}{% endif %}{% if request.GET.state %}&state={{ request.GET.state }}{% endif %}">
+                        Next
+                    </a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ prices.paginator.num_pages }}{% if request.GET.market %}&market={{ request.GET.market }}{% endif %}{% if request.GET.state %}&state={{ request.GET.state }}{% endif %}">
+                        Last
+                    </a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Add Price Modal -->
+<div class="modal fade" id="addPriceModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add New Price Record</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>To add price records directly, please use the Django admin panel for now.</p>
+                <p class="text-muted">Advanced form with validation will be available in the next update.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <a href="/admin/forecast_app/onionprice/add/" class="btn btn-admin btn-admin-primary" target="_blank">
+                    <i class="fas fa-external-link-alt me-1"></i> Open Django Admin
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

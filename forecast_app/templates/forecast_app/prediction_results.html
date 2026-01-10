@@ -1,0 +1,757 @@
+<!-- forecast_app/templates/forecast_app/prediction_results.html -->
+{% extends 'forecast_app/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="hero-section">
+            <div class="container">
+                <h1 class="display-5 fw-bold">Prediction Results</h1>
+                <p class="lead">View and analyze all generated price forecasts and their accuracy</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filters and Actions -->
+<div class="card mb-4">
+    <div class="card-header">
+        <div class="d-flex justify-content-between align-items-center">
+            <h5 class="mb-0"><i class="fas fa-filter me-2"></i>Filter Predictions</h5>
+            <div>
+                <a href="{% url 'predict' %}" class="btn btn-primary btn-sm">
+                    <i class="fas fa-plus me-1"></i>New Prediction
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-3">
+                <div class="mb-3">
+                    <label class="form-label">Market</label>
+                    <select class="form-select" id="filterMarket">
+                        <option value="">All Markets</option>
+                        {% with markets=predictions.values_list|distinct %}
+                            {% for market in markets %}
+                            <option value="{{ market }}">{{ market }}</option>
+                            {% endfor %}
+                        {% endwith %}
+                    </select>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="mb-3">
+                    <label class="form-label">Date Range</label>
+                    <select class="form-select" id="filterDate">
+                        <option value="all">All Time</option>
+                        <option value="week">Last 7 Days</option>
+                        <option value="month">Last 30 Days</option>
+                        <option value="quarter">Last 90 Days</option>
+                    </select>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="mb-3">
+                    <label class="form-label">Accuracy</label>
+                    <select class="form-select" id="filterAccuracy">
+                        <option value="all">All</option>
+                        <option value="high">High (>85%)</option>
+                        <option value="medium">Medium (70-85%)</option>
+                        <option value="low">Low (<70%)</option>
+                    </select>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="mb-3">
+                    <label class="form-label">Status</label>
+                    <select class="form-select" id="filterStatus">
+                        <option value="all">All</option>
+                        <option value="pending">Pending Verification</option>
+                        <option value="accurate">Accurate</option>
+                        <option value="inaccurate">Inaccurate</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        <div class="d-flex justify-content-between">
+            <button class="btn btn-outline-primary" onclick="applyFilters()">
+                <i class="fas fa-search me-2"></i>Apply Filters
+            </button>
+            <button class="btn btn-outline-secondary" onclick="resetFilters()">
+                <i class="fas fa-redo me-2"></i>Reset Filters
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Statistics -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="stat-card">
+            <h3>{{ predictions.count }}</h3>
+            <p>Total Predictions</p>
+            <i class="fas fa-bullseye fa-2x text-primary mt-3"></i>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <h3>{{ avg_confidence|default:"85"|floatformat:1 }}%</h3>
+            <p>Average Confidence</p>
+            <i class="fas fa-chart-line fa-2x text-success mt-3"></i>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <h3>{{ accurate_predictions|default:"0" }}</h3>
+            <p>Accurate Predictions</p>
+            <i class="fas fa-check-circle fa-2x text-info mt-3"></i>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <h3>{{ pending_predictions|default:"0" }}</h3>
+            <p>Pending Verification</p>
+            <i class="fas fa-clock fa-2x text-warning mt-3"></i>
+        </div>
+    </div>
+</div>
+
+<!-- Predictions Table -->
+<div class="card">
+    <div class="card-header">
+        <div class="d-flex justify-content-between align-items-center">
+            <h5 class="mb-0"><i class="fas fa-table me-2"></i>All Predictions</h5>
+            <div>
+                <button class="btn btn-sm btn-outline-success" onclick="exportPredictions()">
+                    <i class="fas fa-download me-1"></i>Export
+                </button>
+                <button class="btn btn-sm btn-outline-info ms-2" onclick="showAccuracyChart()">
+                    <i class="fas fa-chart-bar me-1"></i>View Analytics
+                </button>
+            </div>
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover" id="predictionsTable">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Prediction Date</th>
+                        <th>Forecast Date</th>
+                        <th>Market</th>
+                        <th>Predicted Price</th>
+                        <th>Actual Price</th>
+                        <th>Accuracy</th>
+                        <th>Confidence</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for prediction in predictions %}
+                    <tr data-market="{{ prediction.market }}" 
+                        data-date="{{ prediction.prediction_date|date:'Y-m-d' }}"
+                        data-confidence="{{ prediction.confidence_interval }}"
+                        data-status="{% if prediction.actual_price %}verified{% else %}pending{% endif %}">
+                        <td>{{ prediction.id }}</td>
+                        <td>{{ prediction.prediction_date|date:"Y-m-d" }}</td>
+                        <td>{{ prediction.forecast_date|date:"Y-m-d" }}</td>
+                        <td>{{ prediction.market }}</td>
+                        <td>
+                            <strong>₹{{ prediction.predicted_modal_price|floatformat:2 }}</strong><br>
+                            <small class="text-muted">
+                                Min: ₹{{ prediction.predicted_min_price|floatformat:2 }}<br>
+                                Max: ₹{{ prediction.predicted_max_price|floatformat:2 }}
+                            </small>
+                        </td>
+                        <td>
+                            {% if prediction.actual_price %}
+                            <strong>₹{{ prediction.actual_price|floatformat:2 }}</strong>
+                            {% else %}
+                            <span class="text-muted">Pending</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if prediction.actual_price %}
+                            {% with diff=prediction.predicted_modal_price|subtract:prediction.actual_price|abs %}
+                            {% with accuracy=100|subtract:diff|divide:prediction.actual_price|multiply:100 %}
+                            <span class="badge bg-{% if accuracy > 90 %}success{% elif accuracy > 80 %}warning{% else %}danger{% endif %}">
+                                {{ accuracy|floatformat:1 }}%
+                            </span>
+                            {% endwith %}
+                            {% endwith %}
+                            {% else %}
+                            <span class="badge bg-secondary">N/A</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="badge bg-info">{{ prediction.confidence_interval|floatformat:1 }}%</span>
+                        </td>
+                        <td>
+                            {% if prediction.actual_price %}
+                            {% with diff=prediction.predicted_modal_price|subtract:prediction.actual_price|abs %}
+                            {% with accuracy=100|subtract:diff|divide:prediction.actual_price|multiply:100 %}
+                            {% if accuracy > 90 %}
+                            <span class="badge bg-success">Accurate</span>
+                            {% elif accuracy > 80 %}
+                            <span class="badge bg-warning">Close</span>
+                            {% else %}
+                            <span class="badge bg-danger">Off</span>
+                            {% endif %}
+                            {% endwith %}
+                            {% endwith %}
+                            {% else %}
+                            <span class="badge bg-secondary">Pending</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                          <div class="btn-group btn-group-sm">
+    <button class="btn btn-outline-primary" onclick="viewPrediction('{{ prediction.id }}')">
+        <i class="fas fa-eye"></i>
+    </button>
+    <button class="btn btn-outline-success" onclick="updateActualPrice('{{ prediction.id }}')">
+        <i class="fas fa-edit"></i>
+    </button>
+    <button class="btn btn-outline-danger" onclick="deletePrediction('{{ prediction.id }}')">
+        <i class="fas fa-trash"></i>
+    </button>
+</div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="10" class="text-center py-5">
+                            <i class="fas fa-crystal-ball fa-3x text-muted mb-3"></i>
+                            <h4>No Predictions Found</h4>
+                            <p class="text-muted">No price predictions have been generated yet.</p>
+                            <a href="{% url 'predict' %}" class="btn btn-primary">
+                                <i class="fas fa-magic me-2"></i>Generate First Prediction
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Pagination -->
+        {% if predictions.has_other_pages %}
+        <nav aria-label="Page navigation" class="mt-4">
+            <ul class="pagination justify-content-center">
+                {% if predictions.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ predictions.previous_page_number }}">Previous</a>
+                </li>
+                {% endif %}
+                
+                {% for num in predictions.paginator.page_range %}
+                    {% if predictions.number == num %}
+                    <li class="page-item active">
+                        <span class="page-link">{{ num }}</span>
+                    </li>
+                    {% elif num > predictions.number|add:'-3' and num < predictions.number|add:'3' %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                    </li>
+                    {% endif %}
+                {% endfor %}
+                
+                {% if predictions.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ predictions.next_page_number }}">Next</a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+        
+        <div class="alert alert-info mt-3">
+            <i class="fas fa-info-circle me-2"></i>
+            Showing {{ predictions|length }} predictions. Use filters to narrow down results.
+        </div>
+    </div>
+</div>
+
+<!-- Accuracy Chart Modal -->
+<div class="modal fade" id="accuracyModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Prediction Accuracy Analytics</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="chart-container" style="height: 400px;">
+                    <canvas id="accuracyChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- View Prediction Modal -->
+<div class="modal fade" id="viewModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Prediction Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="predictionDetails">
+                <!-- Details will be loaded here -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Update Price Modal -->
+<div class="modal fade" id="updateModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Update Actual Price</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="updatePriceForm">
+                    <input type="hidden" id="predictionId">
+                    <div class="mb-3">
+                        <label for="actualPrice" class="form-label">Actual Market Price (₹)</label>
+                        <input type="number" step="0.01" class="form-control" id="actualPrice" required>
+                        <div class="form-text">Enter the actual market price on the forecast date</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="notes" class="form-label">Notes</label>
+                        <textarea class="form-control" id="notes" rows="3"></textarea>
+                        <div class="form-text">Any additional notes about this price</div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="saveActualPrice()">Save</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+let accuracyChart = null;
+let currentPredictionId = null;
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize table sorting
+    initializeTableSorting();
+    
+    // Apply initial filters from URL
+    applyUrlFilters();
+});
+
+function applyUrlFilters() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const market = urlParams.get('market');
+    const date = urlParams.get('date');
+    const accuracy = urlParams.get('accuracy');
+    const status = urlParams.get('status');
+    
+    if (market) document.getElementById('filterMarket').value = market;
+    if (date) document.getElementById('filterDate').value = date;
+    if (accuracy) document.getElementById('filterAccuracy').value = accuracy;
+    if (status) document.getElementById('filterStatus').value = status;
+    
+    applyFilters();
+}
+
+function applyFilters() {
+    const market = document.getElementById('filterMarket').value;
+    const dateRange = document.getElementById('filterDate').value;
+    const accuracy = document.getElementById('filterAccuracy').value;
+    const status = document.getElementById('filterStatus').value;
+    
+    const rows = document.querySelectorAll('#predictionsTable tbody tr');
+    let visibleCount = 0;
+    
+    rows.forEach(row => {
+        let show = true;
+        
+        // Market filter
+        if (market && row.dataset.market !== market) {
+            show = false;
+        }
+        
+        // Date filter
+        if (dateRange !== 'all') {
+            const predDate = new Date(row.dataset.date);
+            const now = new Date();
+            let daysDiff = (now - predDate) / (1000 * 60 * 60 * 24);
+            
+            if (dateRange === 'week' && daysDiff > 7) show = false;
+            if (dateRange === 'month' && daysDiff > 30) show = false;
+            if (dateRange === 'quarter' && daysDiff > 90) show = false;
+        }
+        
+        // Accuracy filter (simplified)
+        if (accuracy !== 'all') {
+            const conf = parseFloat(row.dataset.confidence);
+            if (accuracy === 'high' && conf < 85) show = false;
+            if (accuracy === 'medium' && (conf < 70 || conf > 85)) show = false;
+            if (accuracy === 'low' && conf > 70) show = false;
+        }
+        
+        // Status filter
+        if (status !== 'all' && row.dataset.status !== status) {
+            show = false;
+        }
+        
+        row.style.display = show ? '' : 'none';
+        if (show) visibleCount++;
+    });
+    
+    // Update visible count
+    const infoAlert = document.querySelector('.alert-info');
+    if (infoAlert) {
+        infoAlert.innerHTML = `<i class="fas fa-info-circle me-2"></i>
+            Showing ${visibleCount} predictions. Use filters to narrow down results.`;
+    }
+    
+    // Update URL
+    updateUrlFilters();
+}
+
+function resetFilters() {
+    document.getElementById('filterMarket').value = '';
+    document.getElementById('filterDate').value = 'all';
+    document.getElementById('filterAccuracy').value = 'all';
+    document.getElementById('filterStatus').value = 'all';
+    applyFilters();
+}
+
+function updateUrlFilters() {
+    const params = new URLSearchParams();
+    
+    const market = document.getElementById('filterMarket').value;
+    const date = document.getElementById('filterDate').value;
+    const accuracy = document.getElementById('filterAccuracy').value;
+    const status = document.getElementById('filterStatus').value;
+    
+    if (market) params.set('market', market);
+    if (date !== 'all') params.set('date', date);
+    if (accuracy !== 'all') params.set('accuracy', accuracy);
+    if (status !== 'all') params.set('status', status);
+    
+    const newUrl = window.location.pathname + (params.toString() ? '?' + params.toString() : '');
+    window.history.replaceState({}, '', newUrl);
+}
+
+function initializeTableSorting() {
+    const table = document.getElementById('predictionsTable');
+    const headers = table.querySelectorAll('th');
+    
+    headers.forEach((header, index) => {
+        header.style.cursor = 'pointer';
+        header.addEventListener('click', () => sortTable(index));
+    });
+}
+
+function sortTable(columnIndex) {
+    const table = document.getElementById('predictionsTable');
+    const tbody = table.querySelector('tbody');
+    const rows = Array.from(tbody.querySelectorAll('tr:not([style*="none"])'));
+    
+    if (rows.length === 0) return;
+    
+    rows.sort((a, b) => {
+        const aCell = a.cells[columnIndex];
+        const bCell = b.cells[columnIndex];
+        const aVal = aCell.textContent.trim();
+        const bVal = bCell.textContent.trim();
+        
+        // Handle numeric values
+        const aNum = parseFloat(aVal.replace(/[^0-9.-]+/g, ''));
+        const bNum = parseFloat(bVal.replace(/[^0-9.-]+/g, ''));
+        
+        if (!isNaN(aNum) && !isNaN(bNum)) {
+            return aNum - bNum;
+        }
+        
+        // Handle badges
+        const aBadge = aCell.querySelector('.badge');
+        const bBadge = bCell.querySelector('.badge');
+        if (aBadge && bBadge) {
+            return aBadge.textContent.localeCompare(bBadge.textContent);
+        }
+        
+        return aVal.localeCompare(bVal);
+    });
+    
+    // Toggle sort order
+    if (table.dataset.sortColumn === String(columnIndex)) {
+        rows.reverse();
+        table.dataset.sortOrder = table.dataset.sortOrder === 'asc' ? 'desc' : 'asc';
+    } else {
+        table.dataset.sortColumn = columnIndex;
+        table.dataset.sortOrder = 'asc';
+    }
+    
+    // Re-append rows
+    tbody.innerHTML = '';
+    rows.forEach(row => tbody.appendChild(row));
+}
+
+function exportPredictions() {
+    const rows = document.querySelectorAll('#predictionsTable tbody tr:not([style*="none"])');
+    let csv = 'ID,Prediction Date,Forecast Date,Market,Predicted Price,Actual Price,Accuracy,Confidence,Status\n';
+    
+    rows.forEach(row => {
+        const cells = row.querySelectorAll('td');
+        const rowData = Array.from(cells).slice(0, -1).map(cell => {
+            let text = cell.textContent.trim().replace(/\n/g, ' ');
+            if (text.includes(',') || text.includes('"')) {
+                text = '"' + text.replace(/"/g, '""') + '"';
+            }
+            return text;
+        });
+        csv += rowData.join(',') + '\n';
+    });
+    
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `predictions_${new Date().toISOString().slice(0,10)}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+}
+
+function showAccuracyChart() {
+    const rows = document.querySelectorAll('#predictionsTable tbody tr:not([style*="none"])');
+    const data = {
+        labels: [],
+        accuracies: [],
+        confidences: []
+    };
+    
+    rows.slice(0, 20).forEach(row => {
+        const cells = row.cells;
+        data.labels.push(cells[3].textContent + ' ' + cells[2].textContent);
+        
+        const accuracyBadge = cells[6].querySelector('.badge');
+        if (accuracyBadge) {
+            const accuracy = parseFloat(accuracyBadge.textContent);
+            if (!isNaN(accuracy)) {
+                data.accuracies.push(accuracy);
+            }
+        }
+        
+        const confidenceBadge = cells[7].querySelector('.badge');
+        if (confidenceBadge) {
+            const confidence = parseFloat(confidenceBadge.textContent);
+            if (!isNaN(confidence)) {
+                data.confidences.push(confidence);
+            }
+        }
+    });
+    
+    const ctx = document.getElementById('accuracyChart').getContext('2d');
+    
+    if (accuracyChart) {
+        accuracyChart.destroy();
+    }
+    
+    accuracyChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: data.labels,
+            datasets: [{
+                label: 'Accuracy (%)',
+                data: data.accuracies,
+                backgroundColor: 'rgba(39, 174, 96, 0.7)',
+                borderColor: 'rgba(39, 174, 96, 1)',
+                borderWidth: 1
+            }, {
+                label: 'Confidence (%)',
+                data: data.confidences,
+                backgroundColor: 'rgba(52, 152, 219, 0.7)',
+                borderColor: 'rgba(52, 152, 219, 1)',
+                borderWidth: 1,
+                type: 'line',
+                yAxisID: 'y1'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 100,
+                    title: {
+                        display: true,
+                        text: 'Accuracy (%)'
+                    }
+                },
+                y1: {
+                    position: 'right',
+                    beginAtZero: true,
+                    max: 100,
+                    title: {
+                        display: true,
+                        text: 'Confidence (%)'
+                    },
+                    grid: {
+                        drawOnChartArea: false
+                    }
+                }
+            }
+        }
+    });
+    
+    const modal = new bootstrap.Modal(document.getElementById('accuracyModal'));
+    modal.show();
+}
+
+function viewPrediction(id) {
+    // In a real app, this would fetch from API
+    const prediction = {
+        id: id,
+        market: 'Azadpur Mandi, Delhi',
+        predicted_price: 2250,
+        actual_price: 2300,
+        accuracy: 92.5,
+        confidence: 85,
+        date: '2024-01-09',
+        forecast_date: '2024-01-16',
+        model_used: 'LSTM'
+    };
+    
+    const details = document.getElementById('predictionDetails');
+    details.innerHTML = `
+        <div class="row">
+            <div class="col-md-6">
+                <h6>Prediction Details</h6>
+                <table class="table table-sm">
+                    <tr><td>ID:</td><td>${prediction.id}</td></tr>
+                    <tr><td>Market:</td><td>${prediction.market}</td></tr>
+                    <tr><td>Prediction Date:</td><td>${prediction.date}</td></tr>
+                    <tr><td>Forecast Date:</td><td>${prediction.forecast_date}</td></tr>
+                    <tr><td>Model Used:</td><td>${prediction.model_used}</td></tr>
+                </table>
+            </div>
+            <div class="col-md-6">
+                <h6>Price Details</h6>
+                <table class="table table-sm">
+                    <tr><td>Predicted Price:</td><td>₹${prediction.predicted_price}</td></tr>
+                    <tr><td>Actual Price:</td><td>₹${prediction.actual_price}</td></tr>
+                    <tr><td>Accuracy:</td><td><span class="badge bg-success">${prediction.accuracy}%</span></td></tr>
+                    <tr><td>Confidence:</td><td><span class="badge bg-info">${prediction.confidence}%</span></td></tr>
+                    <tr><td>Difference:</td><td>₹${Math.abs(prediction.predicted_price - prediction.actual_price)}</td></tr>
+                </table>
+            </div>
+        </div>
+        <div class="alert alert-info mt-3">
+            <i class="fas fa-info-circle me-2"></i>
+            This prediction was generated using the ${prediction.model_used} model with ${prediction.confidence}% confidence.
+        </div>
+    `;
+    
+    const modal = new bootstrap.Modal(document.getElementById('viewModal'));
+    modal.show();
+}
+
+function updateActualPrice(id) {
+    currentPredictionId = id;
+    document.getElementById('predictionId').value = id;
+    document.getElementById('actualPrice').value = '';
+    document.getElementById('notes').value = '';
+    
+    const modal = new bootstrap.Modal(document.getElementById('updateModal'));
+    modal.show();
+}
+
+function saveActualPrice() {
+    const id = document.getElementById('predictionId').value;
+    const actualPrice = document.getElementById('actualPrice').value;
+    const notes = document.getElementById('notes').value;
+    
+    if (!actualPrice) {
+        alert('Please enter actual price');
+        return;
+    }
+    
+    // In a real app, this would be an API call
+    fetch(`/api/predictions/${id}/update/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: JSON.stringify({
+            actual_price: actualPrice,
+            notes: notes
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Price updated successfully');
+            location.reload();
+        } else {
+            alert('Error updating price: ' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error updating price');
+    });
+}
+
+function deletePrediction(id) {
+    if (confirm('Are you sure you want to delete this prediction?')) {
+        // In a real app, this would be an API call
+        fetch(`/api/predictions/${id}/delete/`, {
+            method: 'DELETE',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken')
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Prediction deleted successfully');
+                location.reload();
+            } else {
+                alert('Error deleting prediction: ' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error deleting prediction');
+        });
+    }
+}
+
+// Helper function to get CSRF token
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+</script>
+{% endblock %}

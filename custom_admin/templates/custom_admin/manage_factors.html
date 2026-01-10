@@ -1,0 +1,108 @@
+{% extends 'custom_admin/base.html' %}
+
+{% block title %}Market Factors - Admin{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="mb-0">Market Factors</h2>
+    <a href="{% url 'admin_dashboard' %}" class="btn btn-admin btn-admin-secondary">
+        <i class="fas fa-arrow-left me-1"></i> Back to Dashboard
+    </a>
+</div>
+<div class="table-container">
+    <div class="p-3 border-bottom d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">All Market Factors</h5>
+        <button class="btn btn-admin btn-admin-primary" data-bs-toggle="modal" data-bs-target="#addFactorModal">
+            <i class="fas fa-plus me-1"></i> Add New Factor
+        </button>
+    </div>
+    <div class="table-responsive">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Factor Name</th>
+                    <th>Type</th>
+                    <th>Impact Score</th>
+                    <th>Status</th>
+                    <th>Created At</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for factor in factors %}
+                <tr>
+                    <td>{{ factor.id }}</td>
+                    <td>
+                        <strong>{{ factor.name }}</strong>
+                        <br>
+                        <small class="text-muted">{{ factor.description|truncatechars:50 }}</small>
+                    </td>
+                    <td>
+                        <span class="badge bg-info">{{ factor.factor_type|default:"General" }}</span>
+                    </td>
+                    <td>
+                        <div class="progress" style="height: 20px;">
+                            <div class="progress-bar {% if factor.impact_score >= 70 %}bg-success{% elif factor.impact_score >= 40 %}bg-warning{% else %}bg-danger{% endif %}" 
+                                 role="progressbar" 
+                                 aria-valuenow="{{ factor.impact_score }}" 
+                                 aria-valuemin="0" 
+                                 aria-valuemax="100">
+                                {{ factor.impact_score }}%
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        {% if factor.is_active %}
+                        <span class="badge bg-success">Active</span>
+                        {% else %}
+                        <span class="badge bg-secondary">Inactive</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ factor.created_at|date:"d M Y"|default:"-" }}</td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-primary me-1">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="text-center py-4">
+                        <i class="fas fa-balance-scale fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">No market factors configured yet</p>
+                        <button class="btn btn-admin btn-admin-primary" data-bs-toggle="modal" data-bs-target="#addFactorModal">
+                            <i class="fas fa-plus me-1"></i> Add First Factor
+                        </button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+<!-- Add Factor Modal -->
+<div class="modal fade" id="addFactorModal" tabindex="-1" aria-labelledby="addFactorModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addFactorModalLabel">Add New Market Factor</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Market factors management will be available in the next update.</p>
+                <p class="text-muted">For now, you can add factors directly through the Django admin panel.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <a href="/admin/forecast_app/marketfactor/add/" class="btn btn-admin btn-admin-primary" target="_blank">
+                    <i class="fas fa-external-link-alt me-1"></i> Open Django Admin
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

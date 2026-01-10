@@ -1,0 +1,43 @@
+
+/* forecast_app/static/admin/css/custom_admin.css */
+:root {
+    --primary-color: #ff6b35;
+    --secondary-color: #1a936f;
+    --dark-color: #114b5f;
+}
+
+#header {
+    background: linear-gradient(135deg, var(--dark-color) 0%, var(--primary-color) 100%);
+    color: white;
+}
+
+#branding h1 {
+    font-weight: 700;
+    color: white;
+}
+
+.module h2, .module caption, .inline-group h2 {
+    background: var(--secondary-color);
+}
+
+div.breadcrumbs {
+    background: var(--primary-color);
+}
+
+.button, input[type=submit], input[type=button], .submit-row input, a.button {
+    background: var(--primary-color);
+}
+
+.button:hover, input[type=submit]:hover, input[type=button]:hover {
+    background: var(--dark-color);
+}
+
+.object-tools a {
+    background: var(--secondary-color);
+}
+
+.badge {
+    padding: 0.25em 0.6em;
+    border-radius: 10rem;
+    font-weight: 600;
+}

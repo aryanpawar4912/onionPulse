@@ -1,0 +1,268 @@
+<!-- forecast_app/templates/forecast_app/home.html -->
+{% extends 'forecast_app/base.html' %}
+{% load static %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="hero-section">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <h1 class="display-4 fw-bold mb-3">Onion Price Forecast System</h1>
+                <p class="lead mb-4">AI-powered predictions for stable onion markets in India. Helping farmers, traders, and policymakers make informed decisions.</p>
+                <div class="d-flex gap-3">
+                    <a href="{% url 'predict' %}" class="btn btn-light btn-lg">
+                        <i class="fas fa-crystal-ball me-2"></i>Make Prediction
+                    </a>
+                    <a href="{% url 'dashboard' %}" class="btn btn-outline-light btn-lg">
+                        <i class="fas fa-chart-line me-2"></i>View Dashboard
+                    </a>
+                </div>
+            </div>
+            <div class="col-lg-4 text-center">
+                <div class="stat-card">
+                    <h3>₹{{ current_price|default:"2,250" }}</h3>
+                    <p>Current Average Price</p>
+                    <span class="badge bg-{{ trend_color|default:'success' }}">{{ trend|default:'Stable' }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Stats Section -->
+<div class="container mb-5">
+    <div class="row g-4">
+        <div class="col-md-3">
+            <div class="stat-card">
+                <h3>{{ total_prices|default:"0" }}</h3>
+                <p>Price Records</p>
+                <i class="fas fa-database fa-2x text-primary mt-3"></i>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <h3>{{ total_factors|default:"0" }}</h3>
+                <p>Market Factors</p>
+                <i class="fas fa-chart-bar fa-2x text-warning mt-3"></i>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <h3>{{ total_predictions|default:"0" }}</h3>
+                <p>Predictions Made</p>
+                <i class="fas fa-bullseye fa-2x text-success mt-3"></i>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <h3>{{ accuracy|default:"85" }}%</h3>
+                <p>Prediction Accuracy</p>
+                <i class="fas fa-brain fa-2x text-info mt-3"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Main Content -->
+<div class="container">
+    <div class="row">
+        <!-- Price Chart -->
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-chart-line me-2"></i>Price Trends (Last 30 Days)</h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="priceChart"></canvas>
+                    </div>
+                    <div class="mt-3">
+                        <button class="btn btn-outline-primary btn-sm" onclick="loadPriceData(7)">7 Days</button>
+                        <button class="btn btn-outline-primary btn-sm" onclick="loadPriceData(30)">30 Days</button>
+                        <button class="btn btn-outline-primary btn-sm" onclick="loadPriceData(90)">90 Days</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Prices -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-history me-2"></i>Recent Market Prices</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Market</th>
+                                    <th>Min Price</th>
+                                    <th>Max Price</th>
+                                    <th>Modal Price</th>
+                                    <th>Trend</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for price in recent_prices|slice:":10" %}
+                                <tr>
+                                    <td>{{ price.date|date:"Y-m-d" }}</td>
+                                    <td>{{ price.market|truncatechars:20 }}</td>
+                                    <td>₹{{ price.min_price }}</td>
+                                    <td>₹{{ price.max_price }}</td>
+                                    <td><strong>₹{{ price.modal_price }}</strong></td>
+                                    <td>
+                                        {% if price.trend == 'up' %}
+                                        <span class="badge bg-success">↑ Up</span>
+                                        {% elif price.trend == 'down' %}
+                                        <span class="badge bg-danger">↓ Down</span>
+                                        {% else %}
+                                        <span class="badge bg-warning">→ Stable</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="6" class="text-center">No price data available</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <a href="{% url 'historical' %}" class="btn btn-outline-primary">View All Historical Data</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Sidebar -->
+        <div class="col-lg-4">
+            <!-- Market Factors -->
+            <div class="card">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0"><i class="fas fa-exclamation-triangle me-2"></i>Active Market Factors</h5>
+                </div>
+                <div class="card-body">
+                    {% for factor in market_factors|slice:":5" %}
+                    <div class="factor-card factor-{% if factor.impact_score > 0 %}positive{% elif factor.impact_score < 0 %}negative{% else %}neutral{% endif %}">
+                        <h6>{{ factor.name }}</h6>
+                        <small class="text-muted">{{ factor.get_factor_type_display }}</small>
+                        <p class="mb-1">{{ factor.description|truncatechars:100 }}</p>
+                        <span class="badge bg-{% if factor.impact_score > 0 %}danger{% else %}success{% endif %}">
+                            Impact: {{ factor.impact_score|floatformat:2 }}
+                        </span>
+                    </div>
+                    {% empty %}
+                    <p class="text-muted">No active market factors</p>
+                    {% endfor %}
+                    <a href="/admin/forecast_app/marketfactor/" class="btn btn-outline-warning btn-sm mt-2">Manage Factors</a>
+                </div>
+            </div>
+
+            <!-- Predictions -->
+            <div class="card mt-4">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="fas fa-crystal-ball me-2"></i>7-Day Forecast</h5>
+                </div>
+                <div class="card-body">
+                    {% for prediction in predictions|slice:":7" %}
+                    <div class="d-flex justify-content-between align-items-center mb-3 pb-3 border-bottom">
+                        <div>
+                            <h6 class="mb-0">{{ prediction.forecast_date|date:"D, M d" }}</h6>
+                            <small class="text-muted">{{ prediction.market }}</small>
+                        </div>
+                        <div class="text-end">
+                            <h5 class="mb-0 text-primary">₹{{ prediction.predicted_modal_price }}</h5>
+                            <small class="text-muted">Confidence: {{ prediction.confidence_interval|floatformat:1 }}%</small>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p class="text-muted">No predictions available</p>
+                    <a href="{% url 'predict' %}" class="btn btn-info btn-sm">Generate Predictions</a>
+                    {% endfor %}
+                    <a href="{% url 'prediction_results' %}" class="btn btn-outline-info btn-sm mt-2">View All Predictions</a>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="card mt-4">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="fas fa-bolt me-2"></i>Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'predict' %}" class="btn btn-success">
+                            <i class="fas fa-magic me-2"></i>Predict Prices
+                        </a>
+                        <a href="/admin/forecast_app/onionprice/add/" class="btn btn-outline-success">
+                            <i class="fas fa-plus me-2"></i>Add Price Data
+                        </a>
+                        <a href="{% url 'historical' %}" class="btn btn-outline-success">
+                            <i class="fas fa-history me-2"></i>View Historical Data
+                        </a>
+                        {% if user.is_authenticated %}
+                        <a href="{% url 'recommendations' %}" class="btn btn-outline-info">
+                            <i class="fas fa-user-check me-2"></i>Get Recommendations
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Features Section -->
+<div class="container my-5">
+    <h2 class="text-center mb-5">How It Helps Different Users</h2>
+    <div class="row g-4">
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-tractor fa-3x text-success mb-3"></i>
+                    <h4 class="card-title">For Farmers</h4>
+                    <p class="card-text">Know when to sell your produce for maximum profit. Get alerts for price increases and storage recommendations.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-chart-line fa-3x text-primary mb-3"></i>
+                    <h4 class="card-title">For Traders</h4>
+                    <p class="card-text">Make informed buying decisions. Predict market trends and optimize your inventory management.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-landmark fa-3x text-warning mb-3"></i>
+                    <h4 class="card-title">For Government</h4>
+                    <p class="card-text">Monitor price stability. Make data-driven policy decisions for export/import and price control measures.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="{% static 'js/charts.js' %}"></script>
+<script>
+// Initialize charts when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    // Load price chart
+    if (document.getElementById('priceChart')) {
+        loadPriceData(30);
+    }
+    
+    // Auto-refresh data every 5 minutes
+    setInterval(function() {
+        if (document.getElementById('priceChart')) {
+            loadPriceData(30);
+        }
+    }, 300000);
+});
+</script>
+{% endblock %}
