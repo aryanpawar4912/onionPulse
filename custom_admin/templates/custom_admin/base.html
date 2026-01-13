@@ -6,7 +6,7 @@
     <title>{% block title %}Admin Dashboard{% endblock %}</title>
     
     <!-- Bootstrap -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -14,10 +14,27 @@
     <!-- Google Font -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
+    <!-- Animate.css -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    
     <style>
+        :root {
+            --primary-color: #ff8c32;
+            --primary-dark: #ff7a10;
+            --secondary-color: #4a5568;
+            --accent-color: #4299e1;
+            --light-color: #f7fafc;
+            --dark-color: #2d3748;
+            --success-color: #48bb78;
+            --danger-color: #f56565;
+            --warning-color: #ed8936;
+            --info-color: #4299e1;
+        }
+        
         body {
             font-family: 'Poppins', sans-serif;
-            background: #fff3e8;
+            background: #f8f9fa;
+            color: #333;
         }
         
         /* ================= SIDEBAR ================= */
@@ -40,10 +57,17 @@
         
         .sidebar-header h4 {
             font-weight: 700;
+            color: #333;
+            margin-bottom: 5px;
         }
         
         .sidebar-header span {
             color: #ff8c32;
+        }
+        
+        .sidebar-header small {
+            color: #666;
+            font-size: 0.85rem;
         }
         
         /* Sidebar Links */
@@ -56,68 +80,452 @@
             color: #555;
             font-weight: 500;
             margin-bottom: 8px;
-            transition: 0.3s;
+            transition: all 0.3s ease;
+            text-decoration: none;
         }
         
         .sidebar .nav-link i {
             width: 20px;
+            font-size: 1.1rem;
         }
         
         .sidebar .nav-link:hover {
             background: #fff0e3;
             color: #ff8c32;
+            transform: translateX(5px);
         }
         
         .sidebar .nav-link.active {
-            background: #ff8c32;
+            background: linear-gradient(135deg, #ff8c32, #ff7a10);
             color: #fff;
+            box-shadow: 0 4px 12px rgba(255, 140, 50, 0.3);
+        }
+        
+        .sidebar hr {
+            margin: 20px 0;
+            border-color: #e2e8f0;
         }
         
         /* ================= MAIN CONTENT ================= */
         .main-content {
             margin-left: 260px;
             padding: 25px;
+            min-height: 100vh;
+            transition: margin-left 0.3s ease;
         }
         
         /* ================= TOP BAR ================= */
         .topbar {
             background: #ffffff;
-            border-radius: 20px;
-            padding: 15px 25px;
+            border-radius: 16px;
+            padding: 1rem 1.5rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
             margin-bottom: 25px;
+            border: 1px solid #e2e8f0;
+            position: sticky;
+            top: 25px;
+            z-index: 100;
         }
         
-        .topbar input {
-            border: none;
-            background: #f5f5f5;
-            padding: 10px 20px;
-            border-radius: 30px;
-            width: 280px;
-            outline: none;
-        }
-        
-        .user-box {
+        .topbar-left {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 1rem;
         }
         
-        .user-box img {
+        .sidebar-toggle {
+            background: #f7fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 0.5rem 0.75rem;
+            color: #4a5568;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: none;
+        }
+        
+        .sidebar-toggle:hover {
+            background: #edf2f7;
+            color: var(--primary-color);
+            border-color: #cbd5e0;
+        }
+        
+        .page-title {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .page-title h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #2d3748;
+            margin: 0;
+            line-height: 1.2;
+        }
+        
+        .page-title small {
+            color: #718096;
+            font-size: 0.875rem;
+            font-weight: 400;
+        }
+        
+        .topbar-right {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+        
+        .search-container {
+            position: relative;
+        }
+        
+        .search-box {
+            padding: 0.75rem 1rem 0.75rem 2.5rem;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+            background: #f7fafc;
+            width: 280px;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            color: #4a5568;
+        }
+        
+        .search-box:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(255, 140, 50, 0.1);
+            background: #fff;
+            width: 320px;
+        }
+        
+        .search-box::placeholder {
+            color: #a0aec0;
+        }
+        
+        .search-icon {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #a0aec0;
+            font-size: 0.9rem;
+        }
+        
+        .user-actions {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        /* Notification Dropdown */
+        .notification-wrapper {
+            position: relative;
+        }
+        
+        .notification-btn {
+            position: relative;
+            background: #f7fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
             width: 40px;
             height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #4a5568;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .notification-btn:hover {
+            background: #edf2f7;
+            color: var(--primary-color);
+            transform: translateY(-2px);
+        }
+        
+        .notification-btn.has-notifications {
+            animation: bellRing 2s ease-in-out infinite;
+        }
+        
+        .notification-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #f56565;
+            color: white;
+            font-size: 0.7rem;
+            width: 18px;
+            height: 18px;
             border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            animation: pulse 2s infinite;
+        }
+        
+        .notification-dropdown {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            width: 360px;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+            border: 1px solid #e2e8f0;
+            z-index: 1000;
+            display: none;
+            margin-top: 10px;
+            animation: fadeInDown 0.3s ease-out;
+        }
+        
+        .notification-dropdown.show {
+            display: block;
+        }
+        
+        .notification-header {
+            padding: 1rem 1.25rem;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .notification-header h6 {
+            font-weight: 600;
+            margin: 0;
+            color: #2d3748;
+        }
+        
+        .mark-all-read {
+            background: none;
+            border: none;
+            color: var(--primary-color);
+            font-size: 0.8rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+        
+        .mark-all-read:hover {
+            color: var(--primary-dark);
+        }
+        
+        .notification-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .notification-item {
+            padding: 1rem 1.25rem;
+            border-bottom: 1px solid #f1f5f9;
+            display: flex;
+            gap: 0.75rem;
+            transition: background-color 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .notification-item:hover {
+            background-color: #f8fafc;
+        }
+        
+        .notification-item.unread {
+            background-color: #f0f9ff;
+        }
+        
+        .notification-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            font-size: 0.9rem;
+        }
+        
+        .notification-success .notification-icon {
+            background: #d1fae5;
+            color: #059669;
+        }
+        
+        .notification-warning .notification-icon {
+            background: #fef3c7;
+            color: #d97706;
+        }
+        
+        .notification-danger .notification-icon {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+        
+        .notification-info .notification-icon {
+            background: #dbeafe;
+            color: #1d4ed8;
+        }
+        
+        .notification-content {
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .notification-title {
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 0.25rem;
+            font-size: 0.9rem;
+            line-height: 1.3;
+        }
+        
+        .notification-message {
+            color: #64748b;
+            font-size: 0.8rem;
+            line-height: 1.4;
+            margin-bottom: 0.25rem;
+        }
+        
+        .notification-time {
+            color: #94a3b8;
+            font-size: 0.7rem;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+        
+        .notification-footer {
+            padding: 1rem;
+            text-align: center;
+            border-top: 1px solid #e2e8f0;
+        }
+        
+        .view-all-notifications {
+            color: var(--primary-color);
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            transition: color 0.3s ease;
+        }
+        
+        .view-all-notifications:hover {
+            color: var(--primary-dark);
+        }
+        
+        /* No notifications */
+        .no-notifications {
+            padding: 2rem 1.25rem;
+            text-align: center;
+            color: #94a3b8;
+        }
+        
+        .no-notifications i {
+            font-size: 2rem;
+            margin-bottom: 0.75rem;
+            opacity: 0.5;
+        }
+        
+        .no-notifications p {
+            margin: 0;
+            font-size: 0.9rem;
+        }
+        
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.5rem 0.75rem;
+            border-radius: 12px;
+            background: #f7fafc;
+            border: 1px solid #e2e8f0;
+            transition: all 0.3s ease;
+        }
+        
+        .user-profile:hover {
+            background: #edf2f7;
+            border-color: #cbd5e0;
+        }
+        
+        .user-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 1rem;
+        }
+        
+        .user-info {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .user-name {
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: #2d3748;
+            line-height: 1.2;
+        }
+        
+        .user-role {
+            font-size: 0.75rem;
+            color: #718096;
+        }
+        
+        /* ================= MESSAGES ================= */
+        .messages-container {
+            margin-bottom: 1.5rem;
+        }
+        
+        .alert {
+            border-radius: 12px;
+            border: none;
+            padding: 1rem 1.25rem;
+            font-size: 0.9rem;
+            animation: fadeInDown 0.5s ease-out;
+        }
+        
+        .alert-success {
+            background: linear-gradient(135deg, #c6f6d5, #9ae6b4);
+            color: #22543d;
+            border-left: 4px solid #38a169;
+        }
+        
+        .alert-danger {
+            background: linear-gradient(135deg, #fed7d7, #fc8181);
+            color: #742a2a;
+            border-left: 4px solid #e53e3e;
+        }
+        
+        .alert-warning {
+            background: linear-gradient(135deg, #feebc8, #fbd38d);
+            color: #744210;
+            border-left: 4px solid #dd6b20;
+        }
+        
+        .alert-info {
+            background: linear-gradient(135deg, #bee3f8, #90cdf4);
+            color: #2a4365;
+            border-left: 4px solid #3182ce;
         }
         
         /* ================= TABLE CONTAINER ================= */
         .table-container {
             background: #fff;
-            border-radius: 20px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
             overflow: hidden;
+            border: 1px solid #e2e8f0;
         }
         
         /* ================= BUTTONS ================= */
@@ -126,36 +534,80 @@
             padding: 8px 20px;
             font-size: 14px;
             border: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
         }
         
         .btn-admin-primary {
-            background: #ff8c32;
+            background: linear-gradient(135deg, #ff8c32, #ff7a10);
             color: #fff;
+            box-shadow: 0 4px 12px rgba(255, 140, 50, 0.3);
         }
         
         .btn-admin-primary:hover {
-            background: #ff7a10;
+            background: linear-gradient(135deg, #ff7a10, #ff6700);
             color: #fff;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(255, 140, 50, 0.4);
         }
         
         .btn-admin-secondary {
-            background: #6c757d;
+            background: linear-gradient(135deg, #718096, #4a5568);
             color: #fff;
+            box-shadow: 0 4px 12px rgba(113, 128, 150, 0.3);
         }
         
         .btn-admin-secondary:hover {
-            background: #5a6268;
+            background: linear-gradient(135deg, #4a5568, #2d3748);
             color: #fff;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(113, 128, 150, 0.4);
         }
         
         /* ================= BADGES ================= */
-        .badge-price-low { background: #e8f8f1; color: #2ecc71; }
-        .badge-price-medium { background: #fff4e5; color: #f39c12; }
-        .badge-price-high { background: #fdecea; color: #e74c3c; }
+        .badge-price-low { 
+            background: linear-gradient(135deg, #c6f6d5, #9ae6b4); 
+            color: #22543d; 
+            font-weight: 600;
+            padding: 0.35rem 0.75rem;
+            border-radius: 20px;
+        }
+        .badge-price-medium { 
+            background: linear-gradient(135deg, #feebc8, #fbd38d); 
+            color: #744210; 
+            font-weight: 600;
+            padding: 0.35rem 0.75rem;
+            border-radius: 20px;
+        }
+        .badge-price-high { 
+            background: linear-gradient(135deg, #fed7d7, #fc8181); 
+            color: #742a2a; 
+            font-weight: 600;
+            padding: 0.35rem 0.75rem;
+            border-radius: 20px;
+        }
         
-        .badge-confidence-high { background: #e8f8f1; color: #2ecc71; }
-        .badge-confidence-medium { background: #fff4e5; color: #f39c12; }
-        .badge-confidence-low { background: #fdecea; color: #e74c3c; }
+        .badge-confidence-high { 
+            background: linear-gradient(135deg, #c6f6d5, #9ae6b4); 
+            color: #22543d; 
+            font-weight: 600;
+            padding: 0.35rem 0.75rem;
+            border-radius: 20px;
+        }
+        .badge-confidence-medium { 
+            background: linear-gradient(135deg, #feebc8, #fbd38d); 
+            color: #744210; 
+            font-weight: 600;
+            padding: 0.35rem 0.75rem;
+            border-radius: 20px;
+        }
+        .badge-confidence-low { 
+            background: linear-gradient(135deg, #fed7d7, #fc8181); 
+            color: #742a2a; 
+            font-weight: 600;
+            padding: 0.35rem 0.75rem;
+            border-radius: 20px;
+        }
         
         /* ================= MOBILE ================= */
         @media (max-width: 768px) {
@@ -173,6 +625,95 @@
             .main-content.show {
                 margin-left: 260px;
             }
+            
+            .sidebar-toggle {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            
+            .topbar {
+                flex-direction: column;
+                gap: 1rem;
+                padding: 1rem;
+            }
+            
+            .topbar-left,
+            .topbar-right {
+                width: 100%;
+            }
+            
+            .search-box {
+                width: 100%;
+            }
+            
+            .search-box:focus {
+                width: 100%;
+            }
+            
+            .notification-dropdown {
+                width: 300px;
+                right: -50px;
+            }
+        }
+        
+        /* ================= ANIMATIONS ================= */
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes bellRing {
+            0%, 100% {
+                transform: rotate(0deg);
+            }
+            5%, 15% {
+                transform: rotate(-10deg);
+            }
+            10%, 20% {
+                transform: rotate(10deg);
+            }
+        }
+        
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(245, 101, 101, 0.7);
+            }
+            70% {
+                transform: scale(1.1);
+                box-shadow: 0 0 0 6px rgba(245, 101, 101, 0);
+            }
+            100% {
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(245, 101, 101, 0);
+            }
+        }
+        
+        /* ================= CUSTOM SCROLLBAR ================= */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 10px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8;
         }
     </style>
     
@@ -253,45 +794,171 @@
 
     <!-- ================= TOPBAR ================= -->
     <div class="topbar">
-        <button class="btn btn-light d-md-none" id="sidebarToggle">
-            <i class="fas fa-bars"></i>
-        </button>
+        <div class="topbar-left">
+            <button class="sidebar-toggle d-md-none" id="sidebarToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+            
+            <div class="page-title">
+                <h1>{% block page_title %}Dashboard{% endblock %}</h1>
+                <small>{% block page_subtitle %}{% now "F j, Y" %}{% endblock %}</small>
+            </div>
+        </div>
 
-        <input type="text" placeholder="Search here...">
-
-        <div class="user-box">
-            <i class="fas fa-bell"></i>
-            <strong>{{ request.user.username }}</strong>
-            {% if request.user.is_superuser %}
-                <span class="badge bg-warning">Super Admin</span>
-            {% elif request.user.is_staff %}
-                <span class="badge bg-info">Staff</span>
-            {% endif %}
+        <div class="topbar-right">
+            <div class="search-container">
+                <i class="fas fa-search search-icon"></i>
+                <input type="text" class="search-box" placeholder="Search...">
+            </div>
+            
+            <div class="user-actions">
+                <!-- Notification Dropdown -->
+                <div class="notification-wrapper">
+                    <div class="notification-btn" id="notificationBtn">
+                        <i class="fas fa-bell"></i>
+                        <span class="notification-badge" id="notificationBadge">3</span>
+                    </div>
+                    
+                    <div class="notification-dropdown" id="notificationDropdown">
+                        <div class="notification-header">
+                            <h6>Notifications</h6>
+                            <button class="mark-all-read" id="markAllRead">Mark all as read</button>
+                        </div>
+                        
+                        <div class="notification-list" id="notificationList">
+                            <!-- Notifications will be loaded dynamically -->
+                            <div class="notification-item notification-success unread">
+                                <div class="notification-icon">
+                                    <i class="fas fa-chart-line"></i>
+                                </div>
+                                <div class="notification-content">
+                                    <div class="notification-title">New Price Data Imported</div>
+                                    <div class="notification-message">15 new onion price records imported from CSV file</div>
+                                    <div class="notification-time">
+                                        <i class="far fa-clock"></i> 5 minutes ago
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="notification-item notification-warning unread">
+                                <div class="notification-icon">
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                </div>
+                                <div class="notification-content">
+                                    <div class="notification-title">Low Prediction Confidence</div>
+                                    <div class="notification-message">Prediction for Lasalgaon market has only 45% confidence</div>
+                                    <div class="notification-time">
+                                        <i class="far fa-clock"></i> 1 hour ago
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="notification-item notification-info">
+                                <div class="notification-icon">
+                                    <i class="fas fa-user-plus"></i>
+                                </div>
+                                <div class="notification-content">
+                                    <div class="notification-title">New User Registered</div>
+                                    <div class="notification-message">Farmer "Rajesh Kumar" registered to the system</div>
+                                    <div class="notification-time">
+                                        <i class="far fa-clock"></i> 3 hours ago
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="notification-item notification-success">
+                                <div class="notification-icon">
+                                    <i class="fas fa-cogs"></i>
+                                </div>
+                                <div class="notification-content">
+                                    <div class="notification-title">System Backup Completed</div>
+                                    <div class="notification-message">Daily system backup completed successfully</div>
+                                    <div class="notification-time">
+                                        <i class="far fa-clock"></i> Yesterday, 2:30 PM
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="notification-footer">
+                            <a href="#" class="view-all-notifications">
+                                <i class="fas fa-list"></i> View All Notifications
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="user-profile">
+                    <div class="user-avatar">
+                        {{ request.user.username|first|upper }}
+                    </div>
+                    <div class="user-info">
+                        <span class="user-name">{{ request.user.username }}</span>
+                        <span class="user-role">
+                            {% if request.user.is_superuser %}
+                                Super Admin
+                            {% elif request.user.is_staff %}
+                                Staff
+                            {% else %}
+                                User
+                            {% endif %}
+                        </span>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
     <!-- MESSAGES -->
     {% if messages %}
-        <div class="mb-4">
-            {% for message in messages %}
-                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                    {{ message }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-            {% endfor %}
+    <div class="messages-container">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show animate__animated animate__fadeInDown" role="alert">
+            {% if message.tags == 'danger' %}
+                <i class="fas fa-exclamation-triangle me-2"></i>
+            {% elif message.tags == 'success' %}
+                <i class="fas fa-check-circle me-2"></i>
+            {% elif message.tags == 'warning' %}
+                <i class="fas fa-exclamation-circle me-2"></i>
+            {% else %}
+                <i class="fas fa-info-circle me-2"></i>
+            {% endif %}
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
+        {% endfor %}
+    </div>
     {% endif %}
+    
     {% block content %}{% endblock %}
 </div>
 
 <!-- Bootstrap JS -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
     // Sidebar toggle for mobile
-    document.getElementById('sidebarToggle')?.addEventListener('click', function() {
-        document.querySelector('.sidebar').classList.toggle('show');
-        document.getElementById('mainContent').classList.toggle('show');
+    const sidebarToggle = document.getElementById('sidebarToggle');
+    const sidebar = document.querySelector('.sidebar');
+    const mainContent = document.getElementById('mainContent');
+    
+    if (sidebarToggle) {
+        sidebarToggle.addEventListener('click', function() {
+            sidebar.classList.toggle('show');
+            mainContent.classList.toggle('show');
+        });
+    }
+    
+    // Close sidebar when clicking outside on mobile
+    document.addEventListener('click', function(event) {
+        const isMobile = window.innerWidth <= 768;
+        const isClickInsideSidebar = sidebar.contains(event.target);
+        const isClickOnToggle = sidebarToggle && sidebarToggle.contains(event.target);
+        
+        if (isMobile && sidebar.classList.contains('show') && !isClickInsideSidebar && !isClickOnToggle) {
+            sidebar.classList.remove('show');
+            mainContent.classList.remove('show');
+        }
     });
     
     // Auto-dismiss alerts after 5 seconds
@@ -301,6 +968,214 @@
             const bsAlert = new bootstrap.Alert(alert);
             bsAlert.close();
         });
+    }, 5000);
+    
+    // Search functionality
+    const searchBox = document.querySelector('.search-box');
+    if (searchBox) {
+        searchBox.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                const searchTerm = this.value.trim();
+                if (searchTerm) {
+                    // Implement search functionality
+                    console.log('Searching for:', searchTerm);
+                    // Add your search logic here
+                }
+            }
+        });
+    }
+    
+    // Notification System
+    const notificationBtn = document.getElementById('notificationBtn');
+    const notificationDropdown = document.getElementById('notificationDropdown');
+    const notificationBadge = document.getElementById('notificationBadge');
+    const markAllReadBtn = document.getElementById('markAllRead');
+    const notificationList = document.getElementById('notificationList');
+    
+    // Toggle notification dropdown
+    if (notificationBtn) {
+        notificationBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            notificationDropdown.classList.toggle('show');
+            
+            // Mark notifications as read when dropdown is opened
+            if (notificationDropdown.classList.contains('show')) {
+                markNotificationsAsRead();
+            }
+        });
+    }
+    
+    // Mark all notifications as read
+    if (markAllReadBtn) {
+        markAllReadBtn.addEventListener('click', function() {
+            const unreadItems = notificationList.querySelectorAll('.notification-item.unread');
+            unreadItems.forEach(item => {
+                item.classList.remove('unread');
+            });
+            
+            // Update badge count
+            updateNotificationBadge(0);
+            
+            // Remove animation
+            notificationBtn.classList.remove('has-notifications');
+        });
+    }
+    
+    // Close dropdown when clicking outside
+    document.addEventListener('click', function(event) {
+        if (notificationDropdown && !notificationDropdown.contains(event.target) && 
+            !notificationBtn.contains(event.target)) {
+            notificationDropdown.classList.remove('show');
+        }
+    });
+    
+    // Mark individual notification as read
+    function markNotificationAsRead(item) {
+        item.classList.remove('unread');
+        const unreadCount = notificationList.querySelectorAll('.notification-item.unread').length;
+        updateNotificationBadge(unreadCount);
+        
+        if (unreadCount === 0) {
+            notificationBtn.classList.remove('has-notifications');
+        }
+    }
+    
+    // Mark all notifications as read
+    function markNotificationsAsRead() {
+        const unreadItems = notificationList.querySelectorAll('.notification-item.unread');
+        unreadItems.forEach(item => {
+            item.classList.remove('unread');
+        });
+        updateNotificationBadge(0);
+        notificationBtn.classList.remove('has-notifications');
+    }
+    
+    // Update notification badge count
+    function updateNotificationBadge(count) {
+        if (notificationBadge) {
+            notificationBadge.textContent = count;
+            if (count === 0) {
+                notificationBadge.style.display = 'none';
+            } else {
+                notificationBadge.style.display = 'flex';
+            }
+        }
+    }
+    
+    // Add click event to notification items
+    const notificationItems = document.querySelectorAll('.notification-item');
+    notificationItems.forEach(item => {
+        item.addEventListener('click', function() {
+            markNotificationAsRead(this);
+            
+            // Get notification type and message
+            const title = this.querySelector('.notification-title').textContent;
+            const message = this.querySelector('.notification-message').textContent;
+            
+            console.log('Notification clicked:', title);
+            // You can add your notification action logic here
+            
+            // Close dropdown after clicking
+            notificationDropdown.classList.remove('show');
+        });
+    });
+    
+    // Simulate new notifications
+    function simulateNewNotification() {
+        const notificationTypes = ['success', 'warning', 'danger', 'info'];
+        const type = notificationTypes[Math.floor(Math.random() * notificationTypes.length)];
+        
+        const notifications = {
+            success: [
+                {title: 'New Prediction Generated', message: '7-day forecast generated for Mumbai market'},
+                {title: 'Data Import Success', message: 'Price data imported successfully from external API'},
+                {title: 'System Update', message: 'System updated to version 2.1.0'}
+            ],
+            warning: [
+                {title: 'Price Spike Detected', message: 'Unusual price increase detected in Lasalgaon market'},
+                {title: 'Low Storage Space', message: 'System storage is 85% full'},
+                {title: 'Model Accuracy Warning', message: 'LSTM model accuracy dropped below 70%'}
+            ],
+            danger: [
+                {title: 'Data Sync Failed', message: 'Failed to sync with external data source'},
+                {title: 'Server Error', message: 'Prediction server is experiencing high load'},
+                {title: 'Security Alert', message: 'Multiple failed login attempts detected'}
+            ],
+            info: [
+                {title: 'Daily Report Ready', message: 'Daily price analysis report is available'},
+                {title: 'New Feature Added', message: 'Bulk delete feature added to price management'},
+                {title: 'Maintenance Scheduled', message: 'System maintenance scheduled for tonight'}
+            ]
+        };
+        
+        const notificationList = notifications[type];
+        const randomNotification = notificationList[Math.floor(Math.random() * notificationList.length)];
+        
+        const timeAgo = Math.floor(Math.random() * 10) + 1;
+        const timeUnit = ['minute', 'hour'][Math.floor(Math.random() * 2)];
+        
+        addNewNotification(type, randomNotification.title, randomNotification.message, timeAgo, timeUnit);
+    }
+    
+    // Add new notification to list
+    function addNewNotification(type, title, message, timeAgo, timeUnit) {
+        const notificationItem = document.createElement('div');
+        notificationItem.className = `notification-item notification-${type} unread`;
+        notificationItem.innerHTML = `
+            <div class="notification-icon">
+                <i class="fas fa-${getNotificationIcon(type)}"></i>
+            </div>
+            <div class="notification-content">
+                <div class="notification-title">${title}</div>
+                <div class="notification-message">${message}</div>
+                <div class="notification-time">
+                    <i class="far fa-clock"></i> ${timeAgo} ${timeUnit}${timeAgo > 1 ? 's' : ''} ago
+                </div>
+            </div>
+        `;
+        
+        // Add to top of list
+        notificationList.insertBefore(notificationItem, notificationList.firstChild);
+        
+        // Update badge count
+        const unreadCount = notificationList.querySelectorAll('.notification-item.unread').length;
+        updateNotificationBadge(unreadCount);
+        
+        // Add animation to bell
+        notificationBtn.classList.add('has-notifications');
+        
+        // Add click event to new notification
+        notificationItem.addEventListener('click', function() {
+            markNotificationAsRead(this);
+            notificationDropdown.classList.remove('show');
+        });
+    }
+    
+    // Get appropriate icon for notification type
+    function getNotificationIcon(type) {
+        const icons = {
+            success: 'check-circle',
+            warning: 'exclamation-triangle',
+            danger: 'exclamation-circle',
+            info: 'info-circle'
+        };
+        return icons[type] || 'bell';
+    }
+    
+    // Initial setup
+    const unreadCount = notificationList.querySelectorAll('.notification-item.unread').length;
+    updateNotificationBadge(unreadCount);
+    
+    if (unreadCount > 0) {
+        notificationBtn.classList.add('has-notifications');
+    }
+    
+    // Simulate receiving new notifications every 2 minutes
+    setInterval(simulateNewNotification, 120000);
+    
+    // Initial notifications on page load
+    setTimeout(() => {
+        simulateNewNotification();
     }, 5000);
 </script>
 

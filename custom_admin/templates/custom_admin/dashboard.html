@@ -1,303 +1,581 @@
 {% extends 'custom_admin/base.html' %}
 {% load static %}
 
-{% block title %}Dashboard - Admin{% endblock %}
+{% block title %}Dashboard - Admin Panel{% endblock %}
 
 {% block extra_css %}
 <style>
+    /* ================= CARD STYLES ================= */
+    .dashboard-card {
+        background: #ffffff;
+        border-radius: 16px;
+        border: 1px solid #eef2f7;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+        transition: all 0.3s ease;
+        overflow: hidden;
+        height: 100%;
+    }
+    
+    .dashboard-card:hover {
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+        transform: translateY(-3px);
+    }
+    
+    .card-header {
+        background: #ffffff;
+        border-bottom: 1px solid #f0f4f8;
+        padding: 1.25rem 1.5rem;
+    }
+    
+    .card-header h5 {
+        font-weight: 600;
+        color: #2c3e50;
+        margin: 0;
+        font-size: 1.1rem;
+    }
+    
+    .card-body {
+        padding: 1.5rem;
+    }
+    
     /* ================= STAT CARDS ================= */
     .stat-card {
-        background: #fff;
-        border-radius: 20px;
-        padding: 25px;
-        box-shadow: 0 10px 25px rgba(0,0,0,0.05);
-        transition: 0.3s;
+        padding: 1.5rem;
+        border-radius: 12px;
         height: 100%;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
     }
     
     .stat-card:hover {
         transform: translateY(-5px);
-        box-shadow: 0 15px 35px rgba(0,0,0,0.1);
     }
     
     .stat-icon {
-        width: 60px;
-        height: 60px;
-        border-radius: 18px;
+        width: 56px;
+        height: 56px;
+        border-radius: 12px;
         display: flex;
         align-items: center;
         justify-content: center;
-        color: white;
-        font-size: 26px;
+        margin-bottom: 1rem;
+        font-size: 1.5rem;
+        position: relative;
+        z-index: 2;
     }
     
-    .bg-green { background: linear-gradient(135deg, #2ecc71, #27ae60); }
-    .bg-blue { background: linear-gradient(135deg, #3498db, #2980b9); }
-    .bg-orange { background: linear-gradient(135deg, #ff8c32, #ff6b00); }
-    .bg-purple { background: linear-gradient(135deg, #9b59b6, #8e44ad); }
+    /* Icon with white background on gradient cards */
+    .stat-card-1 .stat-icon,
+    .stat-card-2 .stat-icon,
+    .stat-card-3 .stat-icon,
+    .stat-card-4 .stat-icon {
+        background: rgba(255, 255, 255, 0.2);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+    }
     
-    .stat-card h3 {
+    .stat-value {
+        font-size: 2rem;
         font-weight: 700;
-        margin-top: 15px;
-        margin-bottom: 5px;
+        line-height: 1.2;
+        margin-bottom: 0.25rem;
+        position: relative;
+        z-index: 2;
     }
     
-    .stat-card p {
-        color: #777;
-        font-size: 14px;
+    .stat-label {
+        font-size: 0.875rem;
+        font-weight: 500;
         margin-bottom: 0;
+        position: relative;
+        z-index: 2;
     }
     
-    /* ================= TABLE ================= */
-    .data-table {
+    /* Color schemes for stat cards */
+    .stat-card-1 {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+    
+    .stat-card-2 {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    }
+    
+    .stat-card-3 {
+        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    }
+    
+    .stat-card-4 {
+        background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+    }
+    
+    .stat-card-1 .stat-label,
+    .stat-card-2 .stat-label,
+    .stat-card-3 .stat-label,
+    .stat-card-4 .stat-label {
+        color: rgba(255, 255, 255, 0.9);
+    }
+    
+    .stat-card-1 .stat-value,
+    .stat-card-2 .stat-value,
+    .stat-card-3 .stat-value,
+    .stat-card-4 .stat-value {
+        color: white;
+    }
+    
+    .stat-card-1 .stat-icon i,
+    .stat-card-2 .stat-icon i,
+    .stat-card-3 .stat-icon i,
+    .stat-card-4 .stat-icon i {
+        color: white;
+    }
+    
+    /* ================= TABLE STYLES ================= */
+    .recent-table {
         width: 100%;
-        border-collapse: collapse;
+        font-size: 0.875rem;
     }
     
-    .data-table thead {
-        background: #fff6ed;
-    }
-    
-    .data-table th,
-    .data-table td {
-        padding: 14px;
-        font-size: 14px;
-        vertical-align: middle;
-    }
-    
-    .data-table th {
+    .recent-table thead th {
+        background-color: #f8fafc;
         font-weight: 600;
-        color: #555;
+        color: #64748b;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 0.5px;
+        padding: 0.875rem 1rem;
+        border: none;
+        white-space: nowrap;
     }
     
-    .data-table td {
-        border-top: 1px solid #f1f1f1;
+    .recent-table tbody td {
+        padding: 1rem;
+        vertical-align: middle;
+        border-top: 1px solid #f1f5f9;
     }
     
-    .data-table tr:hover {
-        background: #fffaf5;
+    .recent-table tbody tr {
+        transition: background-color 0.2s ease;
+    }
+    
+    .recent-table tbody tr:hover {
+        background-color: #f8fafc;
     }
     
     /* ================= BADGES ================= */
-    .badge-price {
-        padding: 6px 14px;
+    .price-badge {
+        padding: 0.35rem 0.75rem;
         border-radius: 20px;
+        font-size: 0.75rem;
         font-weight: 600;
-        font-size: 13px;
         display: inline-block;
+    }
+    
+    .price-high {
+        background-color: #fee2e2;
+        color: #dc2626;
+        border: 1px solid #fecaca;
+    }
+    
+    .price-medium {
+        background-color: #fef3c7;
+        color: #d97706;
+        border: 1px solid #fde68a;
+    }
+    
+    .price-low {
+        background-color: #dcfce7;
+        color: #16a34a;
+        border: 1px solid #bbf7d0;
+    }
+    
+    .confidence-high {
+        background-color: #d1fae5;
+        color: #059669;
+        border: 1px solid #a7f3d0;
+    }
+    
+    .confidence-medium {
+        background-color: #fef3c7;
+        color: #d97706;
+        border: 1px solid #fde68a;
+    }
+    
+    .confidence-low {
+        background-color: #fee2e2;
+        color: #dc2626;
+        border: 1px solid #fecaca;
     }
     
     /* ================= DASHBOARD HEADER ================= */
     .dashboard-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 25px;
+        margin-bottom: 2rem;
     }
     
-    .dashboard-header h2 {
-        font-weight: 600;
-        margin: 0;
+    .dashboard-header h1 {
+        font-size: 1.875rem;
+        font-weight: 700;
+        color: #1e293b;
+        margin-bottom: 0.5rem;
     }
     
     .dashboard-header p {
-        color: #666;
-        margin: 0;
+        color: #64748b;
+        font-size: 1rem;
+        margin-bottom: 0;
+    }
+    
+    .welcome-badge {
+        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        font-weight: 500;
+    }
+    
+    /* ================= QUICK ACTIONS ================= */
+    .quick-actions {
+        background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+        border-radius: 12px;
+        padding: 1.5rem;
+    }
+    
+    .action-btn {
+        background: white;
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        padding: 1rem;
+        text-align: center;
+        text-decoration: none;
+        color: #475569;
+        transition: all 0.3s ease;
+        height: 100%;
+    }
+    
+    .action-btn:hover {
+        background: #f8fafc;
+        border-color: #6366f1;
+        color: #6366f1;
+        transform: translateY(-2px);
+    }
+    
+    .action-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 0.75rem;
+        font-size: 1.25rem;
+        color: white;
+    }
+    
+    .action-btn h6 {
+        font-weight: 600;
+        margin-bottom: 0.25rem;
+        font-size: 0.875rem;
+    }
+    
+    .action-btn p {
+        font-size: 0.75rem;
+        color: #64748b;
+        margin-bottom: 0;
+    }
+    
+    /* ================= EMPTY STATES ================= */
+    .empty-state {
+        text-align: center;
+        padding: 2.5rem 1rem;
+    }
+    
+    .empty-state i {
+        font-size: 2.5rem;
+        color: #cbd5e1;
+        margin-bottom: 1rem;
+    }
+    
+    .empty-state p {
+        color: #94a3b8;
+        margin-bottom: 0;
+    }
+    
+    /* ================= RESPONSIVE ADJUSTMENTS ================= */
+    @media (max-width: 768px) {
+        .stat-value {
+            font-size: 1.75rem;
+        }
+        
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            font-size: 1.25rem;
+        }
+        
+        .recent-table {
+            font-size: 0.8125rem;
+        }
+        
+        .recent-table th,
+        .recent-table td {
+            padding: 0.75rem 0.5rem;
+        }
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<!-- ================= HEADER ================= -->
+<!-- ================= DASHBOARD HEADER ================= -->
 <div class="dashboard-header">
-    <div>
-        <h2>Dashboard Overview</h2>
-        <p class="text-muted">Welcome back, {{ request.user.username }}</p>
-    </div>
-    <div class="d-flex gap-2">
-        <input type="text" class="form-control" placeholder="Search..." style="border-radius: 25px;">
-        <a href="{% url 'manage_onion_prices' %}" class="btn btn-admin btn-admin-primary">
-            <i class="fas fa-plus me-1"></i> Add Price
-        </a>
+    <div class="row align-items-center">
+        <div class="col-md-8">
+            <h1>Dashboard Overview</h1>
+            <p>Monitor price data, predictions, and system performance</p>
+        </div>
+        <div class="col-md-4 text-md-end">
+            <span class="welcome-badge">
+                <i class="fas fa-user-circle me-2"></i>Welcome, {{ request.user.username }}
+            </span>
+        </div>
     </div>
 </div>
 
-<!-- ================= STAT CARDS ================= -->
+<!-- ================= STATISTICS CARDS ================= -->
 <div class="row g-4 mb-4">
     <div class="col-md-3 col-sm-6">
-        <div class="stat-card">
-            <div class="stat-icon bg-green">
+        <div class="stat-card stat-card-1 text-white">
+            <div class="stat-icon">
                 <i class="fas fa-rupee-sign"></i>
             </div>
-            <h3>{{ stats.total_prices|default:0 }}</h3>
-            <p>Price Records</p>
+            <div class="stat-value">{{ stats.total_prices|default:"0" }}</div>
+            <div class="stat-label">Price Records</div>
         </div>
     </div>
-
+    
     <div class="col-md-3 col-sm-6">
-        <div class="stat-card">
-            <div class="stat-icon bg-blue">
+        <div class="stat-card stat-card-2 text-white">
+            <div class="stat-icon">
                 <i class="fas fa-chart-line"></i>
             </div>
-            <h3>{{ stats.total_predictions|default:0 }}</h3>
-            <p>Predictions</p>
+            <div class="stat-value">{{ stats.total_predictions|default:"0" }}</div>
+            <div class="stat-label">Predictions</div>
         </div>
     </div>
-
+    
     <div class="col-md-3 col-sm-6">
-        <div class="stat-card">
-            <div class="stat-icon bg-orange">
+        <div class="stat-card stat-card-3 text-white">
+            <div class="stat-icon">
                 <i class="fas fa-users"></i>
             </div>
-            <h3>{{ stats.total_users|default:0 }}</h3>
-            <p>Total Users</p>
+            <div class="stat-value">{{ stats.total_users|default:"0" }}</div>
+            <div class="stat-label">Total Users</div>
         </div>
     </div>
-
+    
     <div class="col-md-3 col-sm-6">
-        <div class="stat-card">
-            <div class="stat-icon bg-purple">
-                <i class="fas fa-wallet"></i>
+        <div class="stat-card stat-card-4 text-white">
+            <div class="stat-icon">
+                <i class="fas fa-tag"></i>
             </div>
-            <h3>₹{{ stats.avg_price|default:0|floatformat:2 }}</h3>
-            <p>Average Price</p>
+            <div class="stat-value">₹{{ stats.avg_price|default:"0"|floatformat:2 }}</div>
+            <div class="stat-label">Avg Price</div>
         </div>
     </div>
 </div>
 
-<!-- ================= TABLES ================= -->
-<div class="row g-4">
+<!-- ================= RECENT DATA ================= -->
+<div class="row g-4 mb-4">
     <!-- Recent Price Data -->
     <div class="col-lg-6">
-        <div class="table-container">
-            <div class="p-3 border-bottom d-flex justify-content-between align-items-center">
-                <h5 class="mb-0">Recent Price Data</h5>
-                <a href="{% url 'manage_onion_prices' %}" class="btn btn-sm btn-admin btn-admin-secondary">View All</a>
+        <div class="dashboard-card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5>
+                    <i class="fas fa-history text-primary me-2"></i>
+                    Recent Price Data
+                </h5>
+                <a href="{% url 'manage_onion_prices' %}" class="btn btn-sm btn-outline-primary">
+                    View All <i class="fas fa-arrow-right ms-1"></i>
+                </a>
             </div>
-            <div class="table-responsive">
-                <table class="data-table">
-                    <thead>
-                        <tr>
-                            <th>Date</th>
-                            <th>Market</th>
-                            <th>State</th>
-                            <th>Price</th>
-                            <th>Arrival</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for price in recent_prices %}
-                        <tr>
-                            <td>{{ price.date|date:"d M" }}</td>
-                            <td>
-                                <div class="fw-medium">{{ price.market|truncatechars:15 }}</div>
-                                <small class="text-muted">{{ price.district }}</small>
-                            </td>
-                            <td>{{ price.state|truncatechars:10 }}</td>
-                            <td>
-                                <span class="badge-price 
-                                    {% if price.modal_price < 1500 %}badge-price-low
-                                    {% elif price.modal_price < 3000 %}badge-price-medium
-                                    {% else %}badge-price-high{% endif %}">
-                                    ₹{{ price.modal_price|floatformat:2 }}
-                                </span>
-                            </td>
-                            <td>{{ price.arrival_quantity|floatformat:0 }} qtl</td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="5" class="text-center py-4">
-                                <i class="fas fa-database fa-2x text-muted mb-3"></i>
-                                <p class="text-muted">No price data available</p>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="recent-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Market</th>
+                                <th>State</th>
+                                <th>Price</th>
+                                <th>Arrival</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for price in recent_prices|slice:":5" %}
+                            <tr>
+                                <td>
+                                    <div class="fw-medium">{{ price.date|date:"d M" }}</div>
+                                    <small class="text-muted">{{ price.date|date:"Y" }}</small>
+                                </td>
+                                <td>
+                                    <div class="fw-medium">{{ price.market|truncatechars:15 }}</div>
+                                    <small class="text-muted">{{ price.district|default:"-"|truncatechars:12 }}</small>
+                                </td>
+                                <td>{{ price.state|truncatechars:12 }}</td>
+                                <td>
+                                    <span class="price-badge 
+                                        {% if price.modal_price > 3000 %}price-high
+                                        {% elif price.modal_price > 1500 %}price-medium
+                                        {% else %}price-low{% endif %}">
+                                        ₹{{ price.modal_price|floatformat:2 }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="fw-medium">{{ price.arrival_quantity|floatformat:0 }} qtl</div>
+                                    {% if price.variety %}
+                                    <small class="text-muted">{{ price.variety|truncatechars:8 }}</small>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="5">
+                                    <div class="empty-state">
+                                        <i class="fas fa-database"></i>
+                                        <p>No price data available</p>
+                                        <a href="{% url 'manage_onion_prices' %}" class="btn btn-sm btn-primary mt-2">
+                                            Add Price Data
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
-
+    
     <!-- Recent Predictions -->
     <div class="col-lg-6">
-        <div class="table-container">
-            <div class="p-3 border-bottom d-flex justify-content-between align-items-center">
-                <h5 class="mb-0">Recent Predictions</h5>
-                <a href="{% url 'manage_predictions' %}" class="btn btn-sm btn-admin btn-admin-secondary">View All</a>
+        <div class="dashboard-card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5>
+                    <i class="fas fa-crystal-ball text-success me-2"></i>
+                    Recent Predictions
+                </h5>
+                <a href="{% url 'manage_predictions' %}" class="btn btn-sm btn-outline-success">
+                    View All <i class="fas fa-arrow-right ms-1"></i>
+                </a>
             </div>
-            <div class="table-responsive">
-                <table class="data-table">
-                    <thead>
-                        <tr>
-                            <th>Forecast Date</th>
-                            <th>Market</th>
-                            <th>Predicted Price</th>
-                            <th>Confidence</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for prediction in recent_predictions %}
-                        <tr>
-                            <td>{{ prediction.forecast_date|date:"d M" }}</td>
-                            <td>{{ prediction.market|truncatechars:15 }}</td>
-                            <td>
-                                <strong>₹{{ prediction.predicted_modal_price|floatformat:2 }}</strong>
-                                {% if prediction.actual_price %}
-                                <br>
-                                <small class="text-muted">
-                                    Actual: ₹{{ prediction.actual_price|floatformat:2 }}
-                                </small>
-                                {% endif %}
-                            </td>
-                            <td>
-                                <span class="badge-price 
-                                    {% if prediction.confidence_interval >= 80 %}badge-confidence-high
-                                    {% elif prediction.confidence_interval >= 60 %}badge-confidence-medium
-                                    {% else %}badge-confidence-low{% endif %}">
-                                    {{ prediction.confidence_interval|floatformat:0 }}%
-                                </span>
-                            </td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="4" class="text-center py-4">
-                                <i class="fas fa-crystal-ball fa-2x text-muted mb-3"></i>
-                                <p class="text-muted">No predictions available</p>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="recent-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Market</th>
+                                <th>Predicted Price</th>
+                                <th>Confidence</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for prediction in recent_predictions|slice:":5" %}
+                            <tr>
+                                <td>
+                                    <div class="fw-medium">{{ prediction.forecast_date|date:"d M" }}</div>
+                                    <small class="text-muted">{{ prediction.prediction_date|date:"d M" }}</small>
+                                </td>
+                                <td>
+                                    <div class="fw-medium">{{ prediction.market|truncatechars:15 }}</div>
+                                    <small class="text-muted">Prediction</small>
+                                </td>
+                                <td>
+                                    <div class="fw-medium">₹{{ prediction.predicted_modal_price|floatformat:2 }}</div>
+                                    {% if prediction.actual_price %}
+                                    <small class="text-success">
+                                        <i class="fas fa-check-circle me-1"></i>Actual: ₹{{ prediction.actual_price|floatformat:2 }}
+                                    </small>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span class="price-badge 
+                                        {% if prediction.confidence_interval >= 80 %}confidence-high
+                                        {% elif prediction.confidence_interval >= 60 %}confidence-medium
+                                        {% else %}confidence-low{% endif %}">
+                                        {{ prediction.confidence_interval|floatformat:0 }}%
+                                    </span>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="4">
+                                    <div class="empty-state">
+                                        <i class="fas fa-crystal-ball"></i>
+                                        <p>No predictions available</p>
+                                        <a href="{% url 'generate_prediction' %}" class="btn btn-sm btn-success mt-2">
+                                            Generate Predictions
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
 <!-- ================= QUICK ACTIONS ================= -->
-<div class="row mt-4">
+<div class="row">
     <div class="col-12">
-        <div class="table-container p-4">
-            <h5 class="mb-4">Quick Actions</h5>
-            <div class="row g-3">
-                <div class="col-md-3 col-sm-6">
-                    <a href="{% url 'manage_onion_prices' %}" class="btn btn-outline-primary w-100 rounded-pill py-3">
-                        <i class="fas fa-upload me-2"></i> Import Data
-                    </a>
-                </div>
-                <div class="col-md-3 col-sm-6">
-                    <a href="{% url 'manage_predictions' %}" class="btn btn-outline-success w-100 rounded-pill py-3">
-                        <i class="fas fa-bolt me-2"></i> Generate Predictions
-                    </a>
-                </div>
-                <div class="col-md-3 col-sm-6">
-                    <a href="{% url 'manage_users' %}" class="btn btn-outline-warning w-100 rounded-pill py-3">
-                        <i class="fas fa-user-plus me-2"></i> Add User
-                    </a>
-                </div>
-                <div class="col-md-3 col-sm-6">
-                    <a href="{% url 'system_settings' %}" class="btn btn-outline-info w-100 rounded-pill py-3">
-                        <i class="fas fa-cog me-2"></i> Settings
-                    </a>
+        <div class="dashboard-card">
+            <div class="card-header">
+                <h5>
+                    <i class="fas fa-bolt text-warning me-2"></i>
+                    Quick Actions
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-3 col-sm-6">
+                        <a href="{% url 'import_prices_csv' %}" class="action-btn">
+                            <div class="action-icon" style="background: linear-gradient(135deg, #6366f1, #8b5cf6);">
+                                <i class="fas fa-file-upload"></i>
+                            </div>
+                            <h6>Import Data</h6>
+                            <p>Upload CSV/Excel files</p>
+                        </a>
+                    </div>
+                    <div class="col-md-3 col-sm-6">
+                        <a href="{% url 'generate_prediction' %}" class="action-btn">
+                            <div class="action-icon" style="background: linear-gradient(135deg, #10b981, #34d399);">
+                                <i class="fas fa-bolt"></i>
+                            </div>
+                            <h6>Generate Predictions</h6>
+                            <p>Create new forecasts</p>
+                        </a>
+                    </div>
+                    <div class="col-md-3 col-sm-6">
+                        <a href="{% url 'add_user' %}" class="action-btn">
+                            <div class="action-icon" style="background: linear-gradient(135deg, #f59e0b, #fbbf24);">
+                                <i class="fas fa-user-plus"></i>
+                            </div>
+                            <h6>Add User</h6>
+                            <p>Create new accounts</p>
+                        </a>
+                    </div>
+                    <div class="col-md-3 col-sm-6">
+                        <a href="{% url 'system_settings' %}" class="action-btn">
+                            <div class="action-icon" style="background: linear-gradient(135deg, #3b82f6, #60a5fa);">
+                                <i class="fas fa-cog"></i>
+                            </div>
+                            <h6>System Settings</h6>
+                            <p>Configure preferences</p>
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
@@ -307,13 +585,37 @@
 
 {% block extra_js %}
 <script>
-    // Add active class to table rows on hover
-    document.querySelectorAll('.data-table tr').forEach(row => {
-        row.addEventListener('mouseenter', function() {
-            this.style.backgroundColor = '#fffaf5';
+    // Add hover effects to tables
+    document.addEventListener('DOMContentLoaded', function() {
+        // Add animation to stat cards on load
+        const statCards = document.querySelectorAll('.stat-card');
+        statCards.forEach((card, index) => {
+            card.style.animationDelay = `${index * 0.1}s`;
+            card.classList.add('animate__animated', 'animate__fadeInUp');
         });
-        row.addEventListener('mouseleave', function() {
-            this.style.backgroundColor = '';
+        
+        // Add hover animation to table rows
+        const tableRows = document.querySelectorAll('.recent-table tbody tr');
+        tableRows.forEach(row => {
+            row.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateX(5px)';
+                this.style.transition = 'transform 0.2s ease';
+            });
+            
+            row.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateX(0)';
+            });
+        });
+        
+        // Add click animation to action buttons
+        const actionBtns = document.querySelectorAll('.action-btn');
+        actionBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                this.style.transform = 'scale(0.98)';
+                setTimeout(() => {
+                    this.style.transform = '';
+                }, 150);
+            });
         });
     });
 </script>

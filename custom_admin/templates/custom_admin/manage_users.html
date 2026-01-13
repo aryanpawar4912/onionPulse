@@ -6,14 +6,17 @@
 <!-- ================= HEADER ================= -->
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
-        <h2 class="fw-semibold mb-2">Manage Users</h2>
-        <p class="text-muted mb-0">{{ users.paginator.count|default:0 }} users registered</p>
+        <h2 class="fw-bold mb-1" style="color: #2c3e50;">User Management</h2>
+        <p class="text-muted mb-0 small">
+            <i class="fas fa-users me-1"></i>
+            Total {{ users.paginator.count|default:0 }} registered users
+        </p>
     </div>
     <div class="d-flex gap-2">
-        <a href="{% url 'admin_dashboard' %}" class="btn btn-admin btn-admin-secondary">
-            <i class="fas fa-arrow-left me-1"></i> Back
+        <a href="{% url 'admin_dashboard' %}" class="btn btn-light border">
+            <i class="fas fa-arrow-left me-1"></i> Dashboard
         </a>
-        <button class="btn btn-admin btn-admin-primary" data-bs-toggle="modal" data-bs-target="#addUserModal">
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addUserModal">
             <i class="fas fa-user-plus me-1"></i> Add User
         </button>
     </div>
@@ -22,153 +25,280 @@
 <!-- ================= USER STATS ================= -->
 <div class="row g-3 mb-4">
     <div class="col-md-3">
-        <div class="card bg-light-subtle border-0">
-            <div class="card-body text-center py-3">
-                <div class="h4 mb-1">{{ total_users|default:0 }}</div>
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body text-center py-4">
+                <div class="d-flex align-items-center justify-content-center mb-2">
+                    <div class="rounded-circle bg-primary bg-opacity-10 p-3">
+                        <i class="fas fa-users fa-xl text-primary"></i>
+                    </div>
+                </div>
+                <div class="h3 fw-bold mb-1">{{ total_users|default:0 }}</div>
                 <small class="text-muted">Total Users</small>
             </div>
         </div>
     </div>
     <div class="col-md-3">
-        <div class="card bg-light-subtle border-0">
-            <div class="card-body text-center py-3">
-                <div class="h4 mb-1">{{ active_users|default:0 }}</div>
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body text-center py-4">
+                <div class="d-flex align-items-center justify-content-center mb-2">
+                    <div class="rounded-circle bg-success bg-opacity-10 p-3">
+                        <i class="fas fa-user-check fa-xl text-success"></i>
+                    </div>
+                </div>
+                <div class="h3 fw-bold mb-1">{{ active_users|default:0 }}</div>
                 <small class="text-muted">Active (30 days)</small>
             </div>
         </div>
     </div>
     <div class="col-md-3">
-        <div class="card bg-light-subtle border-0">
-            <div class="card-body text-center py-3">
-                <div class="h4 mb-1">{{ new_users_today|default:0 }}</div>
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body text-center py-4">
+                <div class="d-flex align-items-center justify-content-center mb-2">
+                    <div class="rounded-circle bg-info bg-opacity-10 p-3">
+                        <i class="fas fa-calendar-day fa-xl text-info"></i>
+                    </div>
+                </div>
+                <div class="h3 fw-bold mb-1">{{ new_users_today|default:0 }}</div>
                 <small class="text-muted">New Today</small>
             </div>
         </div>
     </div>
     <div class="col-md-3">
-        <div class="card bg-light-subtle border-0">
-            <div class="card-body text-center py-3">
-                <div class="h4 mb-1">{{ new_users_week|default:0 }}</div>
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body text-center py-4">
+                <div class="d-flex align-items-center justify-content-center mb-2">
+                    <div class="rounded-circle bg-warning bg-opacity-10 p-3">
+                        <i class="fas fa-calendar-week fa-xl text-warning"></i>
+                    </div>
+                </div>
+                <div class="h3 fw-bold mb-1">{{ new_users_week|default:0 }}</div>
                 <small class="text-muted">New This Week</small>
             </div>
         </div>
     </div>
 </div>
 
+<!-- ================= FILTERS ================= -->
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-header bg-white py-3 border-bottom">
+        <h6 class="mb-0 fw-bold">
+            <i class="fas fa-filter me-2 text-primary"></i>Filter Users
+        </h6>
+    </div>
+    <div class="card-body p-3">
+        <form method="get" class="row g-2 align-items-end">
+            <div class="col-md-3">
+                <label class="form-label small fw-medium mb-1">Username/Email</label>
+                <input type="text" name="search" class="form-control form-control-sm" 
+                       placeholder="Search users..." value="{{ request.GET.search }}">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small fw-medium mb-1">User Type</label>
+                <select name="user_type" class="form-select form-select-sm">
+                    <option value="">All Types</option>
+                    <option value="FARMER" {% if request.GET.user_type == 'FARMER' %}selected{% endif %}>Farmer</option>
+                    <option value="TRADER" {% if request.GET.user_type == 'TRADER' %}selected{% endif %}>Trader</option>
+                    <option value="CONSUMER" {% if request.GET.user_type == 'CONSUMER' %}selected{% endif %}>Consumer</option>
+                    <option value="GOVERNMENT" {% if request.GET.user_type == 'GOVERNMENT' %}selected{% endif %}>Government</option>
+                    <option value="RESEARCHER" {% if request.GET.user_type == 'RESEARCHER' %}selected{% endif %}>Researcher</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small fw-medium mb-1">Status</label>
+                <select name="status" class="form-select form-select-sm">
+                    <option value="">All Status</option>
+                    <option value="active" {% if request.GET.status == 'active' %}selected{% endif %}>Active</option>
+                    <option value="inactive" {% if request.GET.status == 'inactive' %}selected{% endif %}>Inactive</option>
+                    <option value="staff" {% if request.GET.status == 'staff' %}selected{% endif %}>Staff</option>
+                    <option value="superuser" {% if request.GET.status == 'superuser' %}selected{% endif %}>Admin</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small fw-medium mb-1">From</label>
+                <input type="date" name="start_date" class="form-control form-control-sm" 
+                       value="{{ request.GET.start_date }}">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small fw-medium mb-1">To</label>
+                <input type="date" name="end_date" class="form-control form-control-sm" 
+                       value="{{ request.GET.end_date }}">
+            </div>
+            <div class="col-md-1">
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary btn-sm flex-fill">
+                        <i class="fas fa-search me-1"></i> Search
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
 <!-- ================= USER TABLE ================= -->
-<div class="table-container">
-    <div class="p-3 border-bottom d-flex justify-content-between align-items-center">
-        <h5 class="mb-0">All Users</h5>
+<div class="card border-0 shadow-sm">
+    <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
+        <h6 class="mb-0 fw-bold">
+            <i class="fas fa-table me-2 text-primary"></i>User Records
+            <span class="badge bg-light text-dark ms-2">{{ users.paginator.count }}</span>
+        </h6>
         <div class="d-flex gap-2">
-            <input type="text" class="form-control form-control-sm" placeholder="Search user..." id="userSearch">
+            <a href="#" class="btn btn-outline-success btn-sm" data-bs-toggle="modal" data-bs-target="#exportModal">
+                <i class="fas fa-file-export me-1"></i> Export
+            </a>
         </div>
     </div>
     
     <div class="table-responsive">
-        <table class="data-table">
-            <thead>
+        <table class="table table-hover mb-0">
+            <thead class="bg-light">
                 <tr>
-                    <th>User ID</th>
-                    <th>Username</th>
-                    <th>Email</th>
-                    <th>User Type</th>
-                    <th>Location</th>
-                    <th>Joined</th>
-                    <th>Last Login</th>
-                    <th>Status</th>
-                    <th>Actions</th>
+                    <th width="60" class="ps-4 border-0">ID</th>
+                    <th width="200" class="border-0">User</th>
+                    <th width="180" class="border-0">Contact</th>
+                    <th width="120" class="border-0">Type</th>
+                    <th width="140" class="border-0">Location</th>
+                    <th width="140" class="border-0">Joined</th>
+                    <th width="140" class="border-0">Last Active</th>
+                    <th width="100" class="border-0">Status</th>
+                    <th width="90" class="text-center border-0">Actions</th>
                 </tr>
             </thead>
             <tbody>
                 {% for user in users %}
-                <tr>
-                    <td>{{ user.id }}</td>
-                    <td>
-                        <div class="d-flex align-items-center gap-2">
-                            <div class="avatar-circle bg-primary text-white">
+                <tr class="border-bottom" style="border-color: #f0f0f0 !important;">
+                    <td class="ps-4 align-middle">
+                        <div class="fw-medium text-muted">#{{ user.id }}</div>
+                    </td>
+                    <td class="align-middle">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="avatar-circle bg-primary text-white fw-bold">
                                 {{ user.username|first|upper }}
                             </div>
                             <div>
-                                <div class="fw-medium">{{ user.username }}</div>
+                                <div class="fw-medium" style="color: #3498db;">{{ user.username }}</div>
                                 {% if user.get_full_name %}
                                 <small class="text-muted">{{ user.get_full_name }}</small>
                                 {% endif %}
                             </div>
                         </div>
                     </td>
-                    <td>
-                        <a href="mailto:{{ user.email }}" class="text-decoration-none">
-                            {{ user.email|default:"No email" }}
-                        </a>
+                    <td class="align-middle">
+                        <div class="fw-medium">
+                            <a href="mailto:{{ user.email }}" class="text-decoration-none text-dark">
+                                {{ user.email|default:"No email" }}
+                            </a>
+                        </div>
+                        {% if user.userprofile and user.userprofile.phone %}
+                        <small class="text-muted">{{ user.userprofile.phone }}</small>
+                        {% endif %}
                     </td>
-                    <td>
+                    <td class="align-middle">
                         {% if user.userprofile %}
                             {% with user_type=user.userprofile.user_type %}
                                 {% if user_type == 'FARMER' %}
-                                <span class="badge bg-success-subtle text-success">Farmer</span>
+                                <span class="badge" style="background: rgba(46, 204, 113, 0.1); color: #2ecc71; border: 1px solid rgba(46, 204, 113, 0.2);">
+                                    <i class="fas fa-tractor me-1 small"></i>Farmer
+                                </span>
                                 {% elif user_type == 'TRADER' %}
-                                <span class="badge bg-warning-subtle text-warning">Trader</span>
+                                <span class="badge" style="background: rgba(241, 196, 15, 0.1); color: #f1c40f; border: 1px solid rgba(241, 196, 15, 0.2);">
+                                    <i class="fas fa-exchange-alt me-1 small"></i>Trader
+                                </span>
                                 {% elif user_type == 'CONSUMER' %}
-                                <span class="badge bg-info-subtle text-info">Consumer</span>
+                                <span class="badge" style="background: rgba(52, 152, 219, 0.1); color: #3498db; border: 1px solid rgba(52, 152, 219, 0.2);">
+                                    <i class="fas fa-shopping-cart me-1 small"></i>Consumer
+                                </span>
                                 {% elif user_type == 'GOVERNMENT' %}
-                                <span class="badge bg-danger-subtle text-danger">Govt Official</span>
+                                <span class="badge" style="background: rgba(231, 76, 60, 0.1); color: #e74c3c; border: 1px solid rgba(231, 76, 60, 0.2);">
+                                    <i class="fas fa-landmark me-1 small"></i>Govt Official
+                                </span>
                                 {% elif user_type == 'RESEARCHER' %}
-                                <span class="badge bg-primary-subtle text-primary">Researcher</span>
+                                <span class="badge" style="background: rgba(155, 89, 182, 0.1); color: #9b59b6; border: 1px solid rgba(155, 89, 182, 0.2);">
+                                    <i class="fas fa-flask me-1 small"></i>Researcher
+                                </span>
                                 {% else %}
-                                <span class="badge bg-secondary-subtle text-secondary">{{ user_type }}</span>
+                                <span class="badge bg-light text-dark">Not Set</span>
                                 {% endif %}
                             {% endwith %}
                         {% else %}
                             <span class="badge bg-light text-dark">Not Set</span>
                         {% endif %}
                     </td>
-                    <td>
-                        {% if user.userprofile %}
-                            {{ user.userprofile.location|default:"-" }}
-                        {% else %}
-                            -
-                        {% endif %}
+                    <td class="align-middle">
+                        <div class="fw-medium">
+                            {% if user.userprofile and user.userprofile.location %}
+                                {{ user.userprofile.location|truncatechars:20 }}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </div>
                     </td>
-                    <td>
-                        {{ user.date_joined|date:"d M Y" }}
-                        <br>
+                    <td class="align-middle">
+                        <div class="fw-medium">{{ user.date_joined|date:"d M Y" }}</div>
                         <small class="text-muted">{{ user.date_joined|timesince }} ago</small>
                     </td>
-                    <td>
+                    <td class="align-middle">
                         {% if user.last_login %}
-                            {{ user.last_login|date:"d M Y" }}
-                            <br>
+                            <div class="fw-medium">{{ user.last_login|date:"d M Y" }}</div>
                             <small class="text-muted">{{ user.last_login|timesince }} ago</small>
                         {% else %}
-                            <span class="badge bg-warning">Never</span>
+                            <span class="badge bg-warning bg-opacity-10 text-warning px-2">Never</span>
                         {% endif %}
                     </td>
-                    <td>
-                        {% if user.is_active %}
-                        <span class="badge bg-success">Active</span>
-                        {% else %}
-                        <span class="badge bg-danger">Inactive</span>
-                        {% endif %}
-                        
-                        {% if user.is_superuser %}
-                        <br>
-                        <span class="badge bg-warning mt-1">Super Admin</span>
-                        {% elif user.is_staff %}
-                        <br>
-                        <span class="badge bg-info mt-1">Staff</span>
-                        {% endif %}
+                    <td class="align-middle">
+                        <div class="d-flex flex-column gap-1">
+                            {% if user.is_active %}
+                            <span class="badge bg-success bg-opacity-10 text-success px-2 py-1">Active</span>
+                            {% else %}
+                            <span class="badge bg-danger bg-opacity-10 text-danger px-2 py-1">Inactive</span>
+                            {% endif %}
+                            
+                            {% if user.is_superuser %}
+                            <span class="badge bg-warning bg-opacity-10 text-warning px-2 py-1">Super Admin</span>
+                            {% elif user.is_staff %}
+                            <span class="badge bg-info bg-opacity-10 text-info px-2 py-1">Staff</span>
+                            {% endif %}
+                        </div>
                     </td>
-                    <td>
-                        <div class="btn-group" role="group">
-                            <a href="{% url 'admin:auth_user_change' user.id %}" 
-                               class="btn btn-sm btn-outline-primary" target="_blank" title="Edit">
-                                <i class="fas fa-edit"></i>
-                            </a>
-                            <button class="btn btn-sm btn-outline-danger" 
-                                    data-bs-toggle="modal" 
-                                    data-bs-target="#deleteModal{{ user.id }}">
-                                <i class="fas fa-trash"></i>
+                    <td class="text-center align-middle">
+                        <div class="dropdown">
+                            <button class="btn btn-sm btn-outline-secondary border-0 dropdown-toggle" 
+                                    type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-ellipsis-v"></i>
                             </button>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li>
+                                    <a class="dropdown-item text-primary" href="{% url 'admin:auth_user_change' user.id %}" target="_blank">
+                                        <i class="fas fa-edit me-2"></i> Edit User
+                                    </a>
+                                </li>
+                                {% if user.is_active %}
+                                <li>
+                                    <form method="post" action="{% url 'deactivate_user' user.id %}">
+                                        {% csrf_token %}
+                                        <button type="submit" class="dropdown-item text-warning">
+                                            <i class="fas fa-ban me-2"></i> Deactivate
+                                        </button>
+                                    </form>
+                                </li>
+                                {% else %}
+                                <li>
+                                    <form method="post" action="{% url 'activate_user' user.id %}">
+                                        {% csrf_token %}
+                                        <button type="submit" class="dropdown-item text-success">
+                                            <i class="fas fa-check me-2"></i> Activate
+                                        </button>
+                                    </form>
+                                </li>
+                                {% endif %}
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <button class="dropdown-item text-danger" 
+                                            data-bs-toggle="modal" 
+                                            data-bs-target="#deleteModal{{ user.id }}">
+                                        <i class="fas fa-trash me-2"></i> Delete
+                                    </button>
+                                </li>
+                            </ul>
                         </div>
                     </td>
                 </tr>
@@ -176,23 +306,54 @@
                 <!-- Delete Modal -->
                 <div class="modal fade" id="deleteModal{{ user.id }}" tabindex="-1">
                     <div class="modal-dialog">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <h5 class="modal-title">Confirm Delete</h5>
+                        <div class="modal-content border-0 shadow">
+                            <div class="modal-header border-0">
+                                <h5 class="modal-title text-danger fw-bold">
+                                    <i class="fas fa-exclamation-triangle me-2"></i>Confirm Delete
+                                </h5>
                                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                             </div>
                             <div class="modal-body">
-                                Are you sure you want to delete user <strong>{{ user.username }}</strong>?
-                                <div class="alert alert-warning mt-2">
-                                    <i class="fas fa-exclamation-triangle"></i>
-                                    This action cannot be undone.
+                                <div class="alert alert-danger border-0 bg-danger bg-opacity-10 mb-3">
+                                    <i class="fas fa-trash me-2"></i>
+                                    This action cannot be undone!
+                                </div>
+                                <p class="mb-3">Are you sure you want to delete user:</p>
+                                <div class="card border-danger border-opacity-25">
+                                    <div class="card-body p-3">
+                                        <div class="d-flex align-items-center gap-3 mb-3">
+                                            <div class="avatar-circle bg-danger text-white">
+                                                {{ user.username|first|upper }}
+                                            </div>
+                                            <div>
+                                                <h6 class="card-title text-danger mb-1">{{ user.username }}</h6>
+                                                <div class="small text-muted">{{ user.email }}</div>
+                                            </div>
+                                        </div>
+                                        <div class="row small text-muted">
+                                            <div class="col-6">
+                                                <div>Joined:</div>
+                                                <div class="fw-medium">{{ user.date_joined|date:"d M Y" }}</div>
+                                            </div>
+                                            <div class="col-6">
+                                                <div>Type:</div>
+                                                {% if user.userprofile %}
+                                                    <div class="fw-medium">{{ user.userprofile.get_user_type_display }}</div>
+                                                {% else %}
+                                                    <div class="fw-medium">Not Set</div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-                            <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <div class="modal-footer border-0">
+                                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
                                 <form method="post" action="{% url 'admin:auth_user_delete' user.id %}">
                                     {% csrf_token %}
-                                    <button type="submit" class="btn btn-danger">Delete User</button>
+                                    <button type="submit" class="btn btn-danger">
+                                        <i class="fas fa-trash me-1"></i> Delete User
+                                    </button>
                                 </form>
                             </div>
                         </div>
@@ -200,9 +361,15 @@
                 </div>
                 {% empty %}
                 <tr>
-                    <td colspan="9" class="text-center py-4">
-                        <i class="fas fa-users fa-3x text-muted mb-3"></i>
-                        <p class="text-muted">No users found</p>
+                    <td colspan="9" class="text-center py-5">
+                        <div class="text-center py-5">
+                            <i class="fas fa-users fa-3x text-muted mb-3 opacity-25"></i>
+                            <h5 class="text-muted fw-normal mb-2">No users found</h5>
+                            <p class="text-muted mb-4 small">Try adjusting your filters or add new users</p>
+                            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addUserModal">
+                                <i class="fas fa-user-plus me-1"></i> Add First User
+                            </button>
+                        </div>
                     </td>
                 </tr>
                 {% endfor %}
@@ -212,97 +379,220 @@
     
     <!-- Pagination -->
     {% if users.paginator.num_pages > 1 %}
-    <div class="p-3 border-top">
-        <nav>
-            <ul class="pagination justify-content-center mb-0">
-                {% if users.has_previous %}
-                <li class="page-item">
-                    <a class="page-link" href="?page=1">First</a>
-                </li>
-                <li class="page-item">
-                    <a class="page-link" href="?page={{ users.previous_page_number }}">Previous</a>
-                </li>
-                {% endif %}
-
-                {% for num in users.paginator.page_range %}
-                    {% if users.number == num %}
-                    <li class="page-item active">
-                        <span class="page-link">{{ num }}</span>
-                    </li>
-                    {% elif num > users.number|add:'-3' and num < users.number|add:'3' %}
+    <div class="card-footer bg-white border-0 py-3">
+        <div class="d-flex justify-content-between align-items-center">
+            <div class="text-muted small">
+                <span class="fw-medium">Showing {{ users.start_index }} to {{ users.end_index }} of {{ users.paginator.count }} users</span>
+            </div>
+            <nav>
+                <ul class="pagination pagination-sm mb-0">
+                    {% if users.has_previous %}
                     <li class="page-item">
-                        <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                        <a class="page-link border-0" href="?page=1
+                            {% if request.GET.search %}&search={{ request.GET.search }}{% endif %}
+                            {% if request.GET.user_type %}&user_type={{ request.GET.user_type }}{% endif %}
+                            {% if request.GET.status %}&status={{ request.GET.status }}{% endif %}
+                            {% if request.GET.start_date %}&start_date={{ request.GET.start_date }}{% endif %}
+                            {% if request.GET.end_date %}&end_date={{ request.GET.end_date }}{% endif %}" 
+                           title="First">
+                            <i class="fas fa-angle-double-left"></i>
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link border-0" href="?page={{ users.previous_page_number }}
+                            {% if request.GET.search %}&search={{ request.GET.search }}{% endif %}
+                            {% if request.GET.user_type %}&user_type={{ request.GET.user_type }}{% endif %}
+                            {% if request.GET.status %}&status={{ request.GET.status }}{% endif %}
+                            {% if request.GET.start_date %}&start_date={{ request.GET.start_date }}{% endif %}
+                            {% if request.GET.end_date %}&end_date={{ request.GET.end_date }}{% endif %}" 
+                           title="Previous">
+                            <i class="fas fa-angle-left"></i>
+                        </a>
                     </li>
                     {% endif %}
-                {% endfor %}
 
-                {% if users.has_next %}
-                <li class="page-item">
-                    <a class="page-link" href="?page={{ users.next_page_number }}">Next</a>
-                </li>
-                <li class="page-item">
-                    <a class="page-link" href="?page={{ users.paginator.num_pages }}">Last</a>
-                </li>
-                {% endif %}
-            </ul>
-        </nav>
+                    {% for num in users.paginator.page_range %}
+                        {% if num == users.number %}
+                        <li class="page-item active">
+                            <span class="page-link border-0 bg-primary">{{ num }}</span>
+                        </li>
+                        {% elif num > users.number|add:'-3' and num < users.number|add:'3' %}
+                        <li class="page-item">
+                            <a class="page-link border-0" href="?page={{ num }}
+                                {% if request.GET.search %}&search={{ request.GET.search }}{% endif %}
+                                {% if request.GET.user_type %}&user_type={{ request.GET.user_type }}{% endif %}
+                                {% if request.GET.status %}&status={{ request.GET.status }}{% endif %}
+                                {% if request.GET.start_date %}&start_date={{ request.GET.start_date }}{% endif %}
+                                {% if request.GET.end_date %}&end_date={{ request.GET.end_date }}{% endif %}">
+                                {{ num }}
+                            </a>
+                        </li>
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if users.has_next %}
+                    <li class="page-item">
+                        <a class="page-link border-0" href="?page={{ users.next_page_number }}
+                            {% if request.GET.search %}&search={{ request.GET.search }}{% endif %}
+                            {% if request.GET.user_type %}&user_type={{ request.GET.user_type }}{% endif %}
+                            {% if request.GET.status %}&status={{ request.GET.status }}{% endif %}
+                            {% if request.GET.start_date %}&start_date={{ request.GET.start_date }}{% endif %}
+                            {% if request.GET.end_date %}&end_date={{ request.GET.end_date }}{% endif %}" 
+                           title="Next">
+                            <i class="fas fa-angle-right"></i>
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link border-0" href="?page={{ users.paginator.num_pages }}
+                            {% if request.GET.search %}&search={{ request.GET.search }}{% endif %}
+                            {% if request.GET.user_type %}&user_type={{ request.GET.user_type }}{% endif %}
+                            {% if request.GET.status %}&status={{ request.GET.status }}{% endif %}
+                            {% if request.GET.start_date %}&start_date={{ request.GET.start_date }}{% endif %}
+                            {% if request.GET.end_date %}&end_date={{ request.GET.end_date }}{% endif %}" 
+                           title="Last">
+                            <i class="fas fa-angle-double-right"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
     </div>
     {% endif %}
 </div>
 
 <!-- Add User Modal -->
-<!-- Replace the Add User Modal section with this: -->
-<!-- Add User Modal -->
 <div class="modal fade" id="addUserModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold">
+                    <i class="fas fa-user-plus me-2 text-primary"></i>Add New User
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post" action="{% url 'add_user' %}">
+                {% csrf_token %}
+                <div class="modal-body pt-0">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-medium mb-1">Username *</label>
+                            <input type="text" name="username" class="form-control" required
+                                   placeholder="Enter username">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-medium mb-1">Email Address *</label>
+                            <input type="email" name="email" class="form-control" required
+                                   placeholder="user@example.com">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-medium mb-1">Password *</label>
+                            <input type="password" name="password1" class="form-control" required
+                                   placeholder="Enter password">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-medium mb-1">Confirm Password *</label>
+                            <input type="password" name="password2" class="form-control" required
+                                   placeholder="Confirm password">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-medium mb-1">First Name</label>
+                            <input type="text" name="first_name" class="form-control"
+                                   placeholder="Optional">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-medium mb-1">Last Name</label>
+                            <input type="text" name="last_name" class="form-control"
+                                   placeholder="Optional">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-medium mb-1">User Type *</label>
+                            <select name="user_type" class="form-select" required>
+                                <option value="">Select User Type</option>
+                                <option value="FARMER">Farmer</option>
+                                <option value="TRADER">Trader</option>
+                                <option value="CONSUMER">Consumer</option>
+                                <option value="GOVERNMENT">Government Official</option>
+                                <option value="RESEARCHER">Researcher</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-medium mb-1">Location</label>
+                            <input type="text" name="location" class="form-control"
+                                   placeholder="City, State">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-medium mb-1">Phone Number</label>
+                            <input type="tel" name="phone" class="form-control"
+                                   placeholder="+91 9876543210">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-medium mb-1">Permissions</label>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="is_staff" id="is_staff" checked>
+                                <label class="form-check-label small" for="is_staff">
+                                    Staff Member
+                                </label>
+                            </div>
+                            <div class="form-check mt-1">
+                                <input class="form-check-input" type="checkbox" name="is_superuser" id="is_superuser">
+                                <label class="form-check-label small" for="is_superuser">
+                                    Super Admin
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-warning mt-3 mb-0 d-none" id="userAlert">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <span id="userAlertMessage"></span>
+                    </div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="submitUserBtn">
+                        <i class="fas fa-user-plus me-1"></i> Create User
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Export Modal -->
+<div class="modal fade" id="exportModal" tabindex="-1">
     <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Add New User</h5>
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header border-0">
+                <h5 class="modal-title fw-bold">
+                    <i class="fas fa-file-export me-2 text-primary"></i>Export Users
+                </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <div class="alert alert-info">
+                <div class="alert alert-info border-0 bg-info bg-opacity-10 mb-3">
                     <i class="fas fa-info-circle me-2"></i>
-                    To add users with full control, please use the Django admin panel.
+                    Export users with applied filters
                 </div>
-                <p class="text-muted">For quick user creation:</p>
-                <form method="post" action="{% url 'add_user' %}">
-                    {% csrf_token %}
-                    <div class="mb-3">
-                        <label class="form-label">Username</label>
-                        <input type="text" class="form-control" name="username" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Email</label>
-                        <input type="email" class="form-control" name="email" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Password</label>
-                        <input type="password" class="form-control" name="password1" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">User Type</label>
-                        <select class="form-select" name="user_type">
-                            <option value="FARMER">Farmer</option>
-                            <option value="TRADER">Trader</option>
-                            <option value="CONSUMER">Consumer</option>
-                            <option value="GOVERNMENT">Government Official</option>
-                            <option value="RESEARCHER">Researcher</option>
-                        </select>
-                    </div>
-                    <div class="text-end">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-admin btn-admin-primary">
-                            <i class="fas fa-user-plus me-1"></i> Add User
-                        </button>
-                    </div>
-                </form>
-                <hr>
-                <div class="text-center">
-                    <a href="/admin/auth/user/add/" class="btn btn-outline-primary btn-sm" target="_blank">
-                        <i class="fas fa-external-link-alt me-1"></i> Open Django Admin for Full Control
+                <div class="list-group border-0">
+                    <a href="#" class="list-group-item list-group-item-action border-0 d-flex align-items-center">
+                        <i class="fas fa-file-csv text-success me-3 fa-lg"></i>
+                        <div>
+                            <div class="fw-medium">Export as CSV</div>
+                            <small class="text-muted">Comma separated values file</small>
+                        </div>
+                    </a>
+                    <a href="#" class="list-group-item list-group-item-action border-0 d-flex align-items-center mt-2">
+                        <i class="fas fa-file-excel text-primary me-3 fa-lg"></i>
+                        <div>
+                            <div class="fw-medium">Export as Excel</div>
+                            <small class="text-muted">Microsoft Excel file (.xlsx)</small>
+                        </div>
                     </a>
                 </div>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Close</button>
             </div>
         </div>
     </div>
@@ -311,29 +601,175 @@
 
 {% block extra_css %}
 <style>
+.avatar-circle {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 18px;
+}
+
+/* Card hover effects */
+.card {
+    transition: transform 0.2s ease;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+}
+
+/* Table row hover */
+.table tbody tr {
+    transition: all 0.2s ease;
+}
+
+.table tbody tr:hover {
+    background-color: rgba(52, 152, 219, 0.05) !important;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+/* Badge styles */
+.badge {
+    font-weight: 500;
+    padding: 0.35em 0.65em;
+    border-radius: 6px;
+}
+
+/* Dropdown menu */
+.dropdown-menu {
+    border-radius: 8px;
+    border: none;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.dropdown-item {
+    padding: 0.5rem 1rem;
+    font-size: 14px;
+}
+
+.dropdown-item:hover {
+    background-color: rgba(52, 152, 219, 0.1);
+}
+
+/* Form styles */
+.form-control, .form-select {
+    border-radius: 6px;
+    border: 1px solid #dee2e6;
+    padding: 0.375rem 0.75rem;
+    transition: all 0.2s ease;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: #3498db;
+    box-shadow: 0 0 0 0.25rem rgba(52, 152, 219, 0.1);
+}
+
+/* Pagination active state */
+.page-item.active .page-link {
+    background-color: #3498db;
+    border-color: #3498db;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
     .avatar-circle {
-        width: 40px;
-        height: 40px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: bold;
+        width: 35px;
+        height: 35px;
+        font-size: 14px;
     }
+    
+    .table-responsive {
+        border: none;
+    }
+    
+    .card-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .card-header .btn-group {
+        margin-top: 0.5rem;
+        width: 100%;
+        justify-content: flex-start;
+    }
+}
 </style>
 {% endblock %}
 
 {% block extra_js %}
 <script>
-    // Search functionality
-    document.getElementById('userSearch').addEventListener('input', function(e) {
-        const searchTerm = e.target.value.toLowerCase();
-        const rows = document.querySelectorAll('.data-table tbody tr');
+document.addEventListener('DOMContentLoaded', function() {
+    // User form validation
+    const password1 = document.querySelector('input[name="password1"]');
+    const password2 = document.querySelector('input[name="password2"]');
+    const userAlert = document.getElementById('userAlert');
+    const userAlertMessage = document.getElementById('userAlertMessage');
+    const submitUserBtn = document.getElementById('submitUserBtn');
+    
+    function validateUserForm() {
+        let isValid = true;
+        let message = '';
         
-        rows.forEach(row => {
-            const text = row.textContent.toLowerCase();
-            row.style.display = text.includes(searchTerm) ? '' : 'none';
+        // Check if passwords match
+        if (password1 && password2) {
+            if (password1.value !== password2.value) {
+                message = 'Passwords do not match';
+                isValid = false;
+            } else if (password1.value.length < 6) {
+                message = 'Password must be at least 6 characters long';
+                isValid = false;
+            }
+        }
+        
+        if (message) {
+            userAlert.classList.remove('d-none');
+            userAlertMessage.textContent = message;
+            submitUserBtn.disabled = true;
+            submitUserBtn.classList.add('disabled');
+        } else {
+            userAlert.classList.add('d-none');
+            submitUserBtn.disabled = false;
+            submitUserBtn.classList.remove('disabled');
+        }
+        
+        return isValid;
+    }
+    
+    // Add event listeners for password validation
+    if (password1 && password2) {
+        password1.addEventListener('input', validateUserForm);
+        password2.addEventListener('input', validateUserForm);
+    }
+    
+    // Initial validation
+    validateUserForm();
+    
+    // Search functionality
+    const searchInput = document.querySelector('input[name="search"]');
+    if (searchInput) {
+        searchInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                this.form.submit();
+            }
         });
-    });
+    }
+    
+    // Export modal functionality
+    const exportModal = document.getElementById('exportModal');
+    if (exportModal) {
+        // Add export links functionality here
+        const exportLinks = exportModal.querySelectorAll('.list-group-item');
+        exportLinks.forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                alert('Export functionality will be implemented soon!');
+            });
+        });
+    }
+});
 </script>
 {% endblock %}

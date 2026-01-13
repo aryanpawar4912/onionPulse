@@ -108,9 +108,9 @@ class OnionPricePredictor:
         print("Training LSTM model...")
         
         # Reshape data for LSTM [samples, time steps, features]
-        if len(X_train.shape) == 2:
+        if hasattr(X_train, 'values'):  # Check if it's a DataFrame
             X_train_reshaped = X_train.values.reshape((X_train.shape[0], 1, X_train.shape[1]))
-        else:
+        else:  # It's already a numpy array
             X_train_reshaped = X_train.reshape((X_train.shape[0], 1, X_train.shape[1]))
         
         # Build LSTM model
@@ -131,7 +131,7 @@ class OnionPricePredictor:
         # Train model
         history = model.fit(
             X_train_reshaped, y_train,
-            epochs=100,
+            epochs=50,
             batch_size=32,
             validation_split=0.2,
             callbacks=[early_stop],
@@ -230,7 +230,12 @@ class OnionPricePredictor:
         evaluation_results = {}
         for name, model_info in models.items():
             if model_info['type'] != 'PROPHET':
-                y_pred = model_info['model'].predict(X_test_scaled)
+                if model_info['type'] == 'LSTM':
+                    X_test_reshaped = X_test_scaled.reshape((X_test_scaled.shape[0], 1, X_test_scaled.shape[1]))
+                    y_pred = model_info['model'].predict(X_test_reshaped).flatten()
+                else:
+                    y_pred = model_info['model'].predict(X_test_scaled)
+                
                 mse = mean_squared_error(y_test, y_pred)
                 mae = mean_absolute_error(y_test, y_pred)
                 r2 = r2_score(y_test, y_pred)
@@ -253,18 +258,22 @@ class OnionPricePredictor:
             model = model_info['model']
             model_type = model_info['type']
             
-            if model_type == 'LSTM':
-                model.save(f'{path}{name}_model.h5')
-            elif model_type == 'PROPHET':
-                joblib.dump(model, f'{path}{name}_model.pkl')
-            else:
-                joblib.dump(model, f'{path}{name}_model.joblib')
+            try:
+                if model_type == 'LSTM':
+                    model.save(f'{path}{name}_model.h5')
+                elif model_type == 'PROPHET':
+                    joblib.dump(model, f'{path}{name}_model.pkl')
+                else:
+                    joblib.dump(model, f'{path}{name}_model.joblib')
+                print(f"Saved {name} model")
+            except Exception as e:
+                print(f"Error saving {name} model: {e}")
         
         # Save scaler and encoders
         joblib.dump(self.scaler, f'{path}scaler.joblib')
         joblib.dump(self.label_encoders, f'{path}label_encoders.joblib')
         
-        print(f"Models saved to {path}")
+        print(f"All models saved to {path}")
     
     def load_models(self, path='forecast_app/ml_model/saved_models/'):
         """Load trained models"""
@@ -280,10 +289,14 @@ class OnionPricePredictor:
         for name, filename in model_files.items():
             filepath = f'{path}{filename}'
             if os.path.exists(filepath):
-                if name == 'lstm':
-                    models[name] = load_model(filepath)
-                else:
-                    models[name] = joblib.load(filepath)
+                try:
+                    if name == 'lstm':
+                        models[name] = load_model(filepath)
+                    else:
+                        models[name] = joblib.load(filepath)
+                    print(f"Loaded {name} model")
+                except Exception as e:
+                    print(f"Error loading {name} model: {e}")
         
         # Load scaler and encoders
         scaler_path = f'{path}scaler.joblib'
@@ -313,13 +326,11 @@ class OnionPricePredictor:
         
         elif model_type in ['RF', 'XGB']:
             # For tree-based models, we need to prepare future data
-            # This is simplified - you'll need to implement based on your feature engineering
             predictions = []
             current_features = last_data.copy() if last_data is not None else self.data.iloc[-1].copy()
             
             for i in range(future_days):
                 # Prepare features for prediction
-                # You need to update features like date, lags, etc.
                 features = self.prepare_features_for_prediction(current_features, i)
                 pred = model.predict([features])[0]
                 predictions.append(pred)
@@ -333,3 +344,47 @@ class OnionPricePredictor:
             })
         
         return None
+def prepare_features_for_prediction(self, current_features, day_offset):
+    """Prepare features for future prediction"""
+    # This is a simplified version - you should expand based on your feature engineering
+    features = []
+    
+    # Extract date features from current date + offset
+    current_date = pd.Timestamp.today() + timedelta(days=day_offset)
+    
+    features.append(current_date.month)
+    features.append(current_date.day)
+    features.append(current_date.dayofweek)
+    
+    # Add price features from current_features
+    if isinstance(current_features, dict):
+        features.extend([
+            current_features.get('modal_price', 1500),
+            current_features.get('price_lag_1', 1500),
+            current_features.get('price_lag_7', 1500),
+        ])
+    elif isinstance(current_features, pd.Series):
+        features.extend([
+            current_features.get('modal_price', 1500),
+            current_features.get('price_lag_1', 1500) if 'price_lag_1' in current_features else 1500,
+            current_features.get('price_lag_7', 1500) if 'price_lag_7' in current_features else 1500,
+        ])
+    else:
+        # Default values
+        features.extend([1500, 1500, 1500])
+    
+    return features
+
+def update_features_after_prediction(self, current_features, new_price):
+    """Update features after making a prediction"""
+    # Simplified update - you should expand this
+    if isinstance(current_features, dict):
+        current_features['modal_price'] = new_price
+        current_features['price_lag_1'] = new_price
+        # Shift other lag features if they exist
+    elif isinstance(current_features, pd.Series):
+        current_features['modal_price'] = new_price
+        if 'price_lag_1' in current_features:
+            current_features['price_lag_1'] = new_price
+    
+    return current_features
