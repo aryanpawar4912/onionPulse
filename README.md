@@ -419,3 +419,4 @@ python manage.py runserver
 --------------------------------------** Changes **-----------------------------------------------
 1.login page redirection
 2.change logo name
+3.change theme
