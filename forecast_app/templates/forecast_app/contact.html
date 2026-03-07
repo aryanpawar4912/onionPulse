@@ -1,324 +1,375 @@
-<!-- forecast_app/templates/forecast_app/contact.html -->
 {% extends 'forecast_app/base.html' %}
 {% load static %}
-
+{% block title %}Contact Us — OnionPulse AI{% endblock %}
 {% block content %}
-<div class="row mb-4">
-    <div class="col-12">
-        <div class="hero-section">
-            <div class="container">
-                <h1 class="display-5 fw-bold">Contact Us</h1>
-                <p class="lead">Get in touch with our team for support, partnerships, or inquiries</p>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="container">
-    <div class="row">
-        <!-- Contact Form -->
-        <div class="col-lg-8">
-            <div class="card mb-4">
-                <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0"><i class="fas fa-envelope me-2"></i>Send us a Message</h5>
-                </div>
-                <div class="card-body">
-                    <form method="post">
-                        {% csrf_token %}
-                        
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label for="name" class="form-label">Your Name *</label>
-                                    <input type="text" class="form-control" id="name" name="name" required>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label for="email" class="form-label">Email Address *</label>
-                                    <input type="email" class="form-control" id="email" name="email" required>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label for="subject" class="form-label">Subject</label>
-                            <select class="form-select" id="subject" name="subject">
-                                <option value="">Select a subject</option>
-                                <option value="General Inquiry">General Inquiry</option>
-                                <option value="Technical Support">Technical Support</option>
-                                <option value="Partnership">Partnership/合作</option>
-                                <option value="Data Access">Data Access Request</option>
-                                <option value="Feedback">Feedback/Suggestions</option>
-                                <option value="Other">Other</option>
-                            </select>
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label for="message" class="form-label">Message *</label>
-                            <textarea class="form-control" id="message" name="message" rows="5" required placeholder="Please describe your inquiry in detail..."></textarea>
-                        </div>
-                        
-                        <div class="d-grid">
-                            <button type="submit" class="btn btn-primary btn-lg">
-                                <i class="fas fa-paper-plane me-2"></i>Send Message
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Contact Information -->
-        <div class="col-lg-4">
-            <!-- Contact Info Card -->
-            <div class="card mb-4">
-                <div class="card-header bg-success text-white">
-                    <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>Contact Information</h5>
-                </div>
-                <div class="card-body">
-                    <div class="contact-item mb-4">
-                        <div class="d-flex align-items-center mb-3">
-                            <div class="contact-icon bg-primary text-white rounded-circle p-3 me-3">
-                                <i class="fas fa-map-marker-alt fa-lg"></i>
-                            </div>
-                            <div>
-                                <h6 class="mb-1">Office Address</h6>
-                                <p class="text-muted mb-0">Agriculture Tech Park<br>New Delhi, India 110001</p>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="contact-item mb-4">
-                        <div class="d-flex align-items-center mb-3">
-                            <div class="contact-icon bg-success text-white rounded-circle p-3 me-3">
-                                <i class="fas fa-phone fa-lg"></i>
-                            </div>
-                            <div>
-                                <h6 class="mb-1">Phone Numbers</h6>
-                                <p class="text-muted mb-0">+91 98765 43210 (Support)<br>+91 91234 56789 (Sales)</p>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="contact-item mb-4">
-                        <div class="d-flex align-items-center mb-3">
-                            <div class="contact-icon bg-info text-white rounded-circle p-3 me-3">
-                                <i class="fas fa-envelope fa-lg"></i>
-                            </div>
-                            <div>
-                                <h6 class="mb-1">Email Addresses</h6>
-                                <p class="text-muted mb-0">support@onionforecast.com<br>info@onionforecast.com</p>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="contact-item">
-                        <div class="d-flex align-items-center mb-3">
-                            <div class="contact-icon bg-warning text-white rounded-circle p-3 me-3">
-                                <i class="fas fa-clock fa-lg"></i>
-                            </div>
-                            <div>
-                                <h6 class="mb-1">Business Hours</h6>
-                                <p class="text-muted mb-0">Mon-Fri: 9:00 AM - 6:00 PM<br>Sat: 10:00 AM - 2:00 PM</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- FAQ Card -->
-            <div class="card">
-                <div class="card-header bg-info text-white">
-                    <h5 class="mb-0"><i class="fas fa-question-circle me-2"></i>Quick FAQ</h5>
-                </div>
-                <div class="card-body">
-                    <div class="accordion" id="faqAccordion">
-                        <div class="accordion-item">
-                            <h2 class="accordion-header">
-                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq1">
-                                    How accurate are the predictions?
-                                </button>
-                            </h2>
-                            <div id="faq1" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
-                                <div class="accordion-body">
-                                    Our models achieve 85%+ accuracy for 7-day forecasts and 75%+ accuracy for 30-day forecasts.
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="accordion-item">
-                            <h2 class="accordion-header">
-                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq2">
-                                    Is there a free trial?
-                                </button>
-                            </h2>
-                            <div id="faq2" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
-                                <div class="accordion-body">
-                                    Yes! Sign up for a free account to access basic predictions and market trends.
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="accordion-item">
-                            <h2 class="accordion-header">
-                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq3">
-                                    Can I get API access?
-                                </button>
-                            </h2>
-                            <div id="faq3" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
-                                <div class="accordion-body">
-                                    API access is available for enterprise clients. Contact us for pricing and details.
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Map Section -->
-    <div class="row mt-4">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header bg-dark text-white">
-                    <h5 class="mb-0"><i class="fas fa-map me-2"></i>Find Us</h5>
-                </div>
-                <div class="card-body">
-                    <div class="map-container" style="height: 300px; background-color: #f8f9fa; border-radius: 8px; overflow: hidden;">
-                        <div class="text-center py-5">
-                            <i class="fas fa-map-marked-alt fa-3x text-muted mb-3"></i>
-                            <h5>New Delhi Office</h5>
-                            <p class="text-muted">Agriculture Tech Park, Near Ministry of Agriculture</p>
-                            <p class="text-muted">Latitude: 28.6139° N, Longitude: 77.2090° E</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Support Channels -->
-    <div class="row mt-4">
-        <div class="col-md-4 mb-3">
-            <div class="card text-center h-100">
-                <div class="card-body">
-                    <i class="fas fa-headset fa-3x text-primary mb-3"></i>
-                    <h5>Technical Support</h5>
-                    <p class="text-muted">Get help with platform features, data access, and technical issues.</p>
-                    <a href="mailto:support@onionforecast.com" class="btn btn-outline-primary">Email Support</a>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-md-4 mb-3">
-            <div class="card text-center h-100">
-                <div class="card-body">
-                    <i class="fas fa-handshake fa-3x text-success mb-3"></i>
-                    <h5>Partnerships</h5>
-                    <p class="text-muted">Interested in collaborating? Contact our partnership team.</p>
-                    <a href="mailto:partners@onionforecast.com" class="btn btn-outline-success">Partner With Us</a>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-md-4 mb-3">
-            <div class="card text-center h-100">
-                <div class="card-body">
-                    <i class="fas fa-database fa-3x text-info mb-3"></i>
-                    <h5>Data Services</h5>
-                    <p class="text-muted">Need historical data or custom reports? Contact our data team.</p>
-                    <a href="mailto:data@onionforecast.com" class="btn btn-outline-info">Request Data</a>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
 <style>
-    .hero-section {
-        background: linear-gradient(135deg, #4a6fa5 0%, #166088 100%);
-        color: white;
-        padding: 80px 0;
-        border-radius: 15px;
-        margin-top: 20px;
-    }
-    
-    .contact-icon {
-        width: 60px;
-        height: 60px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-    
-    .contact-item {
-        transition: transform 0.3s;
-    }
-    
-    .contact-item:hover {
-        transform: translateX(5px);
-    }
-    
-    .map-container {
-        position: relative;
-        background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
-    }
+/* HERO */
+.contact-hero{background:linear-gradient(135deg,#0c4a6e 0%,#0369a1 45%,#0ea5e9 100%);padding:46px 0;position:relative;overflow:hidden}
+.contact-hero::before{content:'';position:absolute;inset:0;background:url('https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=1600&q=80') center/cover;opacity:.08}
+.contact-hero::after{content:'';position:absolute;right:-80px;bottom:-80px;width:360px;height:360px;background:radial-gradient(circle,rgba(249,115,22,.22) 0%,transparent 70%);pointer-events:none}
+.ch{position:relative;z-index:2}
+.ch h1{font-family:var(--font-d);font-size:clamp(24px,4vw,38px);font-weight:800;color:#fff;letter-spacing:-.5px}
+.ch p{color:rgba(255,255,255,.82);font-size:15px;margin:6px 0 0}
+
+/* FORM CARD */
+.form-card{background:#fff;border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--sh-sm);overflow:hidden}
+.form-card-hdr{padding:16px 22px;border-bottom:1px solid var(--border);background:var(--bg);display:flex;align-items:center;gap:9px;font-family:var(--font-d);font-size:15px;font-weight:700;color:var(--text)}
+.form-card-hdr i{color:var(--orange)}
+.form-card-body{padding:26px}
+
+/* CONTACT INFO */
+.info-card{background:#fff;border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--sh-sm);overflow:hidden;margin-bottom:18px}
+.info-card-hdr{padding:14px 18px;border-bottom:1px solid var(--border);background:var(--bg);display:flex;align-items:center;gap:8px;font-family:var(--font-d);font-size:14px;font-weight:700;color:var(--text)}
+.info-card-hdr i{color:var(--green)}
+.info-card-body{padding:16px 18px}
+.contact-item{display:flex;align-items:flex-start;gap:14px;padding:12px 0;border-bottom:1px solid var(--border);transition:transform .2s}
+.contact-item:last-child{border-bottom:none}
+.contact-item:hover{transform:translateX(4px)}
+.ci-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.ci-icon.loc{background:var(--orange-light);color:var(--orange)}
+.ci-icon.ph{background:var(--green-light);color:var(--green)}
+.ci-icon.em{background:#eff6ff;color:#2563eb}
+.ci-icon.hr{background:#fffbeb;color:#d97706}
+.ci-body h6{font-family:var(--font-d);font-size:13.5px;font-weight:700;color:var(--text);margin-bottom:3px}
+.ci-body p{font-size:13px;color:var(--text-mid);margin:0;line-height:1.6}
+
+/* FAQ ACCORDION */
+.faq-item{border-bottom:1px solid var(--border)}
+.faq-item:last-child{border-bottom:none}
+.faq-btn{width:100%;background:none;border:none;padding:13px 18px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;font-family:var(--font-b);font-size:13.5px;font-weight:600;color:var(--text);text-align:left;transition:background .15s}
+.faq-btn:hover{background:var(--bg)}
+.faq-btn i{font-size:11px;color:var(--text-light);transition:transform .25s;flex-shrink:0;margin-left:8px}
+.faq-btn.open i{transform:rotate(180deg);color:var(--orange)}
+.faq-body{display:none;padding:0 18px 14px;font-size:13.5px;color:var(--text-mid);line-height:1.65}
+.faq-body.show{display:block}
+
+/* MAP PLACEHOLDER */
+.map-wrap{background:linear-gradient(135deg,#e0f2fe,#bae6fd);border-radius:var(--radius);overflow:hidden;height:260px;display:flex;flex-direction:column;align-items:center;justify-content:center;border:1px solid #bae6fd;position:relative}
+.map-pin{width:52px;height:52px;background:#0369a1;border-radius:50% 50% 50% 0;transform:rotate(-45deg);display:flex;align-items:center;justify-content:center;box-shadow:0 6px 20px rgba(3,105,161,.35);margin-bottom:20px}
+.map-pin i{transform:rotate(45deg);color:#fff;font-size:18px}
+.map-ring{position:absolute;width:90px;height:90px;border-radius:50%;border:2px solid rgba(3,105,161,.2);animation:mapPulse 2s infinite}
+.map-ring2{position:absolute;width:140px;height:140px;border-radius:50%;border:1.5px solid rgba(3,105,161,.12);animation:mapPulse 2s .5s infinite}
+@keyframes mapPulse{0%{transform:scale(.8);opacity:.6}100%{transform:scale(1.3);opacity:0}}
+
+/* SUPPORT CHANNELS */
+.support-card{background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:28px 22px;text-align:center;box-shadow:var(--sh-sm);transition:all .3s;height:100%}
+.support-card:hover{box-shadow:var(--sh-lg);transform:translateY(-6px)}
+.support-icon{width:64px;height:64px;border-radius:18px;display:flex;align-items:center;justify-content:center;font-size:24px;margin:0 auto 16px}
+.support-card h5{font-family:var(--font-d);font-size:17px;font-weight:700;color:var(--text);margin-bottom:10px}
+.support-card p{font-size:13.5px;color:var(--text-mid);line-height:1.65;margin-bottom:18px}
+
+/* SUBMIT BTN LOADING */
+.btn-loading{opacity:.7;pointer-events:none}
+
+/* SUCCESS BANNER */
+.success-banner{background:var(--green-light);border:1px solid var(--green-mid);border-radius:var(--radius-sm);padding:14px 18px;display:flex;align-items:center;gap:10px;font-size:14px;font-weight:500;color:var(--green-d);margin-bottom:20px}
 </style>
 
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Form validation
-    const contactForm = document.querySelector('form');
-    if (contactForm) {
-        contactForm.addEventListener('submit', function(e) {
-            const name = document.getElementById('name').value.trim();
-            const email = document.getElementById('email').value.trim();
-            const message = document.getElementById('message').value.trim();
-            
-            if (!name || !email || !message) {
-                e.preventDefault();
-                alert('Please fill in all required fields marked with *');
-                return false;
-            }
-            
-            // Email validation
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            if (!emailRegex.test(email)) {
-                e.preventDefault();
-                alert('Please enter a valid email address');
-                return false;
-            }
-            
-            // Show loading indicator
-            const submitBtn = contactForm.querySelector('button[type="submit"]');
-            const originalText = submitBtn.innerHTML;
-            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Sending...';
-            submitBtn.disabled = true;
-            
-            // Simulate sending (remove this in production)
-            setTimeout(() => {
-                submitBtn.innerHTML = originalText;
-                submitBtn.disabled = false;
-            }, 2000);
-        });
-    }
-    
-    // Auto-fill for testing
-    const testFillBtn = document.createElement('button');
-    testFillBtn.className = 'btn btn-sm btn-outline-secondary position-fixed';
-    testFillBtn.style.bottom = '20px';
-    testFillBtn.style.right = '20px';
-    testFillBtn.style.zIndex = '1000';
-    testFillBtn.innerHTML = '<i class="fas fa-vial me-1"></i> Fill Test Data';
-    testFillBtn.onclick = function() {
-        document.getElementById('name').value = 'Test User';
-        document.getElementById('email').value = 'test@example.com';
-        document.getElementById('subject').value = 'General Inquiry';
-        document.getElementById('message').value = 'This is a test message to check the contact form functionality. Please ignore.';
-    };
-    document.body.appendChild(testFillBtn);
-});
-</script>
+<!-- HERO -->
+<div class="contact-hero">
+  <div class="container ch">
+    <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
+      <div>
+        <div class="hero-badge" style="background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.3)"><i class="fas fa-envelope"></i> Get In Touch</div>
+        <h1>Contact <span style="color:rgba(255,255,255,.75)">Our Team</span></h1>
+        <p>Reach out for support, partnerships, data access, or any inquiries</p>
+      </div>
+      <div class="d-flex gap-2 mt-2">
+        <a href="mailto:info@onionforecast.in" class="btn-out-orange" style="padding:10px 20px;font-size:13.5px;border-color:rgba(255,255,255,.45);color:#fff;background:rgba(255,255,255,.12)"><i class="fas fa-envelope"></i> Email Us</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="container py-4 pb-5">
+
+  <!-- QUICK STATS -->
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+      <div class="kpi-card"><div class="kpi-icon green"><i class="fas fa-headset"></i></div><div><div class="kpi-val">24h</div><div class="kpi-lbl">Response Time</div></div></div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="kpi-card"><div class="kpi-icon orange"><i class="fas fa-star"></i></div><div><div class="kpi-val">4.9★</div><div class="kpi-lbl">Support Rating</div></div></div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="kpi-card"><div class="kpi-icon blue"><i class="fas fa-users"></i></div><div><div class="kpi-val">5K+</div><div class="kpi-lbl">Users Helped</div></div></div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="kpi-card"><div class="kpi-icon amber"><i class="fas fa-clock"></i></div><div><div class="kpi-val">6 Days</div><div class="kpi-lbl">Support Hours</div></div></div>
+    </div>
+  </div>
+
+  <div class="row g-4">
+
+    <!-- CONTACT FORM -->
+    <div class="col-lg-8">
+      <div class="form-card">
+        <div class="form-card-hdr">
+          <i class="fas fa-paper-plane"></i> Send Us a Message
+        </div>
+        <div class="form-card-body">
+
+          {% if messages %}
+          {% for message in messages %}
+          <div class="success-banner">
+            <i class="fas fa-check-circle" style="font-size:18px"></i>
+            <span>{{ message }}</span>
+          </div>
+          {% endfor %}
+          {% endif %}
+
+          <div id="formSuccess" class="success-banner" style="display:none">
+            <i class="fas fa-check-circle" style="font-size:18px"></i>
+            <span>Your message has been sent! We'll get back to you within 24 hours.</span>
+          </div>
+
+          <form method="post" id="contactForm">
+            {% csrf_token %}
+            <div class="row g-3 mb-3">
+              <div class="col-md-6">
+                <label class="form-lbl">Your Name <span style="color:#dc2626">*</span></label>
+                <input type="text" class="form-ctrl" id="name" name="name" placeholder="Rajesh Kumar" required>
+              </div>
+              <div class="col-md-6">
+                <label class="form-lbl">Email Address <span style="color:#dc2626">*</span></label>
+                <input type="email" class="form-ctrl" id="email" name="email" placeholder="rajesh@example.com" required>
+              </div>
+            </div>
+
+            <div class="row g-3 mb-3">
+              <div class="col-md-6">
+                <label class="form-lbl">Phone Number</label>
+                <input type="tel" class="form-ctrl" id="phone" name="phone" placeholder="+91 98765 43210">
+              </div>
+              <div class="col-md-6">
+                <label class="form-lbl">Subject</label>
+                <select class="form-ctrl" id="subject" name="subject">
+                  <option value="">— Select a subject —</option>
+                  <option value="General Inquiry">General Inquiry</option>
+                  <option value="Technical Support">Technical Support</option>
+                  <option value="Partnership">Partnership / Collaboration</option>
+                  <option value="Data Access">Data Access Request</option>
+                  <option value="Feedback">Feedback & Suggestions</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-lbl">User Type</label>
+              <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:4px">
+                <label style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:13.5px;color:var(--text-mid)"><input type="radio" name="user_type" value="farmer" style="accent-color:var(--green)"> 🌾 Farmer</label>
+                <label style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:13.5px;color:var(--text-mid)"><input type="radio" name="user_type" value="trader" style="accent-color:var(--orange)"> 📊 Trader</label>
+                <label style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:13.5px;color:var(--text-mid)"><input type="radio" name="user_type" value="government" style="accent-color:#2563eb"> 🏛️ Government</label>
+                <label style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:13.5px;color:var(--text-mid)"><input type="radio" name="user_type" value="other" style="accent-color:var(--text-mid)"> Other</label>
+              </div>
+            </div>
+
+            <div class="mb-4">
+              <label class="form-lbl">Message <span style="color:#dc2626">*</span></label>
+              <textarea class="form-ctrl" id="message" name="message" rows="5" placeholder="Describe your inquiry in detail — the more context you provide, the better we can help..." required></textarea>
+              <div style="text-align:right;font-size:11.5px;color:var(--text-light);margin-top:4px" id="charCount">0 / 1000</div>
+            </div>
+
+            <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px">
+              <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;color:var(--text-mid)">
+                <input type="checkbox" name="subscribe" style="accent-color:var(--orange);width:15px;height:15px">
+                Subscribe to market alerts &amp; updates
+              </label>
+              <button type="submit" class="btn-orange" id="submitBtn" style="padding:12px 30px;font-size:15px">
+                <i class="fas fa-paper-plane"></i> Send Message
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT SIDEBAR -->
+    <div class="col-lg-4">
+
+      <!-- CONTACT INFO -->
+      <div class="info-card">
+        <div class="info-card-hdr"><i class="fas fa-info-circle"></i> Contact Information</div>
+        <div class="info-card-body">
+          <div class="contact-item">
+            <div class="ci-icon loc"><i class="fas fa-map-marker-alt"></i></div>
+            <div class="ci-body">
+              <h6>Office Address</h6>
+              <p>Nashik, Maharashtra, India 422001<br>Near APMC Market Complex</p>
+            </div>
+          </div>
+          <div class="contact-item">
+            <div class="ci-icon ph"><i class="fas fa-phone-alt"></i></div>
+            <div class="ci-body">
+              <h6>Phone Numbers</h6>
+              <p>+91 98765 43210 (Support)<br>+91 91234 56789 (Sales)</p>
+            </div>
+          </div>
+          <div class="contact-item">
+            <div class="ci-icon em"><i class="fas fa-envelope"></i></div>
+            <div class="ci-body">
+              <h6>Email Addresses</h6>
+              <p>support@onionforecast.in<br>info@onionforecast.in</p>
+            </div>
+          </div>
+          <div class="contact-item">
+            <div class="ci-icon hr"><i class="fas fa-clock"></i></div>
+            <div class="ci-body">
+              <h6>Business Hours</h6>
+              <p>Mon–Fri: 9:00 AM – 6:00 PM IST<br>Sat: 10:00 AM – 2:00 PM IST</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- FAQ -->
+      <div class="info-card">
+        <div class="info-card-hdr"><i class="fas fa-question-circle"></i> Quick FAQ</div>
+        <div>
+          <div class="faq-item">
+            <button class="faq-btn" onclick="toggleFaq(this)">
+              How accurate are the predictions?
+              <i class="fas fa-chevron-down"></i>
+            </button>
+            <div class="faq-body">
+              Our models achieve <strong>85%+ accuracy</strong> for 7-day forecasts and <strong>75%+</strong> for 30-day forecasts, validated on historical APMC data.
+            </div>
+          </div>
+          <div class="faq-item">
+            <button class="faq-btn" onclick="toggleFaq(this)">
+              Is there a free trial available?
+              <i class="fas fa-chevron-down"></i>
+            </button>
+            <div class="faq-body">
+              Yes! Basic predictions and market trends are free. Sign up to access personalized recommendations and full historical data.
+            </div>
+          </div>
+          <div class="faq-item">
+            <button class="faq-btn" onclick="toggleFaq(this)">
+              Can I get API access?
+              <i class="fas fa-chevron-down"></i>
+            </button>
+            <div class="faq-body">
+              API access is available for enterprise clients. Contact us via the form or email <strong>api@onionforecast.in</strong> for pricing.
+            </div>
+          </div>
+          <div class="faq-item">
+            <button class="faq-btn" onclick="toggleFaq(this)">
+              Which markets are covered?
+              <i class="fas fa-chevron-down"></i>
+            </button>
+            <div class="faq-body">
+              We currently cover <strong>8+ APMC markets</strong> including Lasalgaon, Pune, Nashik, Ahmednagar, Solapur, Kolhapur, Nagpur, and Aurangabad.
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- MAP SECTION -->
+  <div class="row mt-4">
+    <div class="col-12">
+      <div class="info-card">
+        <div class="info-card-hdr" style="justify-content:space-between"><span><i class="fas fa-map-marker-alt"></i> Find Us</span><span style="font-size:12px;font-weight:500;color:var(--text-light)">Nashik, Maharashtra</span></div>
+        <div style="padding:18px">
+          <div class="map-wrap">
+            <div class="map-ring"></div>
+            <div class="map-ring2"></div>
+            <div class="map-pin"><i class="fas fa-seedling"></i></div>
+            <h5 style="font-family:var(--font-d);font-weight:700;color:#0369a1;margin-bottom:4px">OnionPulse AI Office</h5>
+            <p style="font-size:13px;color:#0284c7;margin:0">Nashik, Maharashtra, India</p>
+            <p style="font-size:12px;color:#7dd3fc;margin:4px 0 14px">Near APMC Market Complex · 422001</p>
+            <a href="https://maps.google.com/?q=Nashik,Maharashtra,India" target="_blank" rel="noopener" class="btn-out-orange" style="padding:7px 18px;font-size:13px;border-color:#0369a1;color:#0369a1"><i class="fas fa-external-link-alt"></i> Open in Google Maps</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SUPPORT CHANNELS -->
+  <div class="row g-4 mt-2">
+    <div class="col-12">
+      <div class="text-center mb-4">
+        <div class="section-label"><i class="fas fa-headset"></i> Support Channels</div>
+        <h2 class="section-title">How Can We <em>Help You?</em></h2>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="support-card">
+        <div class="support-icon" style="background:var(--orange-light);color:var(--orange)"><i class="fas fa-headset"></i></div>
+        <h5>Technical Support</h5>
+        <p>Get help with platform features, data access, prediction setup, and technical issues.</p>
+        <a href="mailto:support@onionforecast.in" class="btn-orange" style="padding:9px 20px;font-size:13.5px"><i class="fas fa-envelope"></i> Email Support</a>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="support-card">
+        <div class="support-icon" style="background:var(--green-light);color:var(--green)"><i class="fas fa-handshake"></i></div>
+        <h5>Partnerships</h5>
+        <p>Interested in collaborating with us or integrating our data into your platform?</p>
+        <a href="mailto:partners@onionforecast.in" class="btn-green" style="padding:9px 20px;font-size:13.5px"><i class="fas fa-handshake"></i> Partner With Us</a>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="support-card">
+        <div class="support-icon" style="background:#eff6ff;color:#2563eb"><i class="fas fa-database"></i></div>
+        <h5>Data Services</h5>
+        <p>Need bulk historical data, custom market reports, or enterprise API access?</p>
+        <a href="mailto:data@onionforecast.in" class="btn-out-orange" style="padding:9px 20px;font-size:13.5px;border-color:#2563eb;color:#2563eb"><i class="fas fa-download"></i> Request Data</a>
+      </div>
+    </div>
+  </div>
+
+</div>
 {% endblock %}
+
+{% block scripts %}
+<script>
+// FAQ Toggle
+function toggleFaq(btn){
+  const body=btn.nextElementSibling;
+  const isOpen=body.classList.contains('show');
+  document.querySelectorAll('.faq-body').forEach(b=>b.classList.remove('show'));
+  document.querySelectorAll('.faq-btn').forEach(b=>b.classList.remove('open'));
+  if(!isOpen){body.classList.add('show');btn.classList.add('open');}
+}
+
+// Char counter
+document.getElementById('message').addEventListener('input',function(){
+  const len=this.value.length;
+  const el=document.getElementById('charCount');
+  el.textContent=len+' / 1000';
+  el.style.color=len>900?'#dc2626':len>700?'#d97706':'var(--text-light)';
+  if(len>1000)this.value=this.value.slice(0,1000);
+});
+
+// Form submit
+document.getElementById('contactForm').addEventListener('submit',function(e){
+  const name=document.getElementById('name').value.trim();
+  const email=document.getElementById('email').value.trim();
+  const message=document.getElementById('message').value.trim();
+  if(!name||!email||!message){
+    e.preventDefault();
+    showToast('Please fill in all required fields (*)','error');
+    return;
+  }
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){
+    e.preventDefault();
+    showToast('Please enter a valid email address','error');
+    return;
+  }
+  const btn=document.getElementById('submitBtn');
+  btn.innerHTML='<i class="fas fa-spinner fa-spin"></i> Sending...';
+  btn.classList.add('btn-loading');
+});
+
+// Auto show success if Django messages present
+// {% if messages %}
+// document.getElementById('formSuccess').style.display='flex';
+// setTimeout(()=>{document.getElementById('formSuccess').style.display='none';},6000);
+// {% endif %}
+// </script>
+// {% endblock %}
