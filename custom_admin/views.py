@@ -456,7 +456,6 @@ def add_user(request):
             if User.objects.filter(email=email).exists():
                 messages.error(request, f'Email "{email}" already exists')
                 return redirect('manage_users')
-            
             # Create user
             user = User.objects.create_user(
                 username=username,

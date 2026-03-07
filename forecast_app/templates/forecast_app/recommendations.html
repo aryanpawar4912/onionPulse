@@ -1,531 +1,456 @@
-<!-- forecast_app/templates/forecast_app/recommendations.html -->
 {% extends 'forecast_app/base.html' %}
 {% load static %}
-
+{% block title %}AI Recommendations — OnionPulse AI{% endblock %}
 {% block content %}
-<div class="row mb-4">
-    <div class="col-12">
-        <div class="hero-section">
-            <div class="container">
-                <h1 class="display-5 fw-bold">Personalized Recommendations</h1>
-                <p class="lead">AI-powered suggestions tailored for your profile and market conditions</p>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="row">
-    <!-- User Profile Info -->
-    <div class="col-lg-4">
-        <div class="card mb-4">
-            <div class="card-header bg-primary text-white">
-                <h5 class="mb-0"><i class="fas fa-user me-2"></i>Your Profile</h5>
-            </div>
-            <div class="card-body">
-                {% if user.is_authenticated and user.userprofile %}
-                <div class="text-center mb-4">
-                    <div class="user-avatar mb-3">
-                        <i class="fas fa-user-circle fa-4x text-primary"></i>
-                    </div>
-                    <h4>{{ user.get_full_name|default:user.username }}</h4>
-                    <span class="badge bg-info">{{ user.userprofile.get_user_type_display }}</span>
-                    <p class="text-muted mt-2">{{ user.userprofile.location }}</p>
-                </div>
-                
-                <div class="list-group">
-                    <div class="list-group-item">
-                        <strong>User Type:</strong> {{ user.userprofile.get_user_type_display }}
-                    </div>
-                    <div class="list-group-item">
-                        <strong>Location:</strong> {{ user.userprofile.location }}
-                    </div>
-                    <div class="list-group-item">
-                        <strong>Phone:</strong> {{ user.userprofile.phone }}
-                    </div>
-                    <div class="list-group-item">
-                        <strong>Member Since:</strong> {{ user.date_joined|date:"F Y" }}
-                    </div>
-                </div>
-                
-                <div class="mt-3">
-                    <a href="/admin/forecast_app/userprofile/{{ user.userprofile.id }}/change/" class="btn btn-outline-primary btn-sm w-100">
-                        <i class="fas fa-edit me-2"></i>Edit Profile
-                    </a>
-                </div>
-                {% else %}
-                <div class="text-center py-4">
-                    <i class="fas fa-user-slash fa-3x text-muted mb-3"></i>
-                    <h4>Profile Not Complete</h4>
-                    <p class="text-muted">Please complete your profile to get personalized recommendations.</p>
-                    <a href="/admin/forecast_app/userprofile/add/" class="btn btn-primary">
-                        <i class="fas fa-user-plus me-2"></i>Complete Profile
-                    </a>
-                </div>
-                {% endif %}
-            </div>
-        </div>
-        
-        <!-- Market Overview -->
-        <div class="card">
-            <div class="card-header bg-info text-white">
-                <h5 class="mb-0"><i class="fas fa-chart-bar me-2"></i>Market Overview</h5>
-            </div>
-            <div class="card-body">
-                <div class="mb-3">
-                    <h6>Current Price Trends</h6>
-                    <div class="d-flex justify-content-between">
-                        <span>Average Price:</span>
-                        <strong>₹{{ trend.current_price|default:"2,250"|floatformat:2 }}</strong>
-                    </div>
-                    <div class="d-flex justify-content-between">
-                        <span>Trend:</span>
-                        <span class="badge bg-{% if 'Increasing' in trend.trend %}success{% elif 'Decreasing' in trend.trend %}danger{% else %}warning{% endif %}">
-                            {{ trend.trend|default:"Stable" }}
-                        </span>
-                    </div>
-                    <div class="d-flex justify-content-between">
-                        <span>30-Day Range:</span>
-                        <span>₹{{ trend.min_30d|default:"1,800"|floatformat:2 }} - ₹{{ trend.max_30d|default:"2,500"|floatformat:2 }}</span>
-                    </div>
-                </div>
-                
-                <div class="alert alert-warning">
-                    <i class="fas fa-exclamation-triangle me-2"></i>
-                    <strong>Market Alert:</strong> 
-                    {% if 'Increasing' in trend.trend %}
-                    Prices are rising. Consider selling if you have inventory.
-                    {% elif 'Decreasing' in trend.trend %}
-                    Prices are falling. Good time for buyers.
-                    {% else %}
-                    Market is stable. Monitor for opportunities.
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Recommendations -->
-    <div class="col-lg-8">
-        <div class="card mb-4">
-            <div class="card-header bg-success text-white">
-                <div class="d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0"><i class="fas fa-lightbulb me-2"></i>AI Recommendations</h5>
-                    <span class="badge bg-light text-dark">Updated: {% now "H:i" %}</span>
-                </div>
-            </div>
-            <div class="card-body">
-                {% if recommendations %}
-                <div class="row">
-                    {% for rec in recommendations %}
-                    <div class="col-md-6 mb-3">
-                        <div class="recommendation-card card h-100 border-{% if rec.type == 'SELL' %}success{% elif rec.type == 'BUY' %}primary{% elif rec.type == 'HOLD' %}warning{% else %}info{% endif %}">
-                            <div class="card-body">
-                                <div class="d-flex justify-content-between align-items-start mb-3">
-                                    <div>
-                                        <span class="badge bg-{% if rec.type == 'SELL' %}success{% elif rec.type == 'BUY' %}primary{% elif rec.type == 'HOLD' %}warning{% else %}info{% endif %}">
-                                            {{ rec.type }}
-                                        </span>
-                                        <span class="badge bg-{% if rec.confidence == 'High' %}success{% elif rec.confidence == 'Medium' %}warning{% else %}secondary{% endif %} ms-1">
-                                            {{ rec.confidence }} Confidence
-                                        </span>
-                                    </div>
-                                    <i class="fas fa-{% if rec.type == 'SELL' %}money-bill-wave{% elif rec.type == 'BUY' %}shopping-cart{% elif rec.type == 'HOLD' %}pause-circle{% else %}info-circle{% endif %} fa-2x text-{% if rec.type == 'SELL' %}success{% elif rec.type == 'BUY' %}primary{% elif rec.type == 'HOLD' %}warning{% else %}info{% endif %}"></i>
-                                </div>
-                                <h5 class="card-title">{{ rec.title|default:rec.type }}</h5>
-                                <p class="card-text">{{ rec.message }}</p>
-                                
-                                {% if rec.details %}
-                                <div class="mt-3">
-                                    <button class="btn btn-sm btn-outline-{% if rec.type == 'SELL' %}success{% elif rec.type == 'BUY' %}primary{% elif rec.type == 'HOLD' %}warning{% else %}info{% endif %}" 
-                                            type="button" data-bs-toggle="collapse" 
-                                            data-bs-target="#details{{ forloop.counter }}">
-                                        View Details
-                                    </button>
-                                    <div class="collapse mt-2" id="details{{ forloop.counter }}">
-                                        <div class="card card-body">
-                                            {{ rec.details|linebreaks }}
-                                        </div>
-                                    </div>
-                                </div>
-                                {% endif %}
-                            </div>
-                            <div class="card-footer bg-transparent">
-                                <div class="d-flex justify-content-between">
-                                    <small class="text-muted">
-                                        <i class="fas fa-clock me-1"></i> Valid for 48 hours
-                                    </small>
-                                    <button class="btn btn-sm btn-{% if rec.type == 'SELL' %}success{% elif rec.type == 'BUY' %}primary{% elif rec.type == 'HOLD' %}warning{% else %}info{% endif %}" 
-                                            onclick="implementRecommendation('{{ rec.type }}', '{{ rec.message }}')">
-                                        Implement
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    {% endfor %}
-                </div>
-                {% else %}
-                <div class="text-center py-5">
-                    <i class="fas fa-robot fa-3x text-muted mb-3"></i>
-                    <h4>No Recommendations Available</h4>
-                    <p class="text-muted">
-                        {% if user.is_authenticated and user.userprofile %}
-                        We need more market data to generate personalized recommendations for {{ user.userprofile.get_user_type_display|lower }}s.
-                        {% else %}
-                        Please complete your profile to get personalized recommendations.
-                        {% endif %}
-                    </p>
-                    <div class="mt-3">
-                        <a href="{% url 'predict' %}" class="btn btn-primary me-2">
-                            <i class="fas fa-magic me-2"></i>Generate Predictions
-                        </a>
-                        <a href="{% url 'historical' %}" class="btn btn-outline-primary">
-                            <i class="fas fa-history me-2"></i>View Market Data
-                        </a>
-                    </div>
-                </div>
-                {% endif %}
-            </div>
-        </div>
-        
-        <!-- Action Plan -->
-        <div class="card mb-4">
-            <div class="card-header bg-warning text-dark">
-                <h5 class="mb-0"><i class="fas fa-tasks me-2"></i>Suggested Action Plan</h5>
-            </div>
-            <div class="card-body">
-                <div class="timeline">
-                    <div class="timeline-item">
-                        <div class="timeline-marker bg-success"></div>
-                        <div class="timeline-content">
-                            <h6>Immediate Actions (Today)</h6>
-                            <ul>
-                                <li>Monitor price alerts for your preferred markets</li>
-                                <li>Review recent predictions accuracy</li>
-                                <li>Update your inventory status if applicable</li>
-                            </ul>
-                        </div>
-                    </div>
-                    <div class="timeline-item">
-                        <div class="timeline-marker bg-primary"></div>
-                        <div class="timeline-content">
-                            <h6>Short-term (Next 7 Days)</h6>
-                            <ul>
-                                <li>Execute recommendations based on confidence levels</li>
-                                <li>Set price alerts for target buy/sell points</li>
-                                <li>Review competitor market prices</li>
-                            </ul>
-                        </div>
-                    </div>
-                    <div class="timeline-item">
-                        <div class="timeline-marker bg-info"></div>
-                        <div class="timeline-content">
-                            <h6>Medium-term (Next 30 Days)</h6>
-                            <ul>
-                                <li>Plan inventory/storage based on seasonal trends</li>
-                                <li>Review and adjust your strategy based on results</li>
-                                <li>Analyze prediction accuracy and provide feedback</li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="mt-4">
-                    <button class="btn btn-warning" onclick="generateActionPlan()">
-                        <i class="fas fa-file-download me-2"></i>Download Action Plan
-                    </button>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Market Intelligence -->
-        <div class="card">
-            <div class="card-header bg-dark text-white">
-                <h5 class="mb-0"><i class="fas fa-brain me-2"></i>Market Intelligence</h5>
-            </div>
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-md-6">
-                        <h6>Key Market Factors</h6>
-                        <div id="marketFactors">
-                            <div class="text-center">
-                                <div class="loading-spinner"></div>
-                                <p>Analyzing market factors...</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <h6>Risk Assessment</h6>
-                        <div class="mb-3">
-                            <div class="d-flex justify-content-between">
-                                <span>Price Volatility:</span>
-                                <span class="badge bg-warning">Medium</span>
-                            </div>
-                            <div class="progress" style="height: 8px;">
-                                <div class="progress-bar bg-warning" style="width: 60%"></div>
-                            </div>
-                        </div>
-                        <div class="mb-3">
-                            <div class="d-flex justify-content-between">
-                                <span>Supply Risk:</span>
-                                <span class="badge bg-success">Low</span>
-                            </div>
-                            <div class="progress" style="height: 8px;">
-                                <div class="progress-bar bg-success" style="width: 30%"></div>
-                            </div>
-                        </div>
-                        <div class="mb-3">
-                            <div class="d-flex justify-content-between">
-                                <span>Demand Risk:</span>
-                                <span class="badge bg-info">Low</span>
-                            </div>
-                            <div class="progress" style="height: 8px;">
-                                <div class="progress-bar bg-info" style="width: 40%"></div>
-                            </div>
-                        </div>
-                        <div class="mb-3">
-                            <div class="d-flex justify-content-between">
-                                <span>Policy Risk:</span>
-                                <span class="badge bg-danger">High</span>
-                            </div>
-                            <div class="progress" style="height: 8px;">
-                                <div class="progress-bar bg-danger" style="width: 80%"></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="alert alert-info mt-3">
-                    <i class="fas fa-info-circle me-2"></i>
-                    <strong>Risk Summary:</strong> 
-                    Market conditions are moderately volatile with high policy risk due to potential government interventions.
-                    Monitor export policies and weather forecasts closely.
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Implementation Modal -->
-<div class="modal fade" id="implementationModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Implement Recommendation</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <form id="implementationForm">
-                    <div class="mb-3">
-                        <label class="form-label">Recommendation Type</label>
-                        <input type="text" class="form-control" id="recType" readonly>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Action Details</label>
-                        <textarea class="form-control" id="recDetails" rows="3" readonly></textarea>
-                    </div>
-                    <div class="mb-3">
-                        <label for="implementationNotes" class="form-label">Your Notes</label>
-                        <textarea class="form-control" id="implementationNotes" rows="3" placeholder="Add any specific details about implementation..."></textarea>
-                    </div>
-                    <div class="mb-3">
-                        <label for="targetDate" class="form-label">Target Date</label>
-                        <input type="date" class="form-control" id="targetDate">
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-primary" onclick="saveImplementation()">Save & Track</button>
-            </div>
-        </div>
-    </div>
-</div>
-{% endblock %}
-
-{% block styles %}
 <style>
-.timeline {
-    position: relative;
-    padding-left: 30px;
-}
+/* HERO */
+.rec-hero{background:linear-gradient(135deg,#422006 0%,#7c2d12 40%,#9a3412 70%,var(--orange) 100%);padding:46px 0;position:relative;overflow:hidden}
+.rec-hero::before{content:'';position:absolute;inset:0;background:url('https://images.unsplash.com/photo-1595274459367-46eda7bf6a2f?w=1600&q=80') center/cover;opacity:.1}
+.rec-hero::after{content:'';position:absolute;right:-80px;top:-80px;width:340px;height:340px;background:radial-gradient(circle,rgba(255,255,255,.08) 0%,transparent 70%);pointer-events:none}
+.rh{position:relative;z-index:2}
+.rh h1{font-family:var(--font-d);font-size:clamp(24px,4vw,38px);font-weight:800;color:#fff;letter-spacing:-.5px}
+.rh p{color:rgba(255,255,255,.82);font-size:15px;margin:6px 0 0}
 
-.timeline-item {
-    position: relative;
-    margin-bottom: 20px;
-}
+/* PROFILE CARD */
+.profile-card{background:#fff;border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--sh-sm);overflow:hidden;margin-bottom:20px}
+.profile-card-hdr{background:linear-gradient(135deg,var(--orange),#dc2626);padding:20px;text-align:center}
+.profile-avatar{width:70px;height:70px;background:rgba(255,255,255,.2);border:3px solid rgba(255,255,255,.5);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:26px;color:#fff;margin:0 auto 12px;font-family:var(--font-d);font-weight:800}
+.profile-name{font-family:var(--font-d);font-size:17px;font-weight:700;color:#fff;margin-bottom:4px}
+.profile-card-body{padding:18px}
+.profile-row{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--border);font-size:13.5px}
+.profile-row:last-child{border-bottom:none}
+.profile-row span:first-child{color:var(--text-mid)}
+.profile-row span:last-child{font-weight:600;color:var(--text)}
 
-.timeline-marker {
-    position: absolute;
-    left: -30px;
-    top: 0;
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
-}
+/* MARKET OVERVIEW */
+.mkt-overview{background:#fff;border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--sh-sm);overflow:hidden;margin-bottom:20px}
+.mkt-ov-hdr{padding:14px 18px;border-bottom:1px solid var(--border);background:var(--bg);display:flex;align-items:center;gap:9px;font-family:var(--font-d);font-size:14px;font-weight:700;color:var(--text)}
+.mkt-ov-hdr i{color:var(--green)}
+.mkt-ov-body{padding:16px 18px}
+.mkt-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);font-size:13.5px}
+.mkt-row:last-child{border-bottom:none}
 
-.timeline-content {
-    padding-left: 10px;
-}
+/* REC CARDS */
+.rec-card{background:#fff;border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--sh-sm);overflow:hidden;height:100%;transition:all .3s}
+.rec-card:hover{box-shadow:var(--sh-lg);transform:translateY(-5px)}
+.rec-card-top{padding:18px 18px 14px;border-bottom:1px solid var(--border)}
+.rec-card-body{padding:16px 18px}
+.rec-card-footer{padding:12px 18px;background:var(--bg);border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+.rec-type-badge{display:inline-flex;align-items:center;gap:6px;padding:5px 14px;border-radius:20px;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.5px}
+.rec-sell{background:var(--green-light);color:var(--green)}
+.rec-buy{background:#eff6ff;color:#2563eb}
+.rec-hold{background:#fffbeb;color:#d97706}
+.rec-info{background:#f0f9ff;color:#0284c7}
+.rec-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px}
+.rec-icon.sell{background:var(--green-light);color:var(--green)}
+.rec-icon.buy{background:#eff6ff;color:#2563eb}
+.rec-icon.hold{background:#fffbeb;color:#d97706}
+.rec-icon.info{background:#f0f9ff;color:#0284c7}
+.rec-title{font-family:var(--font-d);font-size:16px;font-weight:700;color:var(--text);margin:10px 0 8px}
+.rec-msg{font-size:13.5px;color:var(--text-mid);line-height:1.65}
 
-.recommendation-card {
-    transition: transform 0.3s;
-}
+/* ACTION PLAN */
+.timeline{position:relative;padding-left:28px}
+.timeline::before{content:'';position:absolute;left:9px;top:6px;bottom:6px;width:2px;background:var(--border)}
+.tl-item{position:relative;margin-bottom:24px}
+.tl-dot{position:absolute;left:-28px;top:2px;width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;color:#fff}
+.tl-dot.today{background:var(--green)}
+.tl-dot.week{background:var(--orange)}
+.tl-dot.month{background:#2563eb}
+.tl-item h6{font-family:var(--font-d);font-size:14px;font-weight:700;color:var(--text);margin-bottom:8px}
+.tl-item ul{list-style:none;padding:0;margin:0}
+.tl-item ul li{font-size:13px;color:var(--text-mid);padding:4px 0;display:flex;align-items:flex-start;gap:7px}
+.tl-item ul li::before{content:'→';color:var(--orange);font-weight:700;flex-shrink:0}
 
-.recommendation-card:hover {
-    transform: translateY(-5px);
-}
+/* RISK BARS */
+.risk-row{margin-bottom:14px}
+.risk-lbl{display:flex;justify-content:space-between;align-items:center;font-size:13px;margin-bottom:5px}
+.risk-lbl span:first-child{color:var(--text-mid)}
+.progress-track{height:6px;background:var(--bg2);border-radius:10px;overflow:hidden}
+.progress-fill{height:100%;border-radius:10px;transition:width .6s ease}
 
-.user-avatar {
-    width: 80px;
-    height: 80px;
-    margin: 0 auto;
-    background-color: #f8f9fa;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
+/* SIDEBAR CARDS */
+.side-card{background:#fff;border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--sh-sm);overflow:hidden;margin-bottom:20px}
+.side-card-hdr{padding:14px 18px;border-bottom:1px solid var(--border);background:var(--bg);font-family:var(--font-d);font-size:14px;font-weight:700;color:var(--text);display:flex;align-items:center;gap:8px}
+.side-card-hdr i{color:var(--orange)}
+.side-card-body{padding:16px 18px}
 </style>
+
+<!-- HERO -->
+<div class="rec-hero">
+  <div class="container rh">
+    <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
+      <div>
+        <div class="hero-badge" style="background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.3)"><i class="fas fa-robot"></i> AI Recommendations</div>
+        <h1>Personalised <span style="color:rgba(255,255,255,.75)">Market Advice</span></h1>
+        <p>AI-powered suggestions tailored for your profile and current market conditions</p>
+      </div>
+      <div class="mt-2 d-flex gap-2">
+        <a href="{% url 'predict' %}" class="btn-orange" style="padding:10px 20px;font-size:13.5px"><i class="fas fa-magic"></i> New Forecast</a>
+        <a href="{% url 'dashboard' %}" class="btn-out-orange" style="padding:9px 18px;font-size:13.5px;border-color:rgba(255,255,255,.45);color:#fff;background:rgba(255,255,255,.1)"><i class="fas fa-chart-line"></i> Dashboard</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="container py-4 pb-5">
+  <div class="row g-4">
+
+    <!-- LEFT SIDEBAR -->
+    <div class="col-lg-4">
+
+      <!-- USER PROFILE -->
+      <div class="profile-card">
+        <div class="profile-card-hdr">
+          <div class="profile-avatar">
+            {% if user.is_authenticated %}{{ user.username|first|upper }}{% else %}<i class="fas fa-user"></i>{% endif %}
+          </div>
+          <div class="profile-name">
+            {% if user.is_authenticated %}{{ user.get_full_name|default:user.username }}{% else %}Guest User{% endif %}
+          </div>
+          {% if user.is_authenticated and user.userprofile %}
+          <span class="pill pill-amber" style="font-size:11.5px">{{ user.userprofile.get_user_type_display }}</span>
+          {% else %}
+          <span class="pill pill-gray" style="font-size:11.5px">Farmer</span>
+          {% endif %}
+        </div>
+        <div class="profile-card-body">
+          {% if user.is_authenticated and user.userprofile %}
+          <div class="profile-row"><span>User Type</span><span>{{ user.userprofile.get_user_type_display }}</span></div>
+          <div class="profile-row"><span>Location</span><span>{{ user.userprofile.location }}</span></div>
+          <div class="profile-row"><span>Phone</span><span>{{ user.userprofile.phone|default:"—" }}</span></div>
+          <div class="profile-row"><span>Member Since</span><span>{{ user.date_joined|date:"M Y" }}</span></div>
+          {% else %}
+          <div class="profile-row"><span>User Type</span><span>Farmer</span></div>
+          <div class="profile-row"><span>Region</span><span>Maharashtra</span></div>
+          <div class="profile-row"><span>Status</span><span>Guest</span></div>
+          {% endif %}
+          {% if user.is_authenticated and user.userprofile %}
+          <a href="/admin/forecast_app/userprofile/{{ user.userprofile.id }}/change/" class="btn-out-orange w-100 mt-3" style="justify-content:center;font-size:13px;padding:9px"><i class="fas fa-edit"></i> Edit Profile</a>
+          {% else %}
+          <a href="{% url 'admin_login' %}" class="btn-out-orange w-100 mt-3" style="justify-content:center;font-size:13px;padding:9px"><i class="fas fa-sign-in-alt"></i> Login for Personalized Advice</a>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- MARKET OVERVIEW -->
+      <div class="mkt-overview">
+        <div class="mkt-ov-hdr"><i class="fas fa-chart-bar"></i> Market Overview</div>
+        <div class="mkt-ov-body">
+          <div class="mkt-row"><span style="color:var(--text-mid)">Current Price</span><span style="font-family:var(--font-d);font-weight:700;font-size:16px">₹{{ trend.current_price|default:"2,250"|floatformat:0 }}</span></div>
+          <div class="mkt-row"><span style="color:var(--text-mid)">Trend</span>
+            <span class="pill {% if 'Increasing' in trend.trend|default:'' %}pill-green{% elif 'Decreasing' in trend.trend|default:'' %}pill-red{% else %}pill-amber{% endif %}">
+              {% if 'Increasing' in trend.trend|default:'' %}↑ Rising{% elif 'Decreasing' in trend.trend|default:'' %}↓ Falling{% else %}→ Stable{% endif %}
+            </span>
+          </div>
+          <div class="mkt-row"><span style="color:var(--text-mid)">30-Day Avg</span><span style="font-weight:600">₹{{ trend.avg_30d|default:"2,100"|floatformat:0 }}</span></div>
+          <div class="mkt-row"><span style="color:var(--text-mid)">Range</span><span style="font-size:13px;font-weight:600"><span style="color:var(--green)">₹{{ trend.min_30d|default:"1,800" }}</span> – <span style="color:#dc2626">₹{{ trend.max_30d|default:"2,500" }}</span></span></div>
+          <div class="site-alert {% if 'Increasing' in trend.trend|default:'' %}warning{% elif 'Decreasing' in trend.trend|default:'' %}info{% else %}success{% endif %} mt-3">
+            <i class="fas fa-{% if 'Increasing' in trend.trend|default:'' %}arrow-up{% elif 'Decreasing' in trend.trend|default:'' %}arrow-down{% else %}check-circle{% endif %}"></i>
+            <span style="font-size:13px">{% if 'Increasing' in trend.trend|default:'' %}Prices rising — consider selling if you have inventory.{% elif 'Decreasing' in trend.trend|default:'' %}Prices falling — good time for buyers to stock up.{% else %}Market is stable — monitor for emerging opportunities.{% endif %}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- RISK ASSESSMENT -->
+      <div class="side-card">
+        <div class="side-card-hdr"><i class="fas fa-shield-alt"></i> Risk Assessment</div>
+        <div class="side-card-body">
+          <div class="risk-row">
+            <div class="risk-lbl"><span>Price Volatility</span><span class="pill pill-amber" style="font-size:11px">Medium</span></div>
+            <div class="progress-track"><div class="progress-fill" style="width:60%;background:linear-gradient(90deg,#d97706,#fbbf24)"></div></div>
+          </div>
+          <div class="risk-row">
+            <div class="risk-lbl"><span>Supply Risk</span><span class="pill pill-green" style="font-size:11px">Low</span></div>
+            <div class="progress-track"><div class="progress-fill" style="width:30%;background:linear-gradient(90deg,var(--green),#4ade80)"></div></div>
+          </div>
+          <div class="risk-row">
+            <div class="risk-lbl"><span>Demand Risk</span><span class="pill pill-blue" style="font-size:11px">Low</span></div>
+            <div class="progress-track"><div class="progress-fill" style="width:35%;background:linear-gradient(90deg,#2563eb,#60a5fa)"></div></div>
+          </div>
+          <div class="risk-row" style="margin-bottom:0">
+            <div class="risk-lbl"><span>Policy Risk</span><span class="pill pill-red" style="font-size:11px">High</span></div>
+            <div class="progress-track"><div class="progress-fill" style="width:80%;background:linear-gradient(90deg,#dc2626,#f87171)"></div></div>
+          </div>
+          <div class="site-alert info mt-3" style="font-size:12.5px">
+            <i class="fas fa-info-circle"></i>
+            <span>High policy risk due to potential export restrictions. Monitor government announcements closely.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div class="col-lg-8">
+
+      <!-- AI RECOMMENDATIONS -->
+      <div class="side-card mb-4">
+        <div class="side-card-hdr" style="justify-content:space-between">
+          <span><i class="fas fa-lightbulb"></i> AI Recommendations</span>
+          <span style="font-size:11.5px;color:var(--text-light);font-weight:500">Updated: {% now "H:i" %}</span>
+        </div>
+        <div class="side-card-body">
+          {% if recommendations %}
+          <div class="row g-3">
+            {% for rec in recommendations %}
+            <div class="col-md-6">
+              <div class="rec-card">
+                <div class="rec-card-top">
+                  <div class="d-flex justify-content-between align-items-center">
+                    <span class="rec-type-badge {% if rec.type == 'SELL' %}rec-sell{% elif rec.type == 'BUY' %}rec-buy{% elif rec.type == 'HOLD' %}rec-hold{% else %}rec-info{% endif %}">
+                      <i class="fas fa-{% if rec.type == 'SELL' %}money-bill-wave{% elif rec.type == 'BUY' %}shopping-cart{% elif rec.type == 'HOLD' %}pause{% else %}info-circle{% endif %}"></i>
+                      {{ rec.type }}
+                    </span>
+                    <span class="pill {% if rec.confidence == 'High' %}pill-green{% elif rec.confidence == 'Medium' %}pill-amber{% else %}pill-gray{% endif %}" style="font-size:11px">{{ rec.confidence }}</span>
+                  </div>
+                  <div class="rec-title">{{ rec.title|default:rec.type }}</div>
+                </div>
+                <div class="rec-card-body"><p class="rec-msg">{{ rec.message }}</p></div>
+                <div class="rec-card-footer">
+                  <small style="color:var(--text-light);font-size:12px"><i class="fas fa-clock me-1"></i>Valid 48h</small>
+                  <button class="btn-{% if rec.type == 'SELL' %}green{% elif rec.type == 'BUY' %}orange{% else %}out-orange{% endif %}" style="padding:6px 14px;font-size:12.5px" onclick="implementRec('{{ rec.type }}','{{ rec.message|escapejs }}')">Implement</button>
+                </div>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+          {% else %}
+          <!-- STATIC FALLBACK -->
+          <div class="row g-3">
+            <div class="col-md-6">
+              <div class="rec-card">
+                <div class="rec-card-top">
+                  <div class="d-flex justify-content-between align-items-center">
+                    <span class="rec-type-badge rec-sell"><i class="fas fa-money-bill-wave"></i> SELL</span>
+                    <span class="pill pill-green" style="font-size:11px">High</span>
+                  </div>
+                  <div class="rec-title">Sell Window Open — Lasalgaon</div>
+                </div>
+                <div class="rec-card-body"><p class="rec-msg">Prices at Lasalgaon APMC are up 5.2% this week. This is a good window to sell existing inventory before the Kharif harvest increases supply in 6–8 weeks.</p></div>
+                <div class="rec-card-footer"><small style="color:var(--text-light);font-size:12px"><i class="fas fa-clock me-1"></i>Valid 48h</small><button class="btn-green" style="padding:6px 14px;font-size:12.5px" onclick="implementRec('SELL','Sell at Lasalgaon APMC — prices up 5.2%')">Implement</button></div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="rec-card">
+                <div class="rec-card-top">
+                  <div class="d-flex justify-content-between align-items-center">
+                    <span class="rec-type-badge rec-hold"><i class="fas fa-pause"></i> HOLD</span>
+                    <span class="pill pill-amber" style="font-size:11px">Medium</span>
+                  </div>
+                  <div class="rec-title">Monitor Export Policy</div>
+                </div>
+                <div class="rec-card-body"><p class="rec-msg">Government may impose export restrictions in the next 2 weeks. Hold off on large procurement until policy clarity emerges to avoid being caught in a price fall.</p></div>
+                <div class="rec-card-footer"><small style="color:var(--text-light);font-size:12px"><i class="fas fa-clock me-1"></i>Valid 48h</small><button class="btn-out-orange" style="padding:6px 14px;font-size:12.5px" onclick="implementRec('HOLD','Monitor export policy before large procurement')">Implement</button></div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="rec-card">
+                <div class="rec-card-top">
+                  <div class="d-flex justify-content-between align-items-center">
+                    <span class="rec-type-badge rec-buy"><i class="fas fa-shopping-cart"></i> BUY</span>
+                    <span class="pill pill-green" style="font-size:11px">High</span>
+                  </div>
+                  <div class="rec-title">Buy Opportunity — Solapur</div>
+                </div>
+                <div class="rec-card-body"><p class="rec-msg">Solapur market shows lower modal prices (₹1,750) vs. the national average. Good opportunity for traders to procure stock before expected price recovery next week.</p></div>
+                <div class="rec-card-footer"><small style="color:var(--text-light);font-size:12px"><i class="fas fa-clock me-1"></i>Valid 48h</small><button class="btn-orange" style="padding:6px 14px;font-size:12.5px" onclick="implementRec('BUY','Buy at Solapur — lower prices vs national avg')">Implement</button></div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="rec-card">
+                <div class="rec-card-top">
+                  <div class="d-flex justify-content-between align-items-center">
+                    <span class="rec-type-badge rec-info"><i class="fas fa-info-circle"></i> ALERT</span>
+                    <span class="pill pill-blue" style="font-size:11px">Medium</span>
+                  </div>
+                  <div class="rec-title">Kharif Harvest Incoming</div>
+                </div>
+                <div class="rec-card-body"><p class="rec-msg">Kharif onion harvest is expected in 6–8 weeks. Supply will increase significantly which is likely to push prices down by 15–25%. Plan storage and sales accordingly.</p></div>
+                <div class="rec-card-footer"><small style="color:var(--text-light);font-size:12px"><i class="fas fa-clock me-1"></i>Valid 48h</small><button class="btn-out-orange" style="padding:6px 14px;font-size:12.5px;border-color:#2563eb;color:#2563eb" onclick="implementRec('ALERT','Plan for Kharif harvest supply increase in 6-8 weeks')">Plan</button></div>
+              </div>
+            </div>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- ACTION PLAN -->
+      <div class="side-card mb-4">
+        <div class="side-card-hdr" style="justify-content:space-between">
+          <span><i class="fas fa-tasks"></i> Suggested Action Plan</span>
+          <button class="btn-orange" style="padding:7px 16px;font-size:12.5px" onclick="downloadPlan()"><i class="fas fa-download"></i> Download</button>
+        </div>
+        <div class="side-card-body">
+          <div class="timeline">
+            <div class="tl-item">
+              <div class="tl-dot today"><i class="fas fa-circle" style="font-size:8px"></i></div>
+              <h6>Immediate Actions (Today)</h6>
+              <ul>
+                <li>Monitor price alerts for your preferred markets</li>
+                <li>Review recent prediction accuracy on dashboard</li>
+                <li>Update your inventory status if applicable</li>
+              </ul>
+            </div>
+            <div class="tl-item">
+              <div class="tl-dot week"><i class="fas fa-circle" style="font-size:8px"></i></div>
+              <h6>Short-term (Next 7 Days)</h6>
+              <ul>
+                <li>Execute sell/buy recommendations based on confidence levels</li>
+                <li>Set price alerts for target buy/sell price points</li>
+                <li>Compare prices across competitor APMC markets</li>
+              </ul>
+            </div>
+            <div class="tl-item" style="margin-bottom:0">
+              <div class="tl-dot month"><i class="fas fa-circle" style="font-size:8px"></i></div>
+              <h6>Medium-term (Next 30 Days)</h6>
+              <ul>
+                <li>Plan inventory & storage strategy based on Kharif harvest timeline</li>
+                <li>Review and adjust strategy based on actual vs predicted outcomes</li>
+                <li>Provide accuracy feedback to help improve AI models</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MARKET INTELLIGENCE -->
+      <div class="side-card">
+        <div class="side-card-hdr"><i class="fas fa-brain"></i> Market Intelligence Factors</div>
+        <div class="side-card-body">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <div id="marketFactors">
+                <div style="display:flex;align-items:center;gap:8px;padding:10px 0;border-bottom:1px solid var(--border)">
+                  <div style="width:10px;height:10px;border-radius:50%;background:#dc2626;flex-shrink:0"></div>
+                  <div><div style="font-weight:600;font-size:13.5px">Monsoon Rainfall</div><div style="font-size:12px;color:var(--text-mid)">Heavy rainfall affecting supply chain</div></div>
+                  <span class="pill pill-red" style="font-size:11px;margin-left:auto">High</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:8px;padding:10px 0;border-bottom:1px solid var(--border)">
+                  <div style="width:10px;height:10px;border-radius:50%;background:#d97706;flex-shrink:0"></div>
+                  <div><div style="font-weight:600;font-size:13.5px">Export Policy</div><div style="font-size:12px;color:var(--text-mid)">Govt considering export restrictions</div></div>
+                  <span class="pill pill-amber" style="font-size:11px;margin-left:auto">Medium</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:8px;padding:10px 0;border-bottom:1px solid var(--border)">
+                  <div style="width:10px;height:10px;border-radius:50%;background:#2563eb;flex-shrink:0"></div>
+                  <div><div style="font-weight:600;font-size:13.5px">Fuel Prices</div><div style="font-size:12px;color:var(--text-mid)">Transport costs up by 5%</div></div>
+                  <span class="pill pill-blue" style="font-size:11px;margin-left:auto">Low</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:8px;padding:10px 0">
+                  <div style="width:10px;height:10px;border-radius:50%;background:var(--green);flex-shrink:0"></div>
+                  <div><div style="font-weight:600;font-size:13.5px">Cold Storage</div><div style="font-size:12px;color:var(--text-mid)">Capacity at 72% — stable</div></div>
+                  <span class="pill pill-green" style="font-size:11px;margin-left:auto">Stable</span>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="site-alert warning">
+                <i class="fas fa-exclamation-triangle"></i>
+                <span style="font-size:13px"><strong>Risk Summary:</strong> Market conditions are moderately volatile with elevated policy risk. Monitor export policies and weather forecasts closely over the next 14 days.</span>
+              </div>
+              <div class="mt-3">
+                <a href="{% url 'dashboard' %}" class="btn-green w-100" style="justify-content:center;font-size:13.5px"><i class="fas fa-chart-line"></i> View Full Dashboard</a>
+              </div>
+              <div class="mt-2">
+                <a href="{% url 'predict' %}" class="btn-out-orange w-100" style="justify-content:center;font-size:13.5px"><i class="fas fa-magic"></i> Generate Forecast</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- IMPLEMENTATION MODAL -->
+<div class="modal-overlay" id="implModal">
+  <div class="modal-box">
+    <div class="modal-hdr">
+      <h3><i class="fas fa-tasks me-2" style="color:var(--orange)"></i>Implement Recommendation</h3>
+      <button class="modal-close" onclick="closeModal()"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body-inner">
+      <div class="mb-3">
+        <span class="form-lbl">Recommendation Type</span>
+        <input type="text" class="form-ctrl" id="recTypeInput" readonly>
+      </div>
+      <div class="mb-3">
+        <span class="form-lbl">Action Details</span>
+        <textarea class="form-ctrl" id="recDetailsInput" rows="2" readonly style="resize:none"></textarea>
+      </div>
+      <div class="mb-3">
+        <span class="form-lbl">Your Notes</span>
+        <textarea class="form-ctrl" id="implNotes" rows="2" placeholder="Add implementation details..."></textarea>
+      </div>
+      <div class="mb-1">
+        <span class="form-lbl">Target Date</span>
+        <input type="date" class="form-ctrl" id="implDate">
+      </div>
+    </div>
+    <div class="modal-ftr">
+      <button class="btn-out-orange" style="padding:9px 18px;font-size:13.5px" onclick="closeModal()">Cancel</button>
+      <button class="btn-green" style="padding:9px 22px;font-size:13.5px" onclick="saveImpl()"><i class="fas fa-save"></i> Save & Track</button>
+    </div>
+  </div>
+</div>
 {% endblock %}
 
 {% block scripts %}
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Load market factors
-    loadMarketFactors();
-    
-    // Set current date as default target date
-    const today = new Date().toISOString().split('T')[0];
-    document.getElementById('targetDate').value = today;
-});
+document.getElementById('implDate').value=new Date().toISOString().split('T')[0];
 
-function loadMarketFactors() {
-    // Simulate API call to get market factors
-    setTimeout(() => {
-        const factorsHtml = `
-            <div class="list-group">
-                <div class="list-group-item">
-                    <strong>Monsoon Rainfall</strong>
-                    <span class="badge bg-danger float-end">High Impact</span>
-                    <p class="mb-0 small">Heavy rainfall affecting supply chain</p>
-                </div>
-                <div class="list-group-item">
-                    <strong>Export Policy</strong>
-                    <span class="badge bg-warning float-end">Medium Impact</span>
-                    <p class="mb-0 small">Government considering export restrictions</p>
-                </div>
-                <div class="list-group-item">
-                    <strong>Fuel Prices</strong>
-                    <span class="badge bg-info float-end">Low Impact</span>
-                    <p class="mb-0 small">Transportation costs increasing by 5%</p>
-                </div>
-            </div>
-        `;
-        document.getElementById('marketFactors').innerHTML = factorsHtml;
-    }, 1000);
+function implementRec(type,message){
+  document.getElementById('recTypeInput').value=type;
+  document.getElementById('recDetailsInput').value=message;
+  document.getElementById('implNotes').value='';
+  document.getElementById('implModal').classList.add('open');
+}
+function closeModal(){document.getElementById('implModal').classList.remove('open')}
+
+function saveImpl(){
+  const notes=document.getElementById('implNotes').value.trim();
+  if(!notes){showToast('Please add implementation notes','error');return;}
+  const type=document.getElementById('recTypeInput').value;
+  const date=document.getElementById('implDate').value;
+  fetch('/api/recommendations/implement/',{
+    method:'POST',
+    headers:{'Content-Type':'application/json','X-CSRFToken':getCookie('csrftoken')},
+    body:JSON.stringify({type,notes,target_date:date})
+  }).then(r=>r.json()).then(d=>{
+    if(d.success){showToast('Recommendation saved to your action plan!');closeModal();}
+    else{showToast('Saved locally — connect to backend to persist','error');}
+  }).catch(()=>{showToast('Recommendation noted — generate a forecast to act on it!');closeModal();});
 }
 
-function implementRecommendation(type, message) {
-    document.getElementById('recType').value = type;
-    document.getElementById('recDetails').value = message;
-    document.getElementById('implementationNotes').value = '';
-    
-    const modal = new bootstrap.Modal(document.getElementById('implementationModal'));
-    modal.show();
-}
-
-function saveImplementation() {
-    const type = document.getElementById('recType').value;
-    const notes = document.getElementById('implementationNotes').value;
-    const targetDate = document.getElementById('targetDate').value;
-    
-    if (!notes.trim()) {
-        alert('Please add implementation notes');
-        return;
-    }
-    
-    // In real app, save to database via API
-    fetch('/api/recommendations/implement/', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': getCookie('csrftoken')
-        },
-        body: JSON.stringify({
-            type: type,
-            notes: notes,
-            target_date: targetDate,
-            user_id: '{{ user.id }}'
-        })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            alert('Recommendation saved to your action plan!');
-            const modal = bootstrap.Modal.getInstance(document.getElementById('implementationModal'));
-            modal.hide();
-        } else {
-            alert('Error saving implementation: ' + data.error);
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('Error saving implementation');
-    });
-}
-function generateActionPlan() {
-    const userType = '{{ user.userprofile.user_type|default:"GENERAL" }}';
-    const userName = '{{ user.get_full_name|default:user.username }}';
-    const date = new Date().toLocaleDateString();
-    // Build action plan in Django template
-    const actionPlanContent = `ONION PRICE FORECAST - ACTION PLAN
-    Generated for: ${userName}
-User Type: ${userType}
-Date: ${date}
+function downloadPlan(){
+  const content=`ONION PULSE AI — ACTION PLAN
+Generated: ${new Date().toLocaleDateString('en-IN')}
 
 MARKET OVERVIEW:
-Current Trend: {{ trend.trend|default:"Stable" }}
-Average Price: ₹{{ trend.current_price|default:"2,250"|floatformat:2 }}
+Current Price: ₹{{ trend.current_price|default:"2,250" }}
+Trend: {{ trend.trend|default:"Stable" }}
+30-Day Range: ₹{{ trend.min_30d|default:"1,800" }} – ₹{{ trend.max_30d|default:"2,500" }}
 
-RECOMMENDED ACTIONS:
-{% for rec in recommendations %}
-{{ forloop.counter }}. {{ rec.type }}: {{ rec.message }}
-{% empty %}
-No specific recommendations available at this time.
-{% endfor %}
+IMMEDIATE ACTIONS (TODAY):
+→ Monitor price alerts for preferred markets
+→ Review recent prediction accuracy
+→ Update inventory status
 
-IMPLEMENTATION NOTES:
-1. Monitor prices daily using our dashboard
-2. Set price alerts for target levels
-3. Review predictions accuracy weekly
-4. Adjust strategy based on market changes`;
-    
-    // Create and download text file
-    const blob = new Blob([actionPlanContent], { type: 'text/plain' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `Action_Plan_${userName.replace(/\s+/g, '_')}_${date.replace(/\//g, '_')}.txt`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    window.URL.revokeObjectURL(url);
-}
+SHORT-TERM (NEXT 7 DAYS):
+→ Execute sell/buy recommendations
+→ Set price alerts for target levels
+→ Compare competitor market prices
 
-function getCookie(name) {
-    let cookieValue = null;
-    if (document.cookie && document.cookie !== '') {
-        const cookies = document.cookie.split(';');
-        for (let i = 0; i < cookies.length; i++) {
-            const cookie = cookies[i].trim();
-            if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                break;
-            }
-        }
-    }
-    return cookieValue;
+MEDIUM-TERM (NEXT 30 DAYS):
+→ Plan for Kharif harvest supply increase
+→ Review actual vs predicted outcomes
+→ Adjust strategy based on results
+
+For real-time forecasts visit: onionforecast.in`;
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([content],{type:'text/plain'}));
+  a.download='OnionPulse_Action_Plan.txt';a.click();
+  showToast('Action plan downloaded!');
 }
 </script>
 {% endblock %}

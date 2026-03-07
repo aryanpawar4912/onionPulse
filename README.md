@@ -416,3 +416,6 @@ python manage.py runserver
 - **Admin Panel**: http://127.0.0.1:8000/admin-panel/
 - **Django Admin**: http://127.0.0.1:8000/admin/
 
+--------------------------------------** Changes **-----------------------------------------------
+1.login page redirection
+2.change logo name

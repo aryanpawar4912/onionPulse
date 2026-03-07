@@ -13,9 +13,11 @@ urlpatterns = [
     path('about/', views.about, name='about'),
     path('contact/', views.contact, name='contact'),
     # Add authentication URLs
-    path('login/', auth_views.LoginView.as_view(template_name='forecast_app/login.html'), name='login'),
-    path('logout/', auth_views.LogoutView.as_view(next_page='/'), name='logout'),
+     path('logout/', auth_views.LogoutView.as_view(next_page='/'), name='logout'),
     # API endpoints
     path('api/prices/', views.api_get_prices, name='api_prices'),
     path('api/predict/', views.api_get_prediction, name='api_predict'),
 ]
+
+
+   

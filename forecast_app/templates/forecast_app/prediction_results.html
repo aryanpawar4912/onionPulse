@@ -1,560 +1,408 @@
 {% extends 'forecast_app/base.html' %}
 {% load static %}
-
-{% block extra_head %}
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
-<style>
-  :root {
-    --saffron:   #f97316;
-    --saffron-d: #ea6c0a;
-    --leaf:      #16a34a;
-    --sky:       #0ea5e9;
-    --rose:      #e11d48;
-    --amber:     #d97706;
-    --s50:  #f8fafc; --s100: #f1f5f9; --s200: #e2e8f0;
-    --s400: #94a3b8; --s600: #475569; --s800: #1e293b;
-    --rad: 12px;
-    --sh:  0 1px 3px rgba(0,0,0,.07), 0 2px 8px rgba(0,0,0,.04);
-    --sh2: 0 4px 20px rgba(0,0,0,.09);
-  }
-  body { font-family: 'DM Sans', sans-serif; }
-
-  /* Hero */
-  .pr-hero {
-    background: linear-gradient(135deg,#f97316 0%,#ef4444 55%,#dc2626 100%);
-    border-radius: 0 0 28px 28px;
-    padding: 36px 0 30px;
-    margin-bottom: 28px;
-    position: relative; overflow: hidden;
-  }
-  .pr-hero::before {
-    content:''; position:absolute; inset:0;
-    background: repeating-linear-gradient(45deg,rgba(255,255,255,.03) 0,rgba(255,255,255,.03) 1px,transparent 1px,transparent 10px);
-  }
-  .pr-hero .inner { position: relative; }
-  .pr-hero h1 { font-size:1.9rem; font-weight:700; margin-bottom:4px; }
-  .pr-hero p  { opacity:.88; margin:0; }
-
-  /* KPI strip */
-  .kpi-strip { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:22px; }
-  @media(max-width:768px){ .kpi-strip { grid-template-columns:repeat(2,1fr); } }
-  .kpi {
-    background:#fff; border:1px solid var(--s200); border-radius:var(--rad);
-    padding:18px 16px; display:flex; align-items:center; gap:14px;
-    box-shadow:var(--sh); transition:transform .2s,box-shadow .2s;
-  }
-  .kpi:hover { transform:translateY(-2px); box-shadow:var(--sh2); }
-  .kpi-ic {
-    width:46px; height:46px; border-radius:12px; flex-shrink:0;
-    display:flex; align-items:center; justify-content:center; font-size:18px;
-  }
-  .kpi-ic.a { background:#eff6ff; color:#2563eb; }
-  .kpi-ic.b { background:#f0fdf4; color:var(--leaf); }
-  .kpi-ic.c { background:#ecfeff; color:var(--sky); }
-  .kpi-ic.d { background:#fffbeb; color:var(--amber); }
-  .kpi-txt h3 { font-size:1.55rem; font-weight:700; margin:0; line-height:1; color:var(--s800); }
-  .kpi-txt p  { font-size:11px; color:var(--s400); margin:4px 0 0; font-weight:600; text-transform:uppercase; letter-spacing:.4px; }
-
-  /* Filter panel */
-  .fp {
-    background:#fff; border:1px solid var(--s200); border-radius:var(--rad);
-    padding:18px 20px; margin-bottom:22px; box-shadow:var(--sh);
-  }
-  .fp-title {
-    font-size:12px; font-weight:700; color:var(--s600); text-transform:uppercase; letter-spacing:.5px;
-    margin-bottom:14px; display:flex; align-items:center; gap:8px;
-  }
-  .fp-title span { width:3px; height:14px; background:var(--saffron); border-radius:2px; display:inline-block; }
-  .fp-row { display:flex; flex-wrap:wrap; gap:10px; align-items:flex-end; }
-  .fp-grp { flex:1; min-width:150px; }
-  .fp-grp label { font-size:11px; font-weight:700; color:var(--s400); text-transform:uppercase; letter-spacing:.4px; margin-bottom:5px; display:block; }
-  .fp-grp select { font-family:'DM Sans',sans-serif; font-size:13px; border:1.5px solid var(--s200); border-radius:8px; padding:7px 10px; width:100%; background:var(--s50); color:var(--s800); transition:border-color .15s; }
-  .fp-grp select:focus { border-color:var(--saffron); outline:none; box-shadow:0 0 0 3px rgba(249,115,22,.12); }
-  .btn-go    { background:var(--saffron); color:#fff; border:none; border-radius:8px; padding:8px 20px; font-size:13px; font-weight:600; cursor:pointer; font-family:'DM Sans',sans-serif; transition:background .15s; white-space:nowrap; }
-  .btn-go:hover { background:var(--saffron-d); }
-  .btn-clr   { background:transparent; color:var(--s600); border:1.5px solid var(--s200); border-radius:8px; padding:8px 14px; font-size:13px; font-weight:500; cursor:pointer; font-family:'DM Sans',sans-serif; transition:all .15s; white-space:nowrap; }
-  .btn-clr:hover { border-color:var(--s400); color:var(--s800); }
-  /* chips */
-  .chips { display:flex; flex-wrap:wrap; gap:8px; margin-top:12px; }
-  .chip {
-    display:inline-flex; align-items:center; gap:5px;
-    background:#fff7ed; color:var(--saffron-d);
-    border:1px solid #fed7aa; border-radius:20px; padding:3px 10px;
-    font-size:12px; font-weight:600;
-  }
-  .chip button { background:none; border:none; cursor:pointer; color:var(--saffron-d); padding:0; font-size:14px; line-height:1; }
-
-  /* Table card */
-  .tc { background:#fff; border:1px solid var(--s200); border-radius:var(--rad); box-shadow:var(--sh); overflow:hidden; }
-  .tc-hdr {
-    padding:14px 20px; border-bottom:1px solid var(--s100);
-    display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;
-  }
-  .tc-hdr h5 { font-size:15px; font-weight:700; color:var(--s800); margin:0; }
-  .tbl-acts { display:flex; gap:8px; }
-  .act-btn {
-    display:inline-flex; align-items:center; gap:6px;
-    border:1.5px solid var(--s200); background:#fff; color:var(--s600);
-    border-radius:8px; padding:6px 12px; font-size:12px; font-weight:600;
-    cursor:pointer; font-family:'DM Sans',sans-serif; transition:all .15s;
-  }
-  .act-btn:hover { border-color:var(--saffron); color:var(--saffron); background:#fff7ed; }
-
-  /* Table */
-  .dt { width:100%; border-collapse:collapse; font-size:13.5px; }
-  .dt thead th {
-    background:var(--s50); font-size:11px; font-weight:700; color:var(--s400);
-    text-transform:uppercase; letter-spacing:.5px;
-    padding:11px 14px; border-bottom:1px solid var(--s100);
-    white-space:nowrap; cursor:pointer; user-select:none;
-  }
-  .dt thead th:hover { color:var(--s800); }
-  .dt thead th .si { margin-left:3px; opacity:.4; font-size:10px; }
-  .dt thead th.sorted .si { opacity:1; color:var(--saffron); }
-  .dt tbody tr { border-bottom:1px solid var(--s100); transition:background .12s; }
-  .dt tbody tr:last-child { border-bottom:none; }
-  .dt tbody tr:hover { background:#fff7ed; }
-  .dt td { padding:12px 14px; vertical-align:middle; color:var(--s800); }
-  .dt td.mono { color:var(--s400); font-family:'DM Mono',monospace; font-size:12px; }
-
-  /* Price cell */
-  .pm { font-weight:700; font-size:14px; color:var(--s800); }
-  .pr { font-size:11px; color:var(--s400); font-family:'DM Mono',monospace; margin-top:2px; }
-
-  /* Badges */
-  .bdg { display:inline-flex; align-items:center; gap:4px; padding:3px 9px; border-radius:20px; font-size:11px; font-weight:600; }
-  .bdg-ver { background:#dcfce7; color:#15803d; }
-  .bdg-pen { background:#fef9c3; color:#92400e; }
-  .bdg-hi  { background:#dcfce7; color:#15803d; }
-  .bdg-md  { background:#fef9c3; color:#92400e; }
-  .bdg-lo  { background:#fee2e2; color:#b91c1c; }
-
-  /* Market pill */
-  .mkt {
-    display:inline-block; max-width:160px;
-    overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
-    font-weight:600; color:#0369a1; background:#e0f2fe;
-    border-radius:6px; padding:2px 8px; font-size:12px;
-  }
-
-  /* Row actions */
-  .ra { display:flex; gap:4px; }
-  .rb {
-    width:28px; height:28px; border-radius:7px;
-    display:flex; align-items:center; justify-content:center;
-    border:1.5px solid var(--s200); background:#fff; color:var(--s400);
-    cursor:pointer; font-size:11px; transition:all .15s;
-  }
-  .rb.v:hover { border-color:var(--sky);  background:#e0f2fe; color:var(--sky); }
-  .rb.e:hover { border-color:var(--leaf); background:#dcfce7; color:var(--leaf); }
-  .rb.d:hover { border-color:var(--rose); background:#fee2e2; color:var(--rose); }
-
-  /* Conf bar */
-  .ct { height:5px; background:var(--s100); border-radius:10px; overflow:hidden; margin-top:5px; }
-  .cf { height:100%; border-radius:10px; }
-
-  /* Empty */
-  .empty { text-align:center; padding:60px 32px; }
-  .empty-ic { width:72px; height:72px; border-radius:50%; background:var(--s100); display:flex; align-items:center; justify-content:center; font-size:28px; margin:0 auto 16px; }
-  .empty h4 { font-weight:700; color:var(--s800); margin-bottom:6px; }
-  .empty p  { color:var(--s400); font-size:14px; margin-bottom:18px; }
-
-  /* Result bar */
-  .rbar { padding:11px 20px; background:var(--s50); border-top:1px solid var(--s100); font-size:13px; color:var(--s600); display:flex; justify-content:space-between; align-items:center; }
-  .rbar a { font-size:12px; color:var(--saffron); text-decoration:none; font-weight:600; }
-
-  /* Modals */
-  .modal-content { border:none !important; border-radius:16px !important; }
-  .modal-header  { border-bottom:1px solid var(--s100) !important; padding:18px 22px !important; }
-  .modal-body    { padding:22px !important; }
-  .modal-footer  { border-top:1px solid var(--s100) !important; padding:14px 22px !important; }
-
-  .dg   { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:18px; }
-  @media(max-width:576px){ .dg { grid-template-columns:1fr; } }
-  .dbox { background:var(--s50); border-radius:10px; padding:12px 14px; }
-  .dbox label { font-size:11px; font-weight:700; color:var(--s400); text-transform:uppercase; letter-spacing:.4px; display:block; margin-bottom:3px; }
-  .dbox span  { font-size:15px; font-weight:700; color:var(--s800); }
-  .ptrio { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:18px; }
-  .pc   { background:var(--s50); border-radius:10px; padding:12px; text-align:center; }
-  .pc label { font-size:10px; font-weight:700; color:var(--s400); text-transform:uppercase; letter-spacing:.4px; display:block; margin-bottom:5px; }
-  .pc .amt  { font-size:1.3rem; font-weight:700; }
-  .pc.mn .amt { color:var(--leaf); }
-  .pc.md .amt { color:#2563eb; }
-  .pc.mx .amt { color:var(--rose); }
-
-  @media(max-width:900px){ .hide-sm { display:none; } }
-</style>
-{% endblock %}
-
+{% block title %}Prediction Results — OnionPulse AI{% endblock %}
 {% block content %}
+<style>
+/* HERO */
+.pr-hero{background:linear-gradient(135deg,var(--orange),#ef4444 55%,#dc2626 100%);border-radius:0 0 24px 24px;padding:36px 0 30px;margin-bottom:28px;position:relative;overflow:hidden}
+.pr-hero::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(45deg,rgba(255,255,255,.03) 0,rgba(255,255,255,.03) 1px,transparent 1px,transparent 10px)}
+.pr-hero h1{font-family:var(--font-d);font-size:clamp(22px,3.5vw,36px);font-weight:800;color:#fff;letter-spacing:-.5px;margin-bottom:5px}
+.pr-hero p{color:rgba(255,255,255,.85);font-size:14.5px;margin:0}
+.pr-hero-inner{position:relative;z-index:2}
+
+/* FILTER PANEL */
+.fp{background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:18px 22px;margin-bottom:20px;box-shadow:var(--sh-sm)}
+.fp-hdr{font-size:12px;font-weight:700;color:var(--text-mid);text-transform:uppercase;letter-spacing:.5px;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.fp-hdr::before{content:'';display:inline-block;width:3px;height:14px;background:var(--orange);border-radius:2px}
+.fp-row{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end}
+.fp-grp{flex:1;min-width:140px}
+.fp-grp label{font-size:11px;font-weight:700;color:var(--text-light);text-transform:uppercase;letter-spacing:.4px;margin-bottom:5px;display:block}
+.fp-grp select{font-family:var(--font-b);font-size:13px;border:1.5px solid var(--border);border-radius:8px;padding:8px 10px;width:100%;background:var(--bg);color:var(--text);transition:border-color .15s;outline:none}
+.fp-grp select:focus{border-color:var(--orange);box-shadow:0 0 0 3px rgba(249,115,22,.12)}
+
+/* CHIPS */
+.chip-wrap{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.chip{display:inline-flex;align-items:center;gap:5px;background:var(--orange-light);color:var(--orange-d);border:1px solid var(--orange-mid);border-radius:20px;padding:3px 10px;font-size:12px;font-weight:600}
+.chip button{background:none;border:none;cursor:pointer;color:var(--orange-d);padding:0;font-size:14px;line-height:1}
+
+/* TABLE CARD */
+.tc{background:#fff;border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--sh-sm);overflow:hidden}
+.tc-hdr{padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;background:var(--bg)}
+.tc-hdr h5{font-size:15px;font-weight:700;color:var(--text);margin:0;font-family:var(--font-d);display:flex;align-items:center;gap:8px}
+.tc-hdr h5 i{color:var(--orange)}
+.tbl-acts{display:flex;gap:8px}
+.act-btn{display:inline-flex;align-items:center;gap:6px;border:1.5px solid var(--border);background:#fff;color:var(--text-mid);border-radius:8px;padding:6px 12px;font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font-b);transition:all .15s}
+.act-btn:hover{border-color:var(--orange);color:var(--orange);background:var(--orange-light)}
+
+/* PRICE CELL */
+.pm{font-weight:700;font-size:14px;color:var(--text)}
+.pr{font-size:11.5px;color:var(--text-light);margin-top:2px;font-family:monospace}
+
+/* CONF BAR */
+.ct{height:5px;background:var(--bg2);border-radius:10px;overflow:hidden;margin-top:5px}
+.cf{height:100%;border-radius:10px}
+
+/* ROW ACTIONS */
+.ra{display:flex;gap:4px}
+.rb{width:28px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;border:1.5px solid var(--border);background:#fff;color:var(--text-light);cursor:pointer;font-size:11px;transition:all .15s}
+.rb.v:hover{border-color:#0ea5e9;background:#e0f2fe;color:#0ea5e9}
+.rb.e:hover{border-color:var(--green);background:var(--green-light);color:var(--green)}
+.rb.d:hover{border-color:#dc2626;background:#fee2e2;color:#dc2626}
+
+/* MKT TAG */
+.mkt-tag{display:inline-block;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600;color:#0369a1;background:#e0f2fe;border-radius:6px;padding:2px 8px;font-size:12px}
+
+/* RESULT BAR */
+.rbar{padding:11px 20px;background:var(--bg);border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;font-size:13px;color:var(--text-mid)}
+.rbar a{font-size:12px;color:var(--orange);text-decoration:none;font-weight:600}
+
+/* EMPTY */
+.empty-state{text-align:center;padding:60px 24px}
+.empty-ic{width:72px;height:72px;border-radius:50%;background:var(--bg2);display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 16px}
+
+/* DETAIL MODAL GRID */
+.dg{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px}
+@media(max-width:576px){.dg{grid-template-columns:1fr}}
+.dbox{background:var(--bg);border-radius:10px;padding:12px 14px}
+.dbox label{font-size:11px;font-weight:700;color:var(--text-light);text-transform:uppercase;letter-spacing:.4px;display:block;margin-bottom:3px}
+.dbox span{font-size:15px;font-weight:700;color:var(--text)}
+.ptrio{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px}
+.pc{background:var(--bg);border-radius:10px;padding:12px;text-align:center}
+.pc label{font-size:10px;font-weight:700;color:var(--text-light);text-transform:uppercase;display:block;margin-bottom:5px}
+.pc .amt{font-family:var(--font-d);font-size:1.3rem;font-weight:800}
+.pc.mn .amt{color:var(--green)}.pc.md .amt{color:#2563eb}.pc.mx .amt{color:#dc2626}
+
+/* KPI STYLES override for dashboard */
+.kpi{background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:18px 16px;display:flex;align-items:center;gap:14px;box-shadow:var(--sh-sm);transition:all .2s}
+.kpi:hover{transform:translateY(-2px);box-shadow:var(--sh-md)}
+.kpi-ic{width:46px;height:46px;border-radius:12px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:18px}
+.kpi-ic.a{background:#eff6ff;color:#2563eb}
+.kpi-ic.b{background:var(--green-light);color:var(--green)}
+.kpi-ic.c{background:#ecfeff;color:#0ea5e9}
+.kpi-ic.d{background:#fffbeb;color:#d97706}
+.kpi-txt h3{font-family:var(--font-d);font-size:1.5rem;font-weight:800;margin:0;color:var(--text)}
+.kpi-txt p{font-size:11px;color:var(--text-light);margin:4px 0 0;font-weight:600;text-transform:uppercase;letter-spacing:.4px}
+
+@media(max-width:900px){.hide-sm{display:none}}
+</style>
 
 <!-- HERO -->
 <div class="pr-hero">
-  <div class="container inner">
+  <div class="container pr-hero-inner">
     <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
       <div>
-        <h1 class="text-white"><i class="fas fa-crystal-ball me-2"></i>Prediction Results</h1>
-        <p class="text-white">AI-generated onion price forecasts — review, verify, and export</p>
+        <h1><i class="fas fa-crystal-ball me-2" style="opacity:.8"></i>Prediction Results</h1>
+        <p>AI-generated onion price forecasts — review, verify, and export your data</p>
       </div>
-      <a href="{% url 'predict' %}" class="btn btn-light fw-semibold px-4">
-        <i class="fas fa-plus me-2"></i>New Prediction
-      </a>
+      <a href="{% url 'predict' %}" class="btn-out-orange" style="padding:10px 20px;font-size:13.5px;border-color:rgba(255,255,255,.5);color:#fff;background:rgba(255,255,255,.12)"><i class="fas fa-plus"></i> New Prediction</a>
     </div>
   </div>
 </div>
 
-<div class="container-fluid px-3 px-md-4">
+<div class="container-fluid px-3 px-md-4 pb-5">
 
-<!-- KPI STRIP -->
-<div class="kpi-strip">
-  <div class="kpi">
-    <div class="kpi-ic a"><i class="fas fa-bullseye"></i></div>
-    <div class="kpi-txt"><h3>{{ total_count }}</h3><p>Total</p></div>
-  </div>
-  <div class="kpi">
-    <div class="kpi-ic b"><i class="fas fa-chart-line"></i></div>
-    <div class="kpi-txt"><h3>{{ avg_confidence|floatformat:1 }}%</h3><p>Avg Confidence</p></div>
-  </div>
-  <div class="kpi">
-    <div class="kpi-ic c"><i class="fas fa-check-circle"></i></div>
-    <div class="kpi-txt"><h3>{{ accurate_predictions }}</h3><p>Verified</p></div>
-  </div>
-  <div class="kpi">
-    <div class="kpi-ic d"><i class="fas fa-clock"></i></div>
-    <div class="kpi-txt"><h3>{{ pending_predictions }}</h3><p>Pending</p></div>
-  </div>
-</div>
-
-<!-- FILTER PANEL -->
-<div class="fp">
-  <div class="fp-title"><span></span><i class="fas fa-sliders-h"></i> Filters</div>
-  <form method="get" id="filterForm">
-    <div class="fp-row">
-      <div class="fp-grp">
-        <label>Market</label>
-        <select name="market">
-          <option value="">All Markets</option>
-          {% for m in markets %}
-          <option value="{{ m }}" {% if selected_market == m %}selected{% endif %}>{{ m }}</option>
-          {% endfor %}
-        </select>
-      </div>
-      <div class="fp-grp">
-        <label>Date Range</label>
-        <select name="date_range">
-          <option value="all"     {% if selected_date == 'all'     %}selected{% endif %}>All Time</option>
-          <option value="week"    {% if selected_date == 'week'    %}selected{% endif %}>Last 7 Days</option>
-          <option value="month"   {% if selected_date == 'month'   %}selected{% endif %}>Last 30 Days</option>
-          <option value="quarter" {% if selected_date == 'quarter' %}selected{% endif %}>Last 90 Days</option>
-        </select>
-      </div>
-      <div class="fp-grp">
-        <label>Status</label>
-        <select name="status">
-          <option value="all"      {% if selected_status == 'all'      %}selected{% endif %}>All</option>
-          <option value="pending"  {% if selected_status == 'pending'  %}selected{% endif %}>Pending</option>
-          <option value="verified" {% if selected_status == 'verified' %}selected{% endif %}>Verified</option>
-        </select>
-      </div>
-      <div style="display:flex;gap:8px;align-items:flex-end;">
-        <button type="submit" class="btn-go"><i class="fas fa-search me-1"></i>Apply</button>
-        <a href="{% url 'prediction_results' %}" class="btn-clr"><i class="fas fa-redo me-1"></i>Reset</a>
-      </div>
+  <!-- KPI STRIP -->
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-lg-3">
+      <div class="kpi"><div class="kpi-ic a"><i class="fas fa-bullseye"></i></div><div class="kpi-txt"><h3>{{ total_count|default:"0" }}</h3><p>Total Predictions</p></div></div>
     </div>
-  </form>
-  {% if selected_market or selected_date != 'all' or selected_status != 'all' %}
-  <div class="chips">
-    {% if selected_market %}<span class="chip"><i class="fas fa-map-marker-alt"></i> {{ selected_market }} <button onclick="clearParam('market')">×</button></span>{% endif %}
-    {% if selected_date and selected_date != 'all' %}<span class="chip"><i class="fas fa-calendar"></i> {% if selected_date == 'week' %}7 Days{% elif selected_date == 'month' %}30 Days{% else %}90 Days{% endif %} <button onclick="clearParam('date_range')">×</button></span>{% endif %}
-    {% if selected_status and selected_status != 'all' %}<span class="chip"><i class="fas fa-circle"></i> {{ selected_status|capfirst }} <button onclick="clearParam('status')">×</button></span>{% endif %}
-  </div>
-  {% endif %}
-</div>
-
-<!-- TABLE CARD -->
-<div class="tc">
-  <div class="tc-hdr">
-    <h5>
-      <i class="fas fa-table me-2" style="color:var(--s400);"></i>Predictions
-      <span style="font-size:13px;font-weight:500;color:var(--s400);margin-left:6px;">({{ predictions|length }} shown)</span>
-    </h5>
-    <div class="tbl-acts">
-      <button class="act-btn" onclick="exportCSV()"><i class="fas fa-download"></i> Export CSV</button>
-      <button class="act-btn" onclick="showChart()"><i class="fas fa-chart-bar"></i> Analytics</button>
+    <div class="col-6 col-lg-3">
+      <div class="kpi"><div class="kpi-ic b"><i class="fas fa-chart-line"></i></div><div class="kpi-txt"><h3>{{ avg_confidence|floatformat:1|default:"85.0" }}%</h3><p>Avg Confidence</p></div></div>
+    </div>
+    <div class="col-6 col-lg-3">
+      <div class="kpi"><div class="kpi-ic c"><i class="fas fa-check-circle"></i></div><div class="kpi-txt"><h3>{{ accurate_predictions|default:"0" }}</h3><p>Verified</p></div></div>
+    </div>
+    <div class="col-6 col-lg-3">
+      <div class="kpi"><div class="kpi-ic d"><i class="fas fa-clock"></i></div><div class="kpi-txt"><h3>{{ pending_predictions|default:"0" }}</h3><p>Pending</p></div></div>
     </div>
   </div>
 
-  <div class="table-responsive">
-    <table class="dt" id="dt">
-      <thead>
-        <tr>
-          <th onclick="srt(0)">ID <span class="si">⇅</span></th>
-          <th onclick="srt(1)" class="hide-sm">Pred. Date <span class="si">⇅</span></th>
-          <th onclick="srt(2)">Forecast Date <span class="si">⇅</span></th>
-          <th onclick="srt(3)">Market <span class="si">⇅</span></th>
-          <th onclick="srt(4)">Predicted Price <span class="si">⇅</span></th>
-          <th onclick="srt(5)" class="hide-sm">Actual Price <span class="si">⇅</span></th>
-          <th onclick="srt(6)">Confidence <span class="si">⇅</span></th>
-          <th>Status</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for p in predictions %}
-        <tr id="row-{{ p.id }}">
-          <td class="mono">#{{ p.id }}</td>
-          <td class="mono hide-sm">{{ p.prediction_date|date:"d M Y" }}</td>
-          <td style="font-weight:600;">{{ p.forecast_date|date:"d M Y" }}</td>
-          <td><span class="mkt" title="{{ p.market }}">{{ p.market }}</span></td>
-          <td>
-            <div class="pm">₹{{ p.predicted_modal_price|floatformat:0 }}</div>
-            <div class="pr">₹{{ p.predicted_min_price|floatformat:0 }} – ₹{{ p.predicted_max_price|floatformat:0 }}</div>
-          </td>
-          <td class="hide-sm">
-            {% if p.actual_price %}
-            <span style="font-weight:700;color:var(--leaf);">₹{{ p.actual_price|floatformat:0 }}</span>
-            {% else %}
-            <span style="color:var(--s400);font-style:italic;font-size:12px;">—</span>
-            {% endif %}
-          </td>
-          <td>
-            <span class="bdg {% if p.confidence_interval >= 80 %}bdg-hi{% elif p.confidence_interval >= 60 %}bdg-md{% else %}bdg-lo{% endif %}">
-              {{ p.confidence_interval|floatformat:0 }}%
-            </span>
-            <div class="ct">
-              <div class="cf {% if p.confidence_interval >= 80 %}bg-success{% elif p.confidence_interval >= 60 %}bg-warning{% else %}bg-danger{% endif %}"
-                   style="width:{{ p.confidence_interval|floatformat:0 }}%;"></div>
-            </div>
-          </td>
-          <td>
-            {% if p.actual_price %}
-            <span class="bdg bdg-ver"><i class="fas fa-check-circle"></i> Verified</span>
-            {% else %}
-            <span class="bdg bdg-pen"><i class="fas fa-clock"></i> Pending</span>
-            {% endif %}
-          </td>
-          <td>
-            <div class="ra">
-              <button class="rb v" onclick="showDetail({{ p.id }})" title="View details"><i class="fas fa-eye"></i></button>
-              <button class="rb e" onclick="showUpdate({{ p.id }},{{ p.predicted_modal_price|floatformat:2 }})" title="Add actual price"><i class="fas fa-edit"></i></button>
-              <button class="rb d" onclick="askDelete({{ p.id }})" title="Delete"><i class="fas fa-trash"></i></button>
-            </div>
-          </td>
-        </tr>
-        {% empty %}
-        <tr>
-          <td colspan="9">
-            <div class="empty">
-              <div class="empty-ic">🔮</div>
-              <h4>No Predictions Yet</h4>
-              <p>Generate your first AI-powered onion price forecast to get started.</p>
-              <a href="{% url 'predict' %}" class="btn btn-primary px-4 fw-semibold">
-                <i class="fas fa-magic me-2"></i>Generate Predictions
-              </a>
-            </div>
-          </td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
-
-  <div class="rbar">
-    <span>Showing <strong>{{ predictions|length }}</strong> of <strong>{{ total_count }}</strong> predictions</span>
-    {% if predictions|length < total_count %}
-    <a href="{% url 'prediction_results' %}">View all {{ total_count }} →</a>
+  <!-- FILTER PANEL -->
+  <div class="fp">
+    <div class="fp-hdr"><i class="fas fa-sliders-h"></i> Filters</div>
+    <form method="get" id="filterForm">
+      <div class="fp-row">
+        <div class="fp-grp">
+          <label>Market</label>
+          <select name="market">
+            <option value="">All Markets</option>
+            {% for m in markets %}
+            <option value="{{ m }}" {% if selected_market == m %}selected{% endif %}>{{ m }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="fp-grp">
+          <label>Date Range</label>
+          <select name="date_range">
+            <option value="all" {% if selected_date == 'all' %}selected{% endif %}>All Time</option>
+            <option value="week" {% if selected_date == 'week' %}selected{% endif %}>Last 7 Days</option>
+            <option value="month" {% if selected_date == 'month' %}selected{% endif %}>Last 30 Days</option>
+            <option value="quarter" {% if selected_date == 'quarter' %}selected{% endif %}>Last 90 Days</option>
+          </select>
+        </div>
+        <div class="fp-grp">
+          <label>Status</label>
+          <select name="status">
+            <option value="all" {% if selected_status == 'all' %}selected{% endif %}>All</option>
+            <option value="pending" {% if selected_status == 'pending' %}selected{% endif %}>Pending</option>
+            <option value="verified" {% if selected_status == 'verified' %}selected{% endif %}>Verified</option>
+          </select>
+        </div>
+        <div style="display:flex;gap:8px;align-items:flex-end">
+          <button type="submit" class="btn-orange" style="padding:9px 18px;font-size:13px"><i class="fas fa-search"></i> Apply</button>
+          <a href="{% url 'prediction_results' %}" class="btn-out-orange" style="padding:8px 14px;font-size:13px"><i class="fas fa-redo"></i> Reset</a>
+        </div>
+      </div>
+    </form>
+    {% if selected_market or selected_date != 'all' or selected_status != 'all' %}
+    <div class="chip-wrap">
+      {% if selected_market %}<span class="chip"><i class="fas fa-map-marker-alt"></i> {{ selected_market }} <button onclick="clearParam('market')">×</button></span>{% endif %}
+      {% if selected_date and selected_date != 'all' %}<span class="chip"><i class="fas fa-calendar"></i> {% if selected_date == 'week' %}7 Days{% elif selected_date == 'month' %}30 Days{% else %}90 Days{% endif %} <button onclick="clearParam('date_range')">×</button></span>{% endif %}
+      {% if selected_status and selected_status != 'all' %}<span class="chip"><i class="fas fa-circle" style="font-size:7px"></i> {{ selected_status|capfirst }} <button onclick="clearParam('status')">×</button></span>{% endif %}
+    </div>
     {% endif %}
   </div>
-</div>
 
-</div><!-- /container -->
-
-
-<!-- DETAIL MODAL -->
-<div class="modal fade" id="detailModal" tabindex="-1">
-  <div class="modal-dialog modal-lg modal-dialog-centered">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title fw-bold"><i class="fas fa-crystal-ball me-2 text-primary"></i>Prediction Details</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-      </div>
-      <div class="modal-body" id="detailBody">
-        <div class="text-center py-4"><div class="spinner-border text-primary"></div></div>
-      </div>
-      <div class="modal-footer">
-        <button class="btn btn-light" data-bs-dismiss="modal">Close</button>
+  <!-- TABLE CARD -->
+  <div class="tc">
+    <div class="tc-hdr">
+      <h5><i class="fas fa-table"></i> Predictions <span style="font-size:13px;font-weight:500;color:var(--text-light);margin-left:4px">({{ predictions|length }} shown)</span></h5>
+      <div class="tbl-acts">
+        <button class="act-btn" onclick="exportCSV()"><i class="fas fa-download"></i> Export CSV</button>
+        <button class="act-btn" onclick="showChart()"><i class="fas fa-chart-bar"></i> Analytics</button>
       </div>
     </div>
+    <div class="table-responsive">
+      <table class="data-table" id="dt">
+        <thead>
+          <tr>
+            <th onclick="srt(0)">ID ⇅</th>
+            <th onclick="srt(1)" class="hide-sm">Pred. Date ⇅</th>
+            <th onclick="srt(2)">Forecast Date ⇅</th>
+            <th onclick="srt(3)">Market ⇅</th>
+            <th onclick="srt(4)">Predicted Price ⇅</th>
+            <th onclick="srt(5)" class="hide-sm">Actual Price ⇅</th>
+            <th onclick="srt(6)">Confidence ⇅</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for p in predictions %}
+          <tr id="row-{{ p.id }}">
+            <td style="font-family:monospace;font-size:12px;color:var(--text-light)">#{{ p.id }}</td>
+            <td class="hide-sm" style="font-size:12.5px;color:var(--text-mid)">{{ p.prediction_date|date:"d M Y" }}</td>
+            <td style="font-weight:600">{{ p.forecast_date|date:"d M Y" }}</td>
+            <td><span class="mkt-tag" title="{{ p.market }}">{{ p.market }}</span></td>
+            <td>
+              <div class="pm">₹{{ p.predicted_modal_price|floatformat:0 }}</div>
+              <div class="pr">₹{{ p.predicted_min_price|floatformat:0 }} – ₹{{ p.predicted_max_price|floatformat:0 }}</div>
+            </td>
+            <td class="hide-sm">
+              {% if p.actual_price %}<span style="font-weight:700;color:var(--green)">₹{{ p.actual_price|floatformat:0 }}</span>
+              {% else %}<span style="color:var(--text-light);font-style:italic;font-size:12px">—</span>{% endif %}
+            </td>
+            <td>
+              <span class="pill {% if p.confidence_interval >= 80 %}pill-green{% elif p.confidence_interval >= 60 %}pill-amber{% else %}pill-red{% endif %}" style="font-size:11.5px">{{ p.confidence_interval|floatformat:0 }}%</span>
+              <div class="ct"><div class="cf {% if p.confidence_interval >= 80 %}bg-success{% elif p.confidence_interval >= 60 %}bg-warning{% else %}bg-danger{% endif %}" style="width:{{ p.confidence_interval|floatformat:0 }}%;background:{% if p.confidence_interval >= 80 %}var(--green){% elif p.confidence_interval >= 60 %}#d97706{% else %}#dc2626{% endif %}"></div></div>
+            </td>
+            <td>
+              {% if p.actual_price %}<span class="pill pill-green" style="font-size:11px"><i class="fas fa-check-circle"></i> Verified</span>
+              {% else %}<span class="pill pill-amber" style="font-size:11px"><i class="fas fa-clock"></i> Pending</span>{% endif %}
+            </td>
+            <td>
+              <div class="ra">
+                <button class="rb v" onclick="showDetail({{ p.id }})" title="View"><i class="fas fa-eye"></i></button>
+                <button class="rb e" onclick="showUpdate({{ p.id }},{{ p.predicted_modal_price|floatformat:2 }})" title="Update"><i class="fas fa-edit"></i></button>
+                <button class="rb d" onclick="askDelete({{ p.id }})" title="Delete"><i class="fas fa-trash"></i></button>
+              </div>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="9">
+              <div class="empty-state">
+                <div class="empty-ic">🔮</div>
+                <h4 style="font-family:var(--font-d);font-weight:700;color:var(--text)">No Predictions Yet</h4>
+                <p style="font-size:14px;color:var(--text-light);margin-bottom:20px">Generate your first AI-powered onion price forecast to get started.</p>
+                <a href="{% url 'predict' %}" class="btn-orange" style="font-size:14px;padding:12px 28px"><i class="fas fa-magic"></i> Generate Predictions</a>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <div class="rbar">
+      <span>Showing <strong>{{ predictions|length }}</strong> of <strong>{{ total_count|default:0 }}</strong> predictions</span>
+      {% if predictions|length < total_count|default:0 %}<a href="{% url 'prediction_results' %}">View all {{ total_count }} →</a>{% endif %}
+    </div>
+  </div>
+
+</div>
+
+<!-- DETAIL MODAL -->
+<div class="modal-overlay" id="detailModal">
+  <div class="modal-box" style="max-width:580px">
+    <div class="modal-hdr">
+      <h3><i class="fas fa-crystal-ball me-2" style="color:#6366f1"></i>Prediction Details</h3>
+      <button class="modal-close" onclick="document.getElementById('detailModal').classList.remove('open')"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body-inner" id="detailBody"><div class="text-center py-4"><div class="spinner-border" style="color:var(--orange)"></div></div></div>
+    <div class="modal-ftr"><button class="btn-out-orange" style="padding:8px 18px;font-size:13.5px" onclick="document.getElementById('detailModal').classList.remove('open')">Close</button></div>
   </div>
 </div>
 
 <!-- UPDATE MODAL -->
-<div class="modal fade" id="updateModal" tabindex="-1">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title fw-bold"><i class="fas fa-edit me-2 text-success"></i>Update Actual Price</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-      </div>
-      <div class="modal-body">
-        <input type="hidden" id="upId">
-        <p class="text-muted small mb-3">Enter the real market price observed on the forecast date to measure accuracy.</p>
-        <div class="mb-3">
-          <label class="form-label fw-semibold small">Actual Price (₹) <span class="text-danger">*</span></label>
-          <div class="input-group">
-            <span class="input-group-text fw-bold">₹</span>
-            <input type="number" step="0.01" min="0" class="form-control" id="upPrice" placeholder="e.g. 2250">
-          </div>
-        </div>
-        <div id="upPrev" class="d-none mb-3">
-          <div style="background:var(--s50);border-radius:10px;padding:14px;font-size:13px;">
-            <div class="d-flex justify-content-between mb-2"><span class="text-muted">Predicted:</span><strong id="upPred">—</strong></div>
-            <div class="d-flex justify-content-between mb-2"><span class="text-muted">Actual:</span><strong class="text-success" id="upAct">—</strong></div>
-            <div class="d-flex justify-content-between"><span class="text-muted">Est. Accuracy:</span><strong id="upAcc">—</strong></div>
-          </div>
-        </div>
-        <div class="mb-1">
-          <label class="form-label fw-semibold small">Notes <span class="text-muted fw-normal">(optional)</span></label>
-          <textarea class="form-control" id="upNotes" rows="2" placeholder="Any context about this price..."></textarea>
+<div class="modal-overlay" id="updateModal">
+  <div class="modal-box" style="max-width:440px">
+    <div class="modal-hdr">
+      <h3><i class="fas fa-edit me-2" style="color:var(--green)"></i>Update Actual Price</h3>
+      <button class="modal-close" onclick="document.getElementById('updateModal').classList.remove('open')"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body-inner">
+      <input type="hidden" id="upId">
+      <p style="font-size:13px;color:var(--text-mid);margin-bottom:16px">Enter the real market price on the forecast date to measure accuracy.</p>
+      <div class="mb-3">
+        <span class="form-lbl">Actual Price (₹) <span style="color:#dc2626">*</span></span>
+        <div style="display:flex;align-items:center;gap:0;border:1.5px solid var(--border);border-radius:8px;overflow:hidden">
+          <span style="background:var(--bg);padding:10px 13px;font-weight:700;color:var(--text-mid);border-right:1px solid var(--border);font-size:14px">₹</span>
+          <input type="number" step="0.01" min="0" id="upPrice" class="form-ctrl" style="border:none;border-radius:0" placeholder="e.g. 2250">
         </div>
       </div>
-      <div class="modal-footer">
-        <button class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
-        <button class="btn btn-success fw-semibold" onclick="savePrice()"><i class="fas fa-save me-1"></i>Save</button>
+      <div id="upPrev" class="d-none mb-3">
+        <div style="background:var(--bg);border-radius:10px;padding:14px;font-size:13px">
+          <div style="display:flex;justify-content:space-between;margin-bottom:8px"><span style="color:var(--text-mid)">Predicted</span><strong id="upPred">—</strong></div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:8px"><span style="color:var(--text-mid)">Actual</span><strong style="color:var(--green)" id="upAct">—</strong></div>
+          <div style="display:flex;justify-content:space-between"><span style="color:var(--text-mid)">Est. Accuracy</span><strong id="upAcc">—</strong></div>
+        </div>
       </div>
+      <div>
+        <span class="form-lbl">Notes <span style="font-weight:400;color:var(--text-light)">(optional)</span></span>
+        <textarea class="form-ctrl" id="upNotes" rows="2" placeholder="Any context about this price..."></textarea>
+      </div>
+    </div>
+    <div class="modal-ftr">
+      <button class="btn-out-orange" style="padding:9px 18px;font-size:13.5px" onclick="document.getElementById('updateModal').classList.remove('open')">Cancel</button>
+      <button class="btn-green" style="padding:9px 22px;font-size:13.5px" onclick="savePrice()"><i class="fas fa-save"></i> Save</button>
     </div>
   </div>
 </div>
 
 <!-- ANALYTICS MODAL -->
-<div class="modal fade" id="chartModal" tabindex="-1">
-  <div class="modal-dialog modal-lg modal-dialog-centered">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title fw-bold"><i class="fas fa-chart-bar me-2 text-primary"></i>Confidence Analytics</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-      </div>
-      <div class="modal-body"><div style="height:340px;"><canvas id="aChart"></canvas></div></div>
+<div class="modal-overlay" id="chartModal">
+  <div class="modal-box" style="max-width:700px">
+    <div class="modal-hdr">
+      <h3><i class="fas fa-chart-bar me-2" style="color:#6366f1"></i>Confidence Analytics</h3>
+      <button class="modal-close" onclick="document.getElementById('chartModal').classList.remove('open')"><i class="fas fa-times"></i></button>
     </div>
+    <div class="modal-body-inner"><div style="height:340px"><canvas id="aChart"></canvas></div></div>
   </div>
 </div>
 
 <!-- DELETE MODAL -->
-<div class="modal fade" id="delModal" tabindex="-1">
-  <div class="modal-dialog modal-dialog-centered modal-sm">
-    <div class="modal-content">
-      <div class="modal-header border-0 pb-0">
-        <h5 class="modal-title text-danger fw-bold"><i class="fas fa-trash me-2"></i>Delete?</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-      </div>
-      <div class="modal-body pt-2"><p class="text-muted mb-0" style="font-size:14px;">This prediction will be permanently deleted.</p></div>
-      <div class="modal-footer border-0">
-        <button class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
-        <button class="btn btn-danger fw-semibold" id="delConfBtn">Delete</button>
-      </div>
+<div class="modal-overlay" id="delModal">
+  <div class="modal-box" style="max-width:360px">
+    <div class="modal-hdr">
+      <h3 style="color:#dc2626"><i class="fas fa-trash me-2"></i>Delete Prediction?</h3>
+      <button class="modal-close" onclick="document.getElementById('delModal').classList.remove('open')"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body-inner"><p style="font-size:14px;color:var(--text-mid);margin:0">This prediction will be permanently deleted and cannot be recovered.</p></div>
+    <div class="modal-ftr">
+      <button class="btn-out-orange" style="padding:9px 18px;font-size:13.5px" onclick="document.getElementById('delModal').classList.remove('open')">Cancel</button>
+      <button style="background:#dc2626;color:#fff;border:none;border-radius:8px;padding:9px 22px;font-size:13.5px;font-weight:600;cursor:pointer" id="delConfBtn">Delete</button>
     </div>
   </div>
 </div>
-
 {% endblock %}
 
 {% block scripts %}
 <script>
-/* ── Inline data from Django ─────────────────────────────────────── */
-const ROWS = [
+const ROWS=[
   {% for p in predictions %}
-  { id:{{ p.id }}, mkt:"{{ p.market|escapejs }}", fd:"{{ p.forecast_date|date:'Y-m-d' }}",
-    pd:"{{ p.prediction_date|date:'Y-m-d' }}", modal:{{ p.predicted_modal_price|floatformat:2 }},
-    lo:{{ p.predicted_min_price|floatformat:2 }}, hi:{{ p.predicted_max_price|floatformat:2 }},
-    actual:{% if p.actual_price %}{{ p.actual_price|floatformat:2 }}{% else %}null{% endif %},
-    conf:{{ p.confidence_interval|floatformat:1 }} },
+  {id:{{ p.id }},mkt:"{{ p.market|escapejs }}",fd:"{{ p.forecast_date|date:'Y-m-d' }}",
+   pd:"{{ p.prediction_date|date:'Y-m-d' }}",modal:{{ p.predicted_modal_price|floatformat:2 }},
+   lo:{{ p.predicted_min_price|floatformat:2 }},hi:{{ p.predicted_max_price|floatformat:2 }},
+   actual:{% if p.actual_price %}{{ p.actual_price|floatformat:2 }}{% else %}null{% endif %},
+   conf:{{ p.confidence_interval|floatformat:1 }}},
   {% endfor %}
 ];
 
-/* ── Sort ────────────────────────────────────────────────────────── */
-let sc=-1, sa=true;
+let sc=-1,sa=true;
 function srt(c){
   const tb=document.querySelector('#dt tbody');
   const rs=Array.from(tb.querySelectorAll('tr[id^="row-"]'));
   if(!rs.length)return;
-  if(sc===c)sa=!sa; else{sc=c;sa=true;}
+  if(sc===c)sa=!sa;else{sc=c;sa=true;}
   rs.sort((a,b)=>{
-    const av=a.cells[c]?.textContent.trim()||'', bv=b.cells[c]?.textContent.trim()||'';
-    const an=parseFloat(av.replace(/[^0-9.-]/g,'')), bn=parseFloat(bv.replace(/[^0-9.-]/g,''));
+    const av=a.cells[c]?.textContent.trim()||'',bv=b.cells[c]?.textContent.trim()||'';
+    const an=parseFloat(av.replace(/[^0-9.-]/g,'')),bn=parseFloat(bv.replace(/[^0-9.-]/g,''));
     const cm=(!isNaN(an)&&!isNaN(bn))?(an-bn):av.localeCompare(bv);
     return sa?cm:-cm;
-  });
-  document.querySelectorAll('.dt th').forEach((th,i)=>{
-    th.classList.toggle('sorted',i===c);
-    const s=th.querySelector('.si');
-    if(s)s.textContent=i===c?(sa?'↑':'↓'):'⇅';
   });
   rs.forEach(r=>tb.appendChild(r));
 }
 
-/* ── Export CSV ──────────────────────────────────────────────────── */
 function exportCSV(){
-  if(!ROWS.length){alert('No data to export.');return;}
+  if(!ROWS.length){showToast('No data to export','error');return;}
   const hdr=['ID','Market','Forecast Date','Pred Date','Modal','Min','Max','Actual','Confidence','Status'];
-  const lines=[hdr.join(',')];
-  ROWS.forEach(r=>lines.push([r.id,`"${r.mkt}"`,r.fd,r.pd,r.modal,r.lo,r.hi,r.actual??'',r.conf,r.actual?'Verified':'Pending'].join(',')));
+  const lines=[hdr.join(','),...ROWS.map(r=>[r.id,`"${r.mkt}"`,r.fd,r.pd,r.modal,r.lo,r.hi,r.actual??'',r.conf,r.actual?'Verified':'Pending'].join(','))];
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([lines.join('\n')],{type:'text/csv'}));
   a.download=`predictions_${new Date().toISOString().slice(0,10)}.csv`;
   a.click();
+  showToast('CSV exported!');
 }
 
-/* ── Analytics ───────────────────────────────────────────────────── */
 let ci=null;
 function showChart(){
   const s=ROWS.slice(0,15);
-  const lbl=s.map(r=>r.mkt.slice(0,10)+(r.mkt.length>10?'…':'')+' '+r.fd.slice(5));
-  const co=s.map(r=>r.conf>=80?'rgba(22,163,74,.75)':r.conf>=60?'rgba(217,119,6,.75)':'rgba(225,29,72,.75)');
+  if(!s.length){showToast('No data to visualize','error');return;}
+  const lbl=s.map(r=>r.mkt.slice(0,10));
+  const co=s.map(r=>r.conf>=80?'rgba(22,163,74,.75)':r.conf>=60?'rgba(217,119,6,.75)':'rgba(220,38,38,.75)');
   if(ci)ci.destroy();
   ci=new Chart(document.getElementById('aChart').getContext('2d'),{
-    type:'bar',
-    data:{labels:lbl,datasets:[
+    type:'bar',data:{labels:lbl,datasets:[
       {label:'Confidence (%)',data:s.map(r=>r.conf),backgroundColor:co,borderRadius:6},
       {label:'Target 85%',data:Array(s.length).fill(85),type:'line',borderColor:'rgba(249,115,22,.8)',borderDash:[5,4],borderWidth:2,pointRadius:0,fill:false}
-    ]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom'},tooltip:{callbacks:{label:c=>`${c.dataset.label}: ${c.raw}%`}}},scales:{y:{min:0,max:100,ticks:{callback:v=>v+'%'}},x:{ticks:{font:{size:10}}}}}
+    ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom'}},scales:{y:{min:0,max:100,ticks:{callback:v=>v+'%'}},x:{ticks:{font:{size:10}}}}}
   });
-  new bootstrap.Modal(document.getElementById('chartModal')).show();
+  document.getElementById('chartModal').classList.add('open');
 }
 
-/* ── Detail modal ────────────────────────────────────────────────── */
+function f(n){return Number(n).toLocaleString('en-IN');}
+
 function showDetail(id){
-  const r=ROWS.find(x=>x.id===id); if(!r)return;
-  let accH='<p class="text-muted small" style="font-style:italic;">No actual price yet. Use ✎ to add one.</p>';
+  const r=ROWS.find(x=>x.id===id);if(!r)return;
+  const cb=r.conf>=80?'var(--green)':r.conf>=60?'#d97706':'#dc2626';
+  let accH=`<div class="site-alert info" style="font-size:13px"><i class="fas fa-info-circle"></i><span>No actual price recorded yet. Click ✎ to add one and measure accuracy.</span></div>`;
   if(r.actual){
     const p=(100-Math.abs(r.modal-r.actual)/r.actual*100).toFixed(1);
-    const cl=p>=90?'text-success':p>=75?'text-warning':'text-danger';
-    accH=`<div style="background:var(--s50);border-radius:10px;padding:14px;font-size:13px;">
-      <div class="d-flex justify-content-between mb-2"><span class="text-muted">Predicted</span><strong>₹${f(r.modal)}</strong></div>
-      <div class="d-flex justify-content-between mb-2"><span class="text-muted">Actual</span><strong class="text-success">₹${f(r.actual)}</strong></div>
-      <div class="d-flex justify-content-between mb-2"><span class="text-muted">Difference</span><strong>₹${f(Math.abs(r.modal-r.actual).toFixed(0))}</strong></div>
-      <div class="d-flex justify-content-between"><span class="text-muted">Accuracy</span><strong class="${cl}">${p}%</strong></div>
+    const cl=p>=90?'color:var(--green)':p>=75?'color:#d97706':'color:#dc2626';
+    accH=`<div style="background:var(--bg);border-radius:10px;padding:14px;font-size:13.5px">
+      <div style="display:flex;justify-content:space-between;margin-bottom:10px"><span style="color:var(--text-mid)">Predicted</span><strong>₹${f(r.modal)}</strong></div>
+      <div style="display:flex;justify-content:space-between;margin-bottom:10px"><span style="color:var(--text-mid)">Actual</span><strong style="color:var(--green)">₹${f(r.actual)}</strong></div>
+      <div style="display:flex;justify-content:space-between;margin-bottom:10px"><span style="color:var(--text-mid)">Difference</span><strong>₹${f(Math.abs(r.modal-r.actual).toFixed(0))}</strong></div>
+      <div style="display:flex;justify-content:space-between"><span style="color:var(--text-mid)">Accuracy</span><strong style="${cl}">${p}%</strong></div>
     </div>`;
   }
-  const cb=r.conf>=80?'bg-success':r.conf>=60?'bg-warning':'bg-danger';
   document.getElementById('detailBody').innerHTML=`
     <div class="dg">
-      <div class="dbox"><label>Market</label><span style="color:#0369a1;font-size:14px;">${r.mkt}</span></div>
+      <div class="dbox"><label>Market</label><span style="color:#0369a1">${r.mkt}</span></div>
       <div class="dbox"><label>Forecast Date</label><span>${r.fd}</span></div>
       <div class="dbox"><label>Prediction Made</label><span>${r.pd}</span></div>
-      <div class="dbox"><label>Confidence</label><span>${r.conf}%<div class="ct" style="margin-top:6px;"><div class="cf ${cb}" style="width:${r.conf}%;"></div></div></span></div>
+      <div class="dbox"><label>Confidence</label><span>${r.conf}%<div class="ct" style="margin-top:6px"><div class="cf" style="width:${r.conf}%;background:${cb}"></div></div></span></div>
     </div>
     <div class="ptrio">
       <div class="pc mn"><label>Min</label><div class="amt">₹${f(r.lo)}</div></div>
       <div class="pc md"><label>Modal</label><div class="amt">₹${f(r.modal)}</div></div>
       <div class="pc mx"><label>Max</label><div class="amt">₹${f(r.hi)}</div></div>
     </div>
-    <h6 style="font-size:12px;font-weight:700;color:var(--s400);text-transform:uppercase;letter-spacing:.4px;margin-bottom:10px;">Actual vs Predicted</h6>
+    <h6 style="font-size:12px;font-weight:700;color:var(--text-light);text-transform:uppercase;letter-spacing:.4px;margin-bottom:10px">Actual vs Predicted</h6>
     ${accH}`;
-  new bootstrap.Modal(document.getElementById('detailModal')).show();
+  document.getElementById('detailModal').classList.add('open');
 }
 
-/* ── Update modal ────────────────────────────────────────────────── */
 let _pm=0;
 function showUpdate(id,predicted){
   _pm=parseFloat(predicted);
@@ -563,48 +411,41 @@ function showUpdate(id,predicted){
   document.getElementById('upNotes').value='';
   document.getElementById('upPrev').classList.add('d-none');
   document.getElementById('upPred').textContent='₹'+f(predicted);
-  new bootstrap.Modal(document.getElementById('updateModal')).show();
+  document.getElementById('updateModal').classList.add('open');
 }
 document.getElementById('upPrice').addEventListener('input',function(){
   const v=parseFloat(this.value);
   if(!isNaN(v)&&v>0){
     const a=(100-Math.abs(_pm-v)/v*100).toFixed(1);
-    const cl=a>=90?'text-success':a>=75?'text-warning':'text-danger';
+    const cl=a>=90?'color:var(--green)':a>=75?'color:#d97706':'color:#dc2626';
     document.getElementById('upAct').textContent='₹'+f(v.toFixed(0));
+    document.getElementById('upAcc').style.cssText=cl;
     document.getElementById('upAcc').textContent=a+'%';
-    document.getElementById('upAcc').className='fw-bold '+cl;
     document.getElementById('upPrev').classList.remove('d-none');
   }else document.getElementById('upPrev').classList.add('d-none');
 });
 function savePrice(){
   const id=document.getElementById('upId').value;
   const pr=document.getElementById('upPrice').value;
-  if(!pr||parseFloat(pr)<=0){alert('Please enter a valid price.');return;}
+  if(!pr||parseFloat(pr)<=0){showToast('Please enter a valid price','error');return;}
   fetch(`/api/predictions/${id}/update/`,{
-    method:'POST',
-    headers:{'Content-Type':'application/json','X-CSRFToken':ck('csrftoken')},
+    method:'POST',headers:{'Content-Type':'application/json','X-CSRFToken':getCookie('csrftoken')},
     body:JSON.stringify({actual_price:pr,notes:document.getElementById('upNotes').value})
-  }).then(r=>r.json()).then(d=>{if(d.success)location.reload();else alert('Error: '+d.error);}).catch(()=>location.reload());
+  }).then(r=>r.json()).then(d=>{if(d.success){showToast('Price updated!');location.reload();}else showToast('Error: '+d.error,'error');}).catch(()=>{showToast('Connection error','error');});
 }
 
-/* ── Delete ──────────────────────────────────────────────────────── */
 function askDelete(id){
   document.getElementById('delConfBtn').onclick=()=>doDelete(id);
-  new bootstrap.Modal(document.getElementById('delModal')).show();
+  document.getElementById('delModal').classList.add('open');
 }
 function doDelete(id){
-  fetch(`/api/predictions/${id}/delete/`,{method:'DELETE',headers:{'X-CSRFToken':ck('csrftoken')}})
+  fetch(`/api/predictions/${id}/delete/`,{method:'DELETE',headers:{'X-CSRFToken':getCookie('csrftoken')}})
   .then(r=>r.json()).then(d=>{
-    if(d.success){const row=document.getElementById('row-'+id);if(row)row.remove();bootstrap.Modal.getInstance(document.getElementById('delModal')).hide();}
-    else alert('Error: '+d.error);
+    if(d.success){const row=document.getElementById('row-'+id);if(row)row.remove();document.getElementById('delModal').classList.remove('open');showToast('Prediction deleted');}
+    else showToast('Error: '+d.error,'error');
   }).catch(()=>location.reload());
 }
 
-/* ── Clear param ─────────────────────────────────────────────────── */
 function clearParam(k){const u=new URL(window.location.href);u.searchParams.delete(k);window.location.href=u.toString();}
-
-/* ── Helpers ─────────────────────────────────────────────────────── */
-function f(n){return Number(n).toLocaleString('en-IN');}
-function ck(n){const m=document.cookie.match(new RegExp('(^| )'+n+'=([^;]+)'));return m?decodeURIComponent(m[2]):'';}
 </script>
 {% endblock %}

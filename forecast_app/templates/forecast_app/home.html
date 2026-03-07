@@ -1,561 +1,307 @@
 {% extends 'forecast_app/base.html' %}
 {% load static %}
-
+{% block title %}OnionPulse AI — India's Smartest Onion Price Forecast{% endblock %}
 {% block content %}
-
 <style>
-
 /* HERO */
+.hero{position:relative;min-height:92vh;display:flex;align-items:center;overflow:hidden;background:linear-gradient(135deg,#052e16 0%,#14532d 40%,#166534 70%,#15803d 100%)}
+.hero-bg-img{position:absolute;inset:0;background:url('https://images.unsplash.com/photo-1560493676-04071c5f467b?w=1800&q=80') center/cover;opacity:.18}
+.hero-pattern{position:absolute;inset:0;background-image:radial-gradient(circle at 20% 80%,rgba(249,115,22,.25) 0%,transparent 50%),radial-gradient(circle at 80% 20%,rgba(22,163,74,.3) 0%,transparent 50%)}
+.hero-content{position:relative;z-index:2;padding:100px 0 80px}
+.hero h1{font-family:var(--font-d);font-size:clamp(38px,5.5vw,72px);font-weight:800;color:#fff;line-height:1.08;letter-spacing:-2px}
+.hero h1 span{color:var(--orange);position:relative}
+.hero-desc{font-size:18px;color:rgba(255,255,255,.82);line-height:1.7;max-width:520px;margin:20px 0 36px}
+.hero-stats{display:flex;gap:32px;flex-wrap:wrap;margin-top:48px}
+.hero-stat{text-align:center}
+.hero-stat-val{font-family:var(--font-d);font-size:32px;font-weight:800;color:#fff;line-height:1}
+.hero-stat-lbl{font-size:12px;color:rgba(255,255,255,.6);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-top:4px}
+.hero-img-wrap{position:relative;z-index:2}
+.hero-card{background:rgba(255,255,255,.12);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,.2);border-radius:20px;padding:24px;margin-bottom:14px}
+.hero-card h6{color:rgba(255,255,255,.7);font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
+.hero-card .val{font-family:var(--font-d);font-size:28px;font-weight:800;color:#fff}
+.hero-card .trend{font-size:13px;display:flex;align-items:center;gap:6px;margin-top:4px}
+.hero-card .trend.up{color:#4ade80}
+.hero-card .trend.down{color:#f87171}
 
-.hero{
-background:url("https://images.unsplash.com/photo-1592928302636-c83cf1c9d6c7");
-background-size:cover;
-background-position:center;
-color:white;
-padding:140px 0;
-position:relative;
-}
+/* FEATURE STRIP */
+.feature-strip{background:#fff;border-bottom:1px solid var(--border);padding:18px 0}
+.feature-item{display:flex;align-items:center;gap:10px;padding:0 24px;border-right:1px solid var(--border)}
+.feature-item:last-child{border-right:none}
+.feature-item i{font-size:18px;color:var(--orange)}
+.feature-item span{font-size:13.5px;font-weight:600;color:var(--text-mid)}
 
-.hero::before{
-content:"";
-position:absolute;
-top:0;
-left:0;
-width:100%;
-height:100%;
-background:#125536;
-}
+/* WHO BENEFITS */
+.benefits-section{padding:90px 0;background:var(--bg)}
+.benefit-card{background:#fff;border-radius:20px;overflow:hidden;border:1px solid var(--border);box-shadow:var(--sh-sm);transition:all .3s;height:100%}
+.benefit-card:hover{transform:translateY(-8px);box-shadow:var(--sh-lg)}
+.benefit-img{width:100%;height:200px;object-fit:cover}
+.benefit-body{padding:22px}
+.benefit-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px;margin-bottom:14px}
+.benefit-body h5{font-family:var(--font-d);font-size:17px;font-weight:700;color:var(--text);margin-bottom:8px}
+.benefit-body p{font-size:14px;color:var(--text-mid);line-height:1.65;margin:0}
 
-.hero-content{
-position:relative;
-z-index:2;
-}
+/* STATS BAND */
+.stats-band{background:linear-gradient(135deg,var(--orange),#dc2626);padding:60px 0}
+.stat-box{text-align:center;padding:0 20px}
+.stat-box h3{font-family:var(--font-d);font-size:42px;font-weight:800;color:#fff;line-height:1}
+.stat-box p{font-size:13px;color:rgba(255,255,255,.8);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-top:6px}
+.stat-divider{width:1px;background:rgba(255,255,255,.25);margin:0 10px}
 
-.hero h1{
-font-size:48px;
-font-weight:700;
-}
+/* FEATURES GRID */
+.features-section{padding:90px 0;background:#fff}
+.feat-card{background:var(--bg);border:1px solid var(--border);border-radius:16px;padding:26px;transition:all .25s;height:100%}
+.feat-card:hover{background:#fff;box-shadow:var(--sh-md);transform:translateY(-4px);border-color:var(--orange-mid)}
+.feat-icon{width:48px;height:48px;border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:20px;margin-bottom:16px}
+.feat-icon.or{background:var(--orange-light);color:var(--orange)}
+.feat-icon.gr{background:var(--green-light);color:var(--green)}
+.feat-icon.bl{background:#eff6ff;color:#2563eb}
+.feat-card h6{font-family:var(--font-d);font-size:15px;font-weight:700;color:var(--text);margin-bottom:8px}
+.feat-card p{font-size:13.5px;color:var(--text-mid);line-height:1.65;margin:0}
 
-.hero p{
-font-size:18px;
-margin:20px 0 30px 0;
-}
-
-
-/* SECTION */
-
-.section{
-padding:80px 0;
-}
-
-.section-title{
-text-align:center;
-font-size:36px;
-font-weight:700;
-margin-bottom:50px;
-color:#2e7d32;
-}
-
-
-/* STATS */
-
-.stat-card{
-background:white;
-padding:30px;
-border-radius:12px;
-text-align:center;
-box-shadow:0 6px 20px rgba(0,0,0,0.08);
-transition:0.3s;
-}
-
-.stat-card:hover{
-transform:translateY(-6px);
-}
-
-.stat-card i{
-font-size:32px;
-color:#4caf50;
-margin-bottom:10px;
-}
-
-
-/* FEATURES */
-
-.feature-card{
-background:white;
-border-radius:12px;
-box-shadow:0 6px 18px rgba(0,0,0,0.07);
-overflow:hidden;
-transition:0.3s;
-}
-
-.feature-card:hover{
-transform:translateY(-6px);
-}
-
-.feature-card img{
-width:100%;
-height:200px;
-object-fit:cover;
-}
-
-.feature-card-body{
-padding:25px;
-text-align:center;
-}
-
-
-/* CTA */
-
-.cta{
-background:linear-gradient(120deg,#2e7d32,#4caf50);
-color:white;
-text-align:center;
-padding:80px 0;
-}
-
-.cta h2{
-font-size:38px;
-margin-bottom:20px;
-}
-
-
-/* TABLE */
-
-.table-card{
-background:white;
-border-radius:12px;
-padding:25px;
-box-shadow:0 6px 20px rgba(0,0,0,0.07);
-}
-
-
-/* GALLERY */
-
-.gallery img{
-width:100%;
-border-radius:10px;
-height:200px;
-object-fit:cover;
-}
-
+/* PRICES TABLE */
+.prices-section{padding:80px 0;background:var(--bg)}
+.price-up{color:var(--green);font-weight:700}
+.price-down{color:#dc2626;font-weight:700}
+.price-stable{color:#d97706;font-weight:700}
 
 /* NEWS */
+.news-section{padding:80px 0;background:#fff}
+.news-card{background:var(--bg);border:1px solid var(--border);border-radius:16px;overflow:hidden;transition:all .3s;height:100%}
+.news-card:hover{box-shadow:var(--sh-md);transform:translateY(-5px)}
+.news-img{width:100%;height:175px;object-fit:cover}
+.news-body{padding:18px}
+.news-body h6{font-family:var(--font-d);font-size:15px;font-weight:700;color:var(--text);margin:10px 0 8px}
+.news-body p{font-size:13px;color:var(--text-mid);line-height:1.6;margin:0}
 
-.news-card{
-background:white;
-border-radius:12px;
-box-shadow:0 6px 18px rgba(0,0,0,0.07);
-overflow:hidden;
-}
-
-.news-card img{
-width:100%;
-height:180px;
-object-fit:cover;
-}
-
-.news-body{
-padding:20px;
-}
-
+/* CTA */
+.cta-section{padding:90px 0;background:linear-gradient(135deg,#052e16,#14532d);position:relative;overflow:hidden}
+.cta-section::before{content:'';position:absolute;inset:0;background:url('https://images.unsplash.com/photo-1595274459367-46eda7bf6a2f?w=1600&q=80') center/cover;opacity:.1}
+.cta-content{position:relative;z-index:2;text-align:center}
+.cta-content h2{font-family:var(--font-d);font-size:clamp(28px,4vw,48px);font-weight:800;color:#fff;margin-bottom:16px;letter-spacing:-1px}
+.cta-content p{font-size:17px;color:rgba(255,255,255,.75);margin-bottom:32px;max-width:480px;margin-left:auto;margin-right:auto}
 </style>
 
-
-
 <!-- HERO -->
-
 <section class="hero">
-
-<div class="container hero-content">
-
-<div class="row">
-
-<div class="col-lg-6">
-
-<h1>AI Onion Price Forecast</h1>
-
-<p>
-Predict future onion prices across Indian mandis using 
-machine learning and historical market data.
-</p>
-
-<a href="{% url 'predict' %}" class="btn btn-success btn-lg me-3">
-Predict Price
-</a>
-
-<a href="{% url 'dashboard' %}" class="btn btn-outline-light btn-lg">
-Dashboard
-</a>
-
-</div>
-
-</div>
-
-</div>
-
+  <div class="hero-bg-img"></div>
+  <div class="hero-pattern"></div>
+  <div class="container hero-content">
+    <div class="row align-items-center g-5">
+      <div class="col-lg-6">
+        <div class="hero-badge"><i class="fas fa-robot"></i> AI Powered Forecast</div>
+        <h1>India's Smartest <span>Onion Price</span> Predictor</h1>
+        <p class="hero-desc">Predict future onion prices across Indian mandis using machine learning. Empowering farmers, traders &amp; policymakers with data-driven insights.</p>
+        <div class="d-flex gap-3 flex-wrap">
+          <a href="{% url 'predict' %}" class="btn-orange" style="font-size:15px;padding:13px 28px"><i class="fas fa-magic"></i> Predict Prices</a>
+          <a href="{% url 'dashboard' %}" class="btn-out-orange" style="font-size:15px;padding:12px 24px;border-color:rgba(255,255,255,.5);color:#fff"><i class="fas fa-chart-line"></i> Dashboard</a>
+        </div>
+        <div class="hero-stats">
+          <div class="hero-stat"><div class="hero-stat-val">{{ total_prices|default:"50K+" }}</div><div class="hero-stat-lbl">Price Records</div></div>
+          <div style="width:1px;background:rgba(255,255,255,.2)"></div>
+          <div class="hero-stat"><div class="hero-stat-val">{{ total_predictions|default:"5K+" }}</div><div class="hero-stat-lbl">Predictions Made</div></div>
+          <div style="width:1px;background:rgba(255,255,255,.2)"></div>
+          <div class="hero-stat"><div class="hero-stat-val">{{ accuracy|default:"85" }}%</div><div class="hero-stat-lbl">Accuracy Rate</div></div>
+          <div style="width:1px;background:rgba(255,255,255,.2)"></div>
+          <div class="hero-stat"><div class="hero-stat-val">8+</div><div class="hero-stat-lbl">APMC Markets</div></div>
+        </div>
+      </div>
+      <div class="col-lg-6">
+        <div class="hero-img-wrap">
+          <div class="hero-card">
+            <h6>Live Market Pulse</h6>
+            <div class="val">₹2,250 <span style="font-size:14px;color:rgba(255,255,255,.6)">/qtl</span></div>
+            <div class="trend up"><i class="fas fa-arrow-up"></i> +5.2% from last week — Prices rising</div>
+          </div>
+          <div class="row g-3">
+            <div class="col-6">
+              <div class="hero-card" style="margin-bottom:0">
+                <h6>Lasalgaon APMC</h6>
+                <div class="val" style="font-size:20px">₹2,150</div>
+                <div class="trend up" style="font-size:12px"><i class="fas fa-arrow-up"></i> +3.5%</div>
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="hero-card" style="margin-bottom:0">
+                <h6>Pune Market</h6>
+                <div class="val" style="font-size:20px">₹1,980</div>
+                <div class="trend down" style="font-size:12px"><i class="fas fa-arrow-down"></i> -1.2%</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 </section>
 
-
-
-<!-- STATS -->
-
-<section class="section">
-
-<div class="container">
-
-<div class="row g-4 text-center">
-
-<div class="col-md-3">
-
-<div class="stat-card">
-
-<i class="fas fa-database"></i>
-
-<h3>{{ total_prices|default:"0" }}</h3>
-
-<p>Price Records</p>
-
+<!-- FEATURE STRIP -->
+<div class="feature-strip">
+  <div class="container">
+    <div class="row g-0">
+      <div class="col-md-3"><div class="feature-item"><i class="fas fa-brain"></i><span>ML-Powered Forecasts</span></div></div>
+      <div class="col-md-3"><div class="feature-item"><i class="fas fa-sync-alt"></i><span>Daily Price Updates</span></div></div>
+      <div class="col-md-3"><div class="feature-item"><i class="fas fa-map-marker-alt"></i><span>8+ APMC Markets</span></div></div>
+      <div class="col-md-3"><div class="feature-item"><i class="fas fa-shield-alt"></i><span>85%+ Accuracy</span></div></div>
+    </div>
+  </div>
 </div>
 
-</div>
-
-
-<div class="col-md-3">
-
-<div class="stat-card">
-
-<i class="fas fa-chart-line"></i>
-
-<h3>{{ total_predictions|default:"0" }}</h3>
-
-<p>Predictions</p>
-
-</div>
-
-</div>
-
-
-<div class="col-md-3">
-
-<div class="stat-card">
-
-<i class="fas fa-brain"></i>
-
-<h3>{{ accuracy|default:"85" }}%</h3>
-
-<p>Model Accuracy</p>
-
-</div>
-
-</div>
-
-
-<div class="col-md-3">
-
-<div class="stat-card">
-
-<i class="fas fa-globe"></i>
-
-<h3>{{ total_factors|default:"0" }}</h3>
-
-<p>Market Factors</p>
-
-</div>
-
-</div>
-
-</div>
-
-</div>
-
+<!-- WHO BENEFITS -->
+<section class="benefits-section">
+  <div class="container">
+    <div class="text-center mb-5">
+      <div class="section-label"><i class="fas fa-users"></i> Who Benefits</div>
+      <h2 class="section-title">Built For <em>Everyone</em> In The Chain</h2>
+      <p class="section-subtitle mx-auto">From the farm to the policy table — OnionPulse AI gives every stakeholder the edge they need.</p>
+    </div>
+    <div class="row g-4">
+      <div class="col-md-4">
+        <div class="benefit-card">
+          <img src="https://images.unsplash.com/photo-1500937386664-56d1dfef3854?w=600&q=80" class="benefit-img" alt="Farmers">
+          <div class="benefit-body">
+            <div class="benefit-icon" style="background:var(--green-light);color:var(--green)"><i class="fas fa-tractor"></i></div>
+            <h5>Farmers</h5>
+            <p>Know the best time to sell your onion harvest. Avoid price crashes with AI-powered forward-looking insights.</p>
+            <a href="{% url 'predict' %}" class="btn-out-green" style="padding:7px 16px;font-size:13px;margin-top:14px">Get Forecast →</a>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="benefit-card">
+          <img src="https://images.unsplash.com/photo-1542838132-92c53300491e?w=600&q=80" class="benefit-img" alt="Traders">
+          <div class="benefit-body">
+            <div class="benefit-icon" style="background:var(--orange-light);color:var(--orange)"><i class="fas fa-chart-line"></i></div>
+            <h5>Traders</h5>
+            <p>Plan inventory, time your purchases, and maximise margins with data-driven market forecasts.</p>
+            <a href="{% url 'dashboard' %}" class="btn-out-orange" style="padding:7px 16px;font-size:13px;margin-top:14px">View Dashboard →</a>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="benefit-card">
+          <img src="https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=600&q=80" class="benefit-img" alt="Government">
+          <div class="benefit-body">
+            <div class="benefit-icon" style="background:#eff6ff;color:#2563eb"><i class="fas fa-landmark"></i></div>
+            <h5>Government</h5>
+            <p>Monitor market trends and make timely policy interventions to control inflation before it spikes.</p>
+            <a href="{% url 'recommendations' %}" class="btn-out-orange" style="padding:7px 16px;font-size:13px;margin-top:14px;border-color:#2563eb;color:#2563eb">View Insights →</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 </section>
 
-
-
-<!-- FEATURES -->
-
-<section class="section bg-light">
-
-<div class="container">
-
-<h2 class="section-title">
-Who Benefits From This System
-</h2>
-
-<div class="row g-4">
-
-<div class="col-md-4">
-
-<div class="feature-card">
-
-<img src="https://images.unsplash.com/photo-1500937386664-56d1dfef3854">
-
-<div class="feature-card-body">
-
-<h5>Farmers</h5>
-
-<p>
-Farmers can decide the best time to sell onions 
-using AI based market price prediction.
-</p>
-
-</div>
-
-</div>
-
-</div>
-
-
-<div class="col-md-4">
-
-<div class="feature-card">
-
-<img src="https://images.unsplash.com/photo-1556761175-5973dc0f32e7">
-
-<div class="feature-card-body">
-
-<h5>Traders</h5>
-
-<p>
-Traders can plan inventory and market purchases 
-based on predicted prices.
-</p>
-
-</div>
-
-</div>
-
-</div>
-
-
-<div class="col-md-4">
-
-<div class="feature-card">
-
-<img src="https://images.unsplash.com/photo-1501004318641-b39e6451bec6">
-
-<div class="feature-card-body">
-
-<h5>Government</h5>
-
-<p>
-Government agencies can monitor price trends 
-and control inflation.
-</p>
-
-</div>
-
-</div>
-
-</div>
-
-</div>
-
-</div>
-
+<!-- STATS BAND -->
+<section class="stats-band">
+  <div class="container">
+    <div class="row g-0 justify-content-center text-center">
+      <div class="col-6 col-md-3"><div class="stat-box"><h3>{{ total_prices|default:"50,000" }}+</h3><p>Price Records</p></div></div>
+      <div class="col-6 col-md-3"><div class="stat-box"><h3>{{ accuracy|default:"85" }}%</h3><p>Forecast Accuracy</p></div></div>
+      <div class="col-6 col-md-3"><div class="stat-box"><h3>8+</h3><p>APMC Markets</p></div></div>
+      <div class="col-6 col-md-3"><div class="stat-box"><h3>4</h3><p>ML Models</p></div></div>
+    </div>
+  </div>
 </section>
 
-
-
-<!-- CTA -->
-
-<section class="cta">
-
-<div class="container">
-
-<h2>Start Predicting Onion Prices Today</h2>
-
-<p>
-Use AI to forecast market prices and make better decisions.
-</p>
-
-<a href="{% url 'predict' %}" class="btn btn-light btn-lg">
-Make Prediction
-</a>
-
-</div>
-
+<!-- FEATURES GRID -->
+<section class="features-section">
+  <div class="container">
+    <div class="text-center mb-5">
+      <div class="section-label"><i class="fas fa-star"></i> Platform Features</div>
+      <h2 class="section-title">Everything You Need to <em>Trade Smarter</em></h2>
+    </div>
+    <div class="row g-4">
+      <div class="col-md-4"><div class="feat-card"><div class="feat-icon or"><i class="fas fa-magic"></i></div><h6>AI Price Prediction</h6><p>4 ML models — LSTM, XGBoost, Random Forest, Prophet — ensemble for maximum accuracy.</p></div></div>
+      <div class="col-md-4"><div class="feat-card"><div class="feat-icon gr"><i class="fas fa-history"></i></div><h6>Historical Analysis</h6><p>50,000+ price records across 8+ APMC markets with interactive charts and trends.</p></div></div>
+      <div class="col-md-4"><div class="feat-card"><div class="feat-icon bl"><i class="fas fa-bell"></i></div><h6>Smart Alerts</h6><p>Set price alerts for target buy/sell levels. Get notified instantly on your device.</p></div></div>
+      <div class="col-md-4"><div class="feat-card"><div class="feat-icon gr"><i class="fas fa-lightbulb"></i></div><h6>AI Recommendations</h6><p>Personalised buy/sell/hold advice based on your user type, location, and market conditions.</p></div></div>
+      <div class="col-md-4"><div class="feat-card"><div class="feat-icon or"><i class="fas fa-cloud-sun"></i></div><h6>Weather Analysis</h6><p>Integrates weather patterns and monsoon data for superior seasonal price forecasting.</p></div></div>
+      <div class="col-md-4"><div class="feat-card"><div class="feat-icon bl"><i class="fas fa-file-export"></i></div><h6>Data Export</h6><p>Export historical prices and prediction results as CSV for your own analysis and reports.</p></div></div>
+    </div>
+  </div>
 </section>
-
-
 
 <!-- RECENT PRICES -->
-
-<section class="section">
-
-<div class="container">
-
-<h2 class="section-title">
-Latest Market Prices
-</h2>
-
-<div class="table-card">
-
-<div class="table-responsive">
-
-<table class="table table-hover">
-
-<thead>
-
-<tr>
-<th>Date</th>
-<th>Market</th>
-<th>Min</th>
-<th>Max</th>
-<th>Modal</th>
-</tr>
-
-</thead>
-
-<tbody>
-
-{% for price in recent_prices|slice:":10" %}
-
-<tr>
-
-<td>{{ price.date|date:"Y-m-d" }}</td>
-
-<td>{{ price.market }}</td>
-
-<td>₹{{ price.min_price }}</td>
-
-<td>₹{{ price.max_price }}</td>
-
-<td><b>₹{{ price.modal_price }}</b></td>
-
-</tr>
-
-{% endfor %}
-
-</tbody>
-
-</table>
-
-</div>
-
-</div>
-
-</div>
-
+<section class="prices-section">
+  <div class="container">
+    <div class="d-flex justify-content-between align-items-end mb-4 flex-wrap gap-3">
+      <div>
+        <div class="section-label"><i class="fas fa-table"></i> Live Data</div>
+        <h2 class="section-title mb-0">Latest Market <em>Prices</em></h2>
+      </div>
+      <a href="{% url 'historical' %}" class="btn-out-green" style="padding:9px 20px;font-size:13.5px"><i class="fas fa-history"></i> Full History</a>
+    </div>
+    <div class="op-card">
+      <div class="op-card-body p-0">
+        <div class="table-responsive">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Date</th><th>Market</th><th>Min ₹</th><th>Max ₹</th><th>Modal ₹</th><th>Trend</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for price in recent_prices|slice:":10" %}
+              <tr>
+                <td style="font-weight:600">{{ price.date|date:"d M Y" }}</td>
+                <td><span class="pill pill-blue">{{ price.market }}</span></td>
+                <td>₹{{ price.min_price }}</td>
+                <td>₹{{ price.max_price }}</td>
+                <td class="price-up" style="font-family:var(--font-d);font-size:15px">₹{{ price.modal_price }}</td>
+                <td><span class="pill pill-green"><i class="fas fa-arrow-up"></i> Rising</span></td>
+              </tr>
+              {% empty %}
+              <tr><td colspan="6" style="text-align:center;padding:40px;color:var(--text-light)"><i class="fas fa-database" style="font-size:24px;display:block;margin-bottom:10px"></i>No price data available yet</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
 </section>
 
-
-
-<!-- AGRICULTURE GALLERY -->
-
-<section class="section bg-light">
-
-<div class="container">
-
-<h2 class="section-title">
-Agriculture Insights
-</h2>
-
-<div class="row g-4 gallery">
-
-<div class="col-md-3">
-<img src="https://images.unsplash.com/photo-1560493676-04071c5f467b">
-</div>
-
-<div class="col-md-3">
-<img src="data:image/jpeg;base64,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">
-</div>
-
-<div class="col-md-3">
-<img src="https://images.unsplash.com/photo-1506806732259-39c2d0268443">
-</div>
-
-<div class="col-md-3">
-<img src="data:image/jpeg;base64,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">
-</div>
-
-</div>
-
-</div>
-
+<!-- NEWS SECTION -->
+<section class="news-section">
+  <div class="container">
+    <div class="text-center mb-5">
+      <div class="section-label"><i class="fas fa-newspaper"></i> Latest Updates</div>
+      <h2 class="section-title">Agriculture <em>News &amp; Insights</em></h2>
+    </div>
+    <div class="row g-4">
+      <div class="col-md-4">
+        <div class="news-card">
+          <img src="https://images.unsplash.com/photo-1605000797499-95a51c5269ae?w=600&q=80" class="news-img" alt="AI in Agriculture">
+          <div class="news-body"><span class="pill pill-orange mb-2">Technology</span><h6>AI Transforms Agriculture Decisions</h6><p>How artificial intelligence and machine learning are helping Indian farmers make smarter selling decisions.</p><a href="#" style="font-size:13px;color:var(--orange);font-weight:600;margin-top:8px;display:inline-block">Read More →</a></div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="news-card">
+          <img src="https://images.unsplash.com/photo-1471193945509-9ad0617afabf?w=600&q=80" class="news-img" alt="Smart Farming">
+          <div class="news-body"><span class="pill pill-green mb-2">Farming</span><h6>Smart Farming & Predictive Analytics</h6><p>Using data science and predictive analytics to stabilize crop prices across Maharashtra's APMC markets.</p><a href="#" style="font-size:13px;color:var(--green);font-weight:600;margin-top:8px;display:inline-block">Read More →</a></div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="news-card">
+          <img src="https://images.unsplash.com/photo-1500937386664-56d1dfef3854?w=600&q=80" class="news-img" alt="Future of Agriculture">
+          <div class="news-body"><span class="pill pill-blue mb-2">Policy</span><h6>Govt. Policy &amp; Market Interventions</h6><p>How timely government interventions backed by price forecasting can reduce volatility in onion markets.</p><a href="#" style="font-size:13px;color:#2563eb;font-weight:600;margin-top:8px;display:inline-block">Read More →</a></div>
+        </div>
+      </div>
+    </div>
+  </div>
 </section>
 
-
-
-<!-- NEWS -->
-
-<section class="section">
-
-<div class="container">
-
-<h2 class="section-title">
-Latest Agriculture News
-</h2>
-
-<div class="row g-4">
-
-<div class="col-md-4">
-
-<div class="news-card">
-
-<img src="https://images.unsplash.com/photo-1605000797499-95a51c5269ae">
-
-<div class="news-body">
-
-<h5>AI in Agriculture</h5>
-
-<p>
-How artificial intelligence is transforming farming decisions.
-</p>
-
-</div>
-
-</div>
-
-</div>
-
-
-<div class="col-md-4">
-
-<div class="news-card">
-
-<img src="https://images.unsplash.com/photo-1471193945509-9ad0617afabf">
-
-<div class="news-body">
-
-<h5>Smart Farming</h5>
-
-<p>
-Using technology and predictive analytics in farming.
-</p>
-
-</div>
-
-</div>
-
-</div>
-
-
-<div class="col-md-4">
-
-<div class="news-card">
-
-<img src="https://images.unsplash.com/photo-1500937386664-56d1dfef3854">
-
-<div class="news-body">
-
-<h5>Future of Agriculture</h5>
-
-<p>
-How machine learning helps stabilize crop prices.
-</p>
-
-</div>
-
-</div>
-
-</div>
-
-</div>
-
-</div>
-
+<!-- CTA -->
+<section class="cta-section">
+  <div class="container cta-content">
+    <div class="section-label mx-auto mb-3" style="width:fit-content"><i class="fas fa-rocket"></i> Get Started Free</div>
+    <h2>Start Predicting Onion Prices <em style="color:var(--orange)">Today</em></h2>
+    <p>Join thousands of farmers and traders already making smarter decisions with AI.</p>
+    <div class="d-flex gap-3 justify-content-center flex-wrap">
+      <a href="{% url 'predict' %}" class="btn-orange" style="font-size:16px;padding:14px 32px"><i class="fas fa-magic"></i> Generate Forecast</a>
+      <a href="{% url 'about' %}" class="btn-out-orange" style="font-size:15px;padding:13px 26px;border-color:rgba(255,255,255,.5);color:#fff"><i class="fas fa-info-circle"></i> Learn More</a>
+    </div>
+  </div>
 </section>
-
 {% endblock %}
