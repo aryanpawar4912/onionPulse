@@ -1,757 +1,610 @@
-<!-- forecast_app/templates/forecast_app/prediction_results.html -->
 {% extends 'forecast_app/base.html' %}
 {% load static %}
 
+{% block extra_head %}
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --saffron:   #f97316;
+    --saffron-d: #ea6c0a;
+    --leaf:      #16a34a;
+    --sky:       #0ea5e9;
+    --rose:      #e11d48;
+    --amber:     #d97706;
+    --s50:  #f8fafc; --s100: #f1f5f9; --s200: #e2e8f0;
+    --s400: #94a3b8; --s600: #475569; --s800: #1e293b;
+    --rad: 12px;
+    --sh:  0 1px 3px rgba(0,0,0,.07), 0 2px 8px rgba(0,0,0,.04);
+    --sh2: 0 4px 20px rgba(0,0,0,.09);
+  }
+  body { font-family: 'DM Sans', sans-serif; }
+
+  /* Hero */
+  .pr-hero {
+    background: linear-gradient(135deg,#f97316 0%,#ef4444 55%,#dc2626 100%);
+    border-radius: 0 0 28px 28px;
+    padding: 36px 0 30px;
+    margin-bottom: 28px;
+    position: relative; overflow: hidden;
+  }
+  .pr-hero::before {
+    content:''; position:absolute; inset:0;
+    background: repeating-linear-gradient(45deg,rgba(255,255,255,.03) 0,rgba(255,255,255,.03) 1px,transparent 1px,transparent 10px);
+  }
+  .pr-hero .inner { position: relative; }
+  .pr-hero h1 { font-size:1.9rem; font-weight:700; margin-bottom:4px; }
+  .pr-hero p  { opacity:.88; margin:0; }
+
+  /* KPI strip */
+  .kpi-strip { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:22px; }
+  @media(max-width:768px){ .kpi-strip { grid-template-columns:repeat(2,1fr); } }
+  .kpi {
+    background:#fff; border:1px solid var(--s200); border-radius:var(--rad);
+    padding:18px 16px; display:flex; align-items:center; gap:14px;
+    box-shadow:var(--sh); transition:transform .2s,box-shadow .2s;
+  }
+  .kpi:hover { transform:translateY(-2px); box-shadow:var(--sh2); }
+  .kpi-ic {
+    width:46px; height:46px; border-radius:12px; flex-shrink:0;
+    display:flex; align-items:center; justify-content:center; font-size:18px;
+  }
+  .kpi-ic.a { background:#eff6ff; color:#2563eb; }
+  .kpi-ic.b { background:#f0fdf4; color:var(--leaf); }
+  .kpi-ic.c { background:#ecfeff; color:var(--sky); }
+  .kpi-ic.d { background:#fffbeb; color:var(--amber); }
+  .kpi-txt h3 { font-size:1.55rem; font-weight:700; margin:0; line-height:1; color:var(--s800); }
+  .kpi-txt p  { font-size:11px; color:var(--s400); margin:4px 0 0; font-weight:600; text-transform:uppercase; letter-spacing:.4px; }
+
+  /* Filter panel */
+  .fp {
+    background:#fff; border:1px solid var(--s200); border-radius:var(--rad);
+    padding:18px 20px; margin-bottom:22px; box-shadow:var(--sh);
+  }
+  .fp-title {
+    font-size:12px; font-weight:700; color:var(--s600); text-transform:uppercase; letter-spacing:.5px;
+    margin-bottom:14px; display:flex; align-items:center; gap:8px;
+  }
+  .fp-title span { width:3px; height:14px; background:var(--saffron); border-radius:2px; display:inline-block; }
+  .fp-row { display:flex; flex-wrap:wrap; gap:10px; align-items:flex-end; }
+  .fp-grp { flex:1; min-width:150px; }
+  .fp-grp label { font-size:11px; font-weight:700; color:var(--s400); text-transform:uppercase; letter-spacing:.4px; margin-bottom:5px; display:block; }
+  .fp-grp select { font-family:'DM Sans',sans-serif; font-size:13px; border:1.5px solid var(--s200); border-radius:8px; padding:7px 10px; width:100%; background:var(--s50); color:var(--s800); transition:border-color .15s; }
+  .fp-grp select:focus { border-color:var(--saffron); outline:none; box-shadow:0 0 0 3px rgba(249,115,22,.12); }
+  .btn-go    { background:var(--saffron); color:#fff; border:none; border-radius:8px; padding:8px 20px; font-size:13px; font-weight:600; cursor:pointer; font-family:'DM Sans',sans-serif; transition:background .15s; white-space:nowrap; }
+  .btn-go:hover { background:var(--saffron-d); }
+  .btn-clr   { background:transparent; color:var(--s600); border:1.5px solid var(--s200); border-radius:8px; padding:8px 14px; font-size:13px; font-weight:500; cursor:pointer; font-family:'DM Sans',sans-serif; transition:all .15s; white-space:nowrap; }
+  .btn-clr:hover { border-color:var(--s400); color:var(--s800); }
+  /* chips */
+  .chips { display:flex; flex-wrap:wrap; gap:8px; margin-top:12px; }
+  .chip {
+    display:inline-flex; align-items:center; gap:5px;
+    background:#fff7ed; color:var(--saffron-d);
+    border:1px solid #fed7aa; border-radius:20px; padding:3px 10px;
+    font-size:12px; font-weight:600;
+  }
+  .chip button { background:none; border:none; cursor:pointer; color:var(--saffron-d); padding:0; font-size:14px; line-height:1; }
+
+  /* Table card */
+  .tc { background:#fff; border:1px solid var(--s200); border-radius:var(--rad); box-shadow:var(--sh); overflow:hidden; }
+  .tc-hdr {
+    padding:14px 20px; border-bottom:1px solid var(--s100);
+    display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;
+  }
+  .tc-hdr h5 { font-size:15px; font-weight:700; color:var(--s800); margin:0; }
+  .tbl-acts { display:flex; gap:8px; }
+  .act-btn {
+    display:inline-flex; align-items:center; gap:6px;
+    border:1.5px solid var(--s200); background:#fff; color:var(--s600);
+    border-radius:8px; padding:6px 12px; font-size:12px; font-weight:600;
+    cursor:pointer; font-family:'DM Sans',sans-serif; transition:all .15s;
+  }
+  .act-btn:hover { border-color:var(--saffron); color:var(--saffron); background:#fff7ed; }
+
+  /* Table */
+  .dt { width:100%; border-collapse:collapse; font-size:13.5px; }
+  .dt thead th {
+    background:var(--s50); font-size:11px; font-weight:700; color:var(--s400);
+    text-transform:uppercase; letter-spacing:.5px;
+    padding:11px 14px; border-bottom:1px solid var(--s100);
+    white-space:nowrap; cursor:pointer; user-select:none;
+  }
+  .dt thead th:hover { color:var(--s800); }
+  .dt thead th .si { margin-left:3px; opacity:.4; font-size:10px; }
+  .dt thead th.sorted .si { opacity:1; color:var(--saffron); }
+  .dt tbody tr { border-bottom:1px solid var(--s100); transition:background .12s; }
+  .dt tbody tr:last-child { border-bottom:none; }
+  .dt tbody tr:hover { background:#fff7ed; }
+  .dt td { padding:12px 14px; vertical-align:middle; color:var(--s800); }
+  .dt td.mono { color:var(--s400); font-family:'DM Mono',monospace; font-size:12px; }
+
+  /* Price cell */
+  .pm { font-weight:700; font-size:14px; color:var(--s800); }
+  .pr { font-size:11px; color:var(--s400); font-family:'DM Mono',monospace; margin-top:2px; }
+
+  /* Badges */
+  .bdg { display:inline-flex; align-items:center; gap:4px; padding:3px 9px; border-radius:20px; font-size:11px; font-weight:600; }
+  .bdg-ver { background:#dcfce7; color:#15803d; }
+  .bdg-pen { background:#fef9c3; color:#92400e; }
+  .bdg-hi  { background:#dcfce7; color:#15803d; }
+  .bdg-md  { background:#fef9c3; color:#92400e; }
+  .bdg-lo  { background:#fee2e2; color:#b91c1c; }
+
+  /* Market pill */
+  .mkt {
+    display:inline-block; max-width:160px;
+    overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+    font-weight:600; color:#0369a1; background:#e0f2fe;
+    border-radius:6px; padding:2px 8px; font-size:12px;
+  }
+
+  /* Row actions */
+  .ra { display:flex; gap:4px; }
+  .rb {
+    width:28px; height:28px; border-radius:7px;
+    display:flex; align-items:center; justify-content:center;
+    border:1.5px solid var(--s200); background:#fff; color:var(--s400);
+    cursor:pointer; font-size:11px; transition:all .15s;
+  }
+  .rb.v:hover { border-color:var(--sky);  background:#e0f2fe; color:var(--sky); }
+  .rb.e:hover { border-color:var(--leaf); background:#dcfce7; color:var(--leaf); }
+  .rb.d:hover { border-color:var(--rose); background:#fee2e2; color:var(--rose); }
+
+  /* Conf bar */
+  .ct { height:5px; background:var(--s100); border-radius:10px; overflow:hidden; margin-top:5px; }
+  .cf { height:100%; border-radius:10px; }
+
+  /* Empty */
+  .empty { text-align:center; padding:60px 32px; }
+  .empty-ic { width:72px; height:72px; border-radius:50%; background:var(--s100); display:flex; align-items:center; justify-content:center; font-size:28px; margin:0 auto 16px; }
+  .empty h4 { font-weight:700; color:var(--s800); margin-bottom:6px; }
+  .empty p  { color:var(--s400); font-size:14px; margin-bottom:18px; }
+
+  /* Result bar */
+  .rbar { padding:11px 20px; background:var(--s50); border-top:1px solid var(--s100); font-size:13px; color:var(--s600); display:flex; justify-content:space-between; align-items:center; }
+  .rbar a { font-size:12px; color:var(--saffron); text-decoration:none; font-weight:600; }
+
+  /* Modals */
+  .modal-content { border:none !important; border-radius:16px !important; }
+  .modal-header  { border-bottom:1px solid var(--s100) !important; padding:18px 22px !important; }
+  .modal-body    { padding:22px !important; }
+  .modal-footer  { border-top:1px solid var(--s100) !important; padding:14px 22px !important; }
+
+  .dg   { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:18px; }
+  @media(max-width:576px){ .dg { grid-template-columns:1fr; } }
+  .dbox { background:var(--s50); border-radius:10px; padding:12px 14px; }
+  .dbox label { font-size:11px; font-weight:700; color:var(--s400); text-transform:uppercase; letter-spacing:.4px; display:block; margin-bottom:3px; }
+  .dbox span  { font-size:15px; font-weight:700; color:var(--s800); }
+  .ptrio { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:18px; }
+  .pc   { background:var(--s50); border-radius:10px; padding:12px; text-align:center; }
+  .pc label { font-size:10px; font-weight:700; color:var(--s400); text-transform:uppercase; letter-spacing:.4px; display:block; margin-bottom:5px; }
+  .pc .amt  { font-size:1.3rem; font-weight:700; }
+  .pc.mn .amt { color:var(--leaf); }
+  .pc.md .amt { color:#2563eb; }
+  .pc.mx .amt { color:var(--rose); }
+
+  @media(max-width:900px){ .hide-sm { display:none; } }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="row mb-4">
-    <div class="col-12">
-        <div class="hero-section">
-            <div class="container">
-                <h1 class="display-5 fw-bold">Prediction Results</h1>
-                <p class="lead">View and analyze all generated price forecasts and their accuracy</p>
-            </div>
-        </div>
+
+<!-- HERO -->
+<div class="pr-hero">
+  <div class="container inner">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+      <div>
+        <h1 class="text-white"><i class="fas fa-crystal-ball me-2"></i>Prediction Results</h1>
+        <p class="text-white">AI-generated onion price forecasts — review, verify, and export</p>
+      </div>
+      <a href="{% url 'predict' %}" class="btn btn-light fw-semibold px-4">
+        <i class="fas fa-plus me-2"></i>New Prediction
+      </a>
     </div>
+  </div>
 </div>
 
-<!-- Filters and Actions -->
-<div class="card mb-4">
-    <div class="card-header">
-        <div class="d-flex justify-content-between align-items-center">
-            <h5 class="mb-0"><i class="fas fa-filter me-2"></i>Filter Predictions</h5>
-            <div>
-                <a href="{% url 'predict' %}" class="btn btn-primary btn-sm">
-                    <i class="fas fa-plus me-1"></i>New Prediction
-                </a>
-            </div>
-        </div>
-    </div>
-    <div class="card-body">
-        <div class="row">
-            <div class="col-md-3">
-                <div class="mb-3">
-                    <label class="form-label">Market</label>
-                    <select class="form-select" id="filterMarket">
-                        <option value="">All Markets</option>
-                        {% with markets=predictions.values_list|distinct %}
-                            {% for market in markets %}
-                            <option value="{{ market }}">{{ market }}</option>
-                            {% endfor %}
-                        {% endwith %}
-                    </select>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="mb-3">
-                    <label class="form-label">Date Range</label>
-                    <select class="form-select" id="filterDate">
-                        <option value="all">All Time</option>
-                        <option value="week">Last 7 Days</option>
-                        <option value="month">Last 30 Days</option>
-                        <option value="quarter">Last 90 Days</option>
-                    </select>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="mb-3">
-                    <label class="form-label">Accuracy</label>
-                    <select class="form-select" id="filterAccuracy">
-                        <option value="all">All</option>
-                        <option value="high">High (>85%)</option>
-                        <option value="medium">Medium (70-85%)</option>
-                        <option value="low">Low (<70%)</option>
-                    </select>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="mb-3">
-                    <label class="form-label">Status</label>
-                    <select class="form-select" id="filterStatus">
-                        <option value="all">All</option>
-                        <option value="pending">Pending Verification</option>
-                        <option value="accurate">Accurate</option>
-                        <option value="inaccurate">Inaccurate</option>
-                    </select>
-                </div>
-            </div>
-        </div>
-        <div class="d-flex justify-content-between">
-            <button class="btn btn-outline-primary" onclick="applyFilters()">
-                <i class="fas fa-search me-2"></i>Apply Filters
-            </button>
-            <button class="btn btn-outline-secondary" onclick="resetFilters()">
-                <i class="fas fa-redo me-2"></i>Reset Filters
-            </button>
-        </div>
-    </div>
+<div class="container-fluid px-3 px-md-4">
+
+<!-- KPI STRIP -->
+<div class="kpi-strip">
+  <div class="kpi">
+    <div class="kpi-ic a"><i class="fas fa-bullseye"></i></div>
+    <div class="kpi-txt"><h3>{{ total_count }}</h3><p>Total</p></div>
+  </div>
+  <div class="kpi">
+    <div class="kpi-ic b"><i class="fas fa-chart-line"></i></div>
+    <div class="kpi-txt"><h3>{{ avg_confidence|floatformat:1 }}%</h3><p>Avg Confidence</p></div>
+  </div>
+  <div class="kpi">
+    <div class="kpi-ic c"><i class="fas fa-check-circle"></i></div>
+    <div class="kpi-txt"><h3>{{ accurate_predictions }}</h3><p>Verified</p></div>
+  </div>
+  <div class="kpi">
+    <div class="kpi-ic d"><i class="fas fa-clock"></i></div>
+    <div class="kpi-txt"><h3>{{ pending_predictions }}</h3><p>Pending</p></div>
+  </div>
 </div>
 
-<!-- Statistics -->
-<div class="row mb-4">
-    <div class="col-md-3">
-        <div class="stat-card">
-            <h3>{{ predictions.count }}</h3>
-            <p>Total Predictions</p>
-            <i class="fas fa-bullseye fa-2x text-primary mt-3"></i>
-        </div>
+<!-- FILTER PANEL -->
+<div class="fp">
+  <div class="fp-title"><span></span><i class="fas fa-sliders-h"></i> Filters</div>
+  <form method="get" id="filterForm">
+    <div class="fp-row">
+      <div class="fp-grp">
+        <label>Market</label>
+        <select name="market">
+          <option value="">All Markets</option>
+          {% for m in markets %}
+          <option value="{{ m }}" {% if selected_market == m %}selected{% endif %}>{{ m }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="fp-grp">
+        <label>Date Range</label>
+        <select name="date_range">
+          <option value="all"     {% if selected_date == 'all'     %}selected{% endif %}>All Time</option>
+          <option value="week"    {% if selected_date == 'week'    %}selected{% endif %}>Last 7 Days</option>
+          <option value="month"   {% if selected_date == 'month'   %}selected{% endif %}>Last 30 Days</option>
+          <option value="quarter" {% if selected_date == 'quarter' %}selected{% endif %}>Last 90 Days</option>
+        </select>
+      </div>
+      <div class="fp-grp">
+        <label>Status</label>
+        <select name="status">
+          <option value="all"      {% if selected_status == 'all'      %}selected{% endif %}>All</option>
+          <option value="pending"  {% if selected_status == 'pending'  %}selected{% endif %}>Pending</option>
+          <option value="verified" {% if selected_status == 'verified' %}selected{% endif %}>Verified</option>
+        </select>
+      </div>
+      <div style="display:flex;gap:8px;align-items:flex-end;">
+        <button type="submit" class="btn-go"><i class="fas fa-search me-1"></i>Apply</button>
+        <a href="{% url 'prediction_results' %}" class="btn-clr"><i class="fas fa-redo me-1"></i>Reset</a>
+      </div>
     </div>
-    <div class="col-md-3">
-        <div class="stat-card">
-            <h3>{{ avg_confidence|default:"85"|floatformat:1 }}%</h3>
-            <p>Average Confidence</p>
-            <i class="fas fa-chart-line fa-2x text-success mt-3"></i>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="stat-card">
-            <h3>{{ accurate_predictions|default:"0" }}</h3>
-            <p>Accurate Predictions</p>
-            <i class="fas fa-check-circle fa-2x text-info mt-3"></i>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="stat-card">
-            <h3>{{ pending_predictions|default:"0" }}</h3>
-            <p>Pending Verification</p>
-            <i class="fas fa-clock fa-2x text-warning mt-3"></i>
-        </div>
-    </div>
+  </form>
+  {% if selected_market or selected_date != 'all' or selected_status != 'all' %}
+  <div class="chips">
+    {% if selected_market %}<span class="chip"><i class="fas fa-map-marker-alt"></i> {{ selected_market }} <button onclick="clearParam('market')">×</button></span>{% endif %}
+    {% if selected_date and selected_date != 'all' %}<span class="chip"><i class="fas fa-calendar"></i> {% if selected_date == 'week' %}7 Days{% elif selected_date == 'month' %}30 Days{% else %}90 Days{% endif %} <button onclick="clearParam('date_range')">×</button></span>{% endif %}
+    {% if selected_status and selected_status != 'all' %}<span class="chip"><i class="fas fa-circle"></i> {{ selected_status|capfirst }} <button onclick="clearParam('status')">×</button></span>{% endif %}
+  </div>
+  {% endif %}
 </div>
 
-<!-- Predictions Table -->
-<div class="card">
-    <div class="card-header">
-        <div class="d-flex justify-content-between align-items-center">
-            <h5 class="mb-0"><i class="fas fa-table me-2"></i>All Predictions</h5>
-            <div>
-                <button class="btn btn-sm btn-outline-success" onclick="exportPredictions()">
-                    <i class="fas fa-download me-1"></i>Export
-                </button>
-                <button class="btn btn-sm btn-outline-info ms-2" onclick="showAccuracyChart()">
-                    <i class="fas fa-chart-bar me-1"></i>View Analytics
-                </button>
+<!-- TABLE CARD -->
+<div class="tc">
+  <div class="tc-hdr">
+    <h5>
+      <i class="fas fa-table me-2" style="color:var(--s400);"></i>Predictions
+      <span style="font-size:13px;font-weight:500;color:var(--s400);margin-left:6px;">({{ predictions|length }} shown)</span>
+    </h5>
+    <div class="tbl-acts">
+      <button class="act-btn" onclick="exportCSV()"><i class="fas fa-download"></i> Export CSV</button>
+      <button class="act-btn" onclick="showChart()"><i class="fas fa-chart-bar"></i> Analytics</button>
+    </div>
+  </div>
+
+  <div class="table-responsive">
+    <table class="dt" id="dt">
+      <thead>
+        <tr>
+          <th onclick="srt(0)">ID <span class="si">⇅</span></th>
+          <th onclick="srt(1)" class="hide-sm">Pred. Date <span class="si">⇅</span></th>
+          <th onclick="srt(2)">Forecast Date <span class="si">⇅</span></th>
+          <th onclick="srt(3)">Market <span class="si">⇅</span></th>
+          <th onclick="srt(4)">Predicted Price <span class="si">⇅</span></th>
+          <th onclick="srt(5)" class="hide-sm">Actual Price <span class="si">⇅</span></th>
+          <th onclick="srt(6)">Confidence <span class="si">⇅</span></th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in predictions %}
+        <tr id="row-{{ p.id }}">
+          <td class="mono">#{{ p.id }}</td>
+          <td class="mono hide-sm">{{ p.prediction_date|date:"d M Y" }}</td>
+          <td style="font-weight:600;">{{ p.forecast_date|date:"d M Y" }}</td>
+          <td><span class="mkt" title="{{ p.market }}">{{ p.market }}</span></td>
+          <td>
+            <div class="pm">₹{{ p.predicted_modal_price|floatformat:0 }}</div>
+            <div class="pr">₹{{ p.predicted_min_price|floatformat:0 }} – ₹{{ p.predicted_max_price|floatformat:0 }}</div>
+          </td>
+          <td class="hide-sm">
+            {% if p.actual_price %}
+            <span style="font-weight:700;color:var(--leaf);">₹{{ p.actual_price|floatformat:0 }}</span>
+            {% else %}
+            <span style="color:var(--s400);font-style:italic;font-size:12px;">—</span>
+            {% endif %}
+          </td>
+          <td>
+            <span class="bdg {% if p.confidence_interval >= 80 %}bdg-hi{% elif p.confidence_interval >= 60 %}bdg-md{% else %}bdg-lo{% endif %}">
+              {{ p.confidence_interval|floatformat:0 }}%
+            </span>
+            <div class="ct">
+              <div class="cf {% if p.confidence_interval >= 80 %}bg-success{% elif p.confidence_interval >= 60 %}bg-warning{% else %}bg-danger{% endif %}"
+                   style="width:{{ p.confidence_interval|floatformat:0 }}%;"></div>
             </div>
-        </div>
-    </div>
-    <div class="card-body">
-        <div class="table-responsive">
-            <table class="table table-hover" id="predictionsTable">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Prediction Date</th>
-                        <th>Forecast Date</th>
-                        <th>Market</th>
-                        <th>Predicted Price</th>
-                        <th>Actual Price</th>
-                        <th>Accuracy</th>
-                        <th>Confidence</th>
-                        <th>Status</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for prediction in predictions %}
-                    <tr data-market="{{ prediction.market }}" 
-                        data-date="{{ prediction.prediction_date|date:'Y-m-d' }}"
-                        data-confidence="{{ prediction.confidence_interval }}"
-                        data-status="{% if prediction.actual_price %}verified{% else %}pending{% endif %}">
-                        <td>{{ prediction.id }}</td>
-                        <td>{{ prediction.prediction_date|date:"Y-m-d" }}</td>
-                        <td>{{ prediction.forecast_date|date:"Y-m-d" }}</td>
-                        <td>{{ prediction.market }}</td>
-                        <td>
-                            <strong>₹{{ prediction.predicted_modal_price|floatformat:2 }}</strong><br>
-                            <small class="text-muted">
-                                Min: ₹{{ prediction.predicted_min_price|floatformat:2 }}<br>
-                                Max: ₹{{ prediction.predicted_max_price|floatformat:2 }}
-                            </small>
-                        </td>
-                        <td>
-                            {% if prediction.actual_price %}
-                            <strong>₹{{ prediction.actual_price|floatformat:2 }}</strong>
-                            {% else %}
-                            <span class="text-muted">Pending</span>
-                            {% endif %}
-                        </td>
-                        <td>
-                            {% if prediction.actual_price %}
-                            {% with diff=prediction.predicted_modal_price|subtract:prediction.actual_price|abs %}
-                            {% with accuracy=100|subtract:diff|divide:prediction.actual_price|multiply:100 %}
-                            <span class="badge bg-{% if accuracy > 90 %}success{% elif accuracy > 80 %}warning{% else %}danger{% endif %}">
-                                {{ accuracy|floatformat:1 }}%
-                            </span>
-                            {% endwith %}
-                            {% endwith %}
-                            {% else %}
-                            <span class="badge bg-secondary">N/A</span>
-                            {% endif %}
-                        </td>
-                        <td>
-                            <span class="badge bg-info">{{ prediction.confidence_interval|floatformat:1 }}%</span>
-                        </td>
-                        <td>
-                            {% if prediction.actual_price %}
-                            {% with diff=prediction.predicted_modal_price|subtract:prediction.actual_price|abs %}
-                            {% with accuracy=100|subtract:diff|divide:prediction.actual_price|multiply:100 %}
-                            {% if accuracy > 90 %}
-                            <span class="badge bg-success">Accurate</span>
-                            {% elif accuracy > 80 %}
-                            <span class="badge bg-warning">Close</span>
-                            {% else %}
-                            <span class="badge bg-danger">Off</span>
-                            {% endif %}
-                            {% endwith %}
-                            {% endwith %}
-                            {% else %}
-                            <span class="badge bg-secondary">Pending</span>
-                            {% endif %}
-                        </td>
-                        <td>
-                          <div class="btn-group btn-group-sm">
-    <button class="btn btn-outline-primary" onclick="viewPrediction('{{ prediction.id }}')">
-        <i class="fas fa-eye"></i>
-    </button>
-    <button class="btn btn-outline-success" onclick="updateActualPrice('{{ prediction.id }}')">
-        <i class="fas fa-edit"></i>
-    </button>
-    <button class="btn btn-outline-danger" onclick="deletePrediction('{{ prediction.id }}')">
-        <i class="fas fa-trash"></i>
-    </button>
-</div>
-                        </td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="10" class="text-center py-5">
-                            <i class="fas fa-crystal-ball fa-3x text-muted mb-3"></i>
-                            <h4>No Predictions Found</h4>
-                            <p class="text-muted">No price predictions have been generated yet.</p>
-                            <a href="{% url 'predict' %}" class="btn btn-primary">
-                                <i class="fas fa-magic me-2"></i>Generate First Prediction
-                            </a>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-        
-        <!-- Pagination -->
-        {% if predictions.has_other_pages %}
-        <nav aria-label="Page navigation" class="mt-4">
-            <ul class="pagination justify-content-center">
-                {% if predictions.has_previous %}
-                <li class="page-item">
-                    <a class="page-link" href="?page={{ predictions.previous_page_number }}">Previous</a>
-                </li>
-                {% endif %}
-                
-                {% for num in predictions.paginator.page_range %}
-                    {% if predictions.number == num %}
-                    <li class="page-item active">
-                        <span class="page-link">{{ num }}</span>
-                    </li>
-                    {% elif num > predictions.number|add:'-3' and num < predictions.number|add:'3' %}
-                    <li class="page-item">
-                        <a class="page-link" href="?page={{ num }}">{{ num }}</a>
-                    </li>
-                    {% endif %}
-                {% endfor %}
-                
-                {% if predictions.has_next %}
-                <li class="page-item">
-                    <a class="page-link" href="?page={{ predictions.next_page_number }}">Next</a>
-                </li>
-                {% endif %}
-            </ul>
-        </nav>
-        {% endif %}
-        
-        <div class="alert alert-info mt-3">
-            <i class="fas fa-info-circle me-2"></i>
-            Showing {{ predictions|length }} predictions. Use filters to narrow down results.
-        </div>
-    </div>
+          </td>
+          <td>
+            {% if p.actual_price %}
+            <span class="bdg bdg-ver"><i class="fas fa-check-circle"></i> Verified</span>
+            {% else %}
+            <span class="bdg bdg-pen"><i class="fas fa-clock"></i> Pending</span>
+            {% endif %}
+          </td>
+          <td>
+            <div class="ra">
+              <button class="rb v" onclick="showDetail({{ p.id }})" title="View details"><i class="fas fa-eye"></i></button>
+              <button class="rb e" onclick="showUpdate({{ p.id }},{{ p.predicted_modal_price|floatformat:2 }})" title="Add actual price"><i class="fas fa-edit"></i></button>
+              <button class="rb d" onclick="askDelete({{ p.id }})" title="Delete"><i class="fas fa-trash"></i></button>
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="9">
+            <div class="empty">
+              <div class="empty-ic">🔮</div>
+              <h4>No Predictions Yet</h4>
+              <p>Generate your first AI-powered onion price forecast to get started.</p>
+              <a href="{% url 'predict' %}" class="btn btn-primary px-4 fw-semibold">
+                <i class="fas fa-magic me-2"></i>Generate Predictions
+              </a>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="rbar">
+    <span>Showing <strong>{{ predictions|length }}</strong> of <strong>{{ total_count }}</strong> predictions</span>
+    {% if predictions|length < total_count %}
+    <a href="{% url 'prediction_results' %}">View all {{ total_count }} →</a>
+    {% endif %}
+  </div>
 </div>
 
-<!-- Accuracy Chart Modal -->
-<div class="modal fade" id="accuracyModal" tabindex="-1">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Prediction Accuracy Analytics</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <div class="chart-container" style="height: 400px;">
-                    <canvas id="accuracyChart"></canvas>
-                </div>
-            </div>
-        </div>
+</div><!-- /container -->
+
+
+<!-- DETAIL MODAL -->
+<div class="modal fade" id="detailModal" tabindex="-1">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title fw-bold"><i class="fas fa-crystal-ball me-2 text-primary"></i>Prediction Details</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body" id="detailBody">
+        <div class="text-center py-4"><div class="spinner-border text-primary"></div></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-light" data-bs-dismiss="modal">Close</button>
+      </div>
     </div>
+  </div>
 </div>
 
-<!-- View Prediction Modal -->
-<div class="modal fade" id="viewModal" tabindex="-1">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Prediction Details</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body" id="predictionDetails">
-                <!-- Details will be loaded here -->
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Update Price Modal -->
+<!-- UPDATE MODAL -->
 <div class="modal fade" id="updateModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Update Actual Price</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <form id="updatePriceForm">
-                    <input type="hidden" id="predictionId">
-                    <div class="mb-3">
-                        <label for="actualPrice" class="form-label">Actual Market Price (₹)</label>
-                        <input type="number" step="0.01" class="form-control" id="actualPrice" required>
-                        <div class="form-text">Enter the actual market price on the forecast date</div>
-                    </div>
-                    <div class="mb-3">
-                        <label for="notes" class="form-label">Notes</label>
-                        <textarea class="form-control" id="notes" rows="3"></textarea>
-                        <div class="form-text">Any additional notes about this price</div>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-primary" onclick="saveActualPrice()">Save</button>
-            </div>
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title fw-bold"><i class="fas fa-edit me-2 text-success"></i>Update Actual Price</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="upId">
+        <p class="text-muted small mb-3">Enter the real market price observed on the forecast date to measure accuracy.</p>
+        <div class="mb-3">
+          <label class="form-label fw-semibold small">Actual Price (₹) <span class="text-danger">*</span></label>
+          <div class="input-group">
+            <span class="input-group-text fw-bold">₹</span>
+            <input type="number" step="0.01" min="0" class="form-control" id="upPrice" placeholder="e.g. 2250">
+          </div>
         </div>
+        <div id="upPrev" class="d-none mb-3">
+          <div style="background:var(--s50);border-radius:10px;padding:14px;font-size:13px;">
+            <div class="d-flex justify-content-between mb-2"><span class="text-muted">Predicted:</span><strong id="upPred">—</strong></div>
+            <div class="d-flex justify-content-between mb-2"><span class="text-muted">Actual:</span><strong class="text-success" id="upAct">—</strong></div>
+            <div class="d-flex justify-content-between"><span class="text-muted">Est. Accuracy:</span><strong id="upAcc">—</strong></div>
+          </div>
+        </div>
+        <div class="mb-1">
+          <label class="form-label fw-semibold small">Notes <span class="text-muted fw-normal">(optional)</span></label>
+          <textarea class="form-control" id="upNotes" rows="2" placeholder="Any context about this price..."></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+        <button class="btn btn-success fw-semibold" onclick="savePrice()"><i class="fas fa-save me-1"></i>Save</button>
+      </div>
     </div>
+  </div>
 </div>
+
+<!-- ANALYTICS MODAL -->
+<div class="modal fade" id="chartModal" tabindex="-1">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title fw-bold"><i class="fas fa-chart-bar me-2 text-primary"></i>Confidence Analytics</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body"><div style="height:340px;"><canvas id="aChart"></canvas></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- DELETE MODAL -->
+<div class="modal fade" id="delModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered modal-sm">
+    <div class="modal-content">
+      <div class="modal-header border-0 pb-0">
+        <h5 class="modal-title text-danger fw-bold"><i class="fas fa-trash me-2"></i>Delete?</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body pt-2"><p class="text-muted mb-0" style="font-size:14px;">This prediction will be permanently deleted.</p></div>
+      <div class="modal-footer border-0">
+        <button class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+        <button class="btn btn-danger fw-semibold" id="delConfBtn">Delete</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 {% endblock %}
 
 {% block scripts %}
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-let accuracyChart = null;
-let currentPredictionId = null;
+/* ── Inline data from Django ─────────────────────────────────────── */
+const ROWS = [
+  {% for p in predictions %}
+  { id:{{ p.id }}, mkt:"{{ p.market|escapejs }}", fd:"{{ p.forecast_date|date:'Y-m-d' }}",
+    pd:"{{ p.prediction_date|date:'Y-m-d' }}", modal:{{ p.predicted_modal_price|floatformat:2 }},
+    lo:{{ p.predicted_min_price|floatformat:2 }}, hi:{{ p.predicted_max_price|floatformat:2 }},
+    actual:{% if p.actual_price %}{{ p.actual_price|floatformat:2 }}{% else %}null{% endif %},
+    conf:{{ p.confidence_interval|floatformat:1 }} },
+  {% endfor %}
+];
 
-document.addEventListener('DOMContentLoaded', function() {
-    // Initialize table sorting
-    initializeTableSorting();
-    
-    // Apply initial filters from URL
-    applyUrlFilters();
+/* ── Sort ────────────────────────────────────────────────────────── */
+let sc=-1, sa=true;
+function srt(c){
+  const tb=document.querySelector('#dt tbody');
+  const rs=Array.from(tb.querySelectorAll('tr[id^="row-"]'));
+  if(!rs.length)return;
+  if(sc===c)sa=!sa; else{sc=c;sa=true;}
+  rs.sort((a,b)=>{
+    const av=a.cells[c]?.textContent.trim()||'', bv=b.cells[c]?.textContent.trim()||'';
+    const an=parseFloat(av.replace(/[^0-9.-]/g,'')), bn=parseFloat(bv.replace(/[^0-9.-]/g,''));
+    const cm=(!isNaN(an)&&!isNaN(bn))?(an-bn):av.localeCompare(bv);
+    return sa?cm:-cm;
+  });
+  document.querySelectorAll('.dt th').forEach((th,i)=>{
+    th.classList.toggle('sorted',i===c);
+    const s=th.querySelector('.si');
+    if(s)s.textContent=i===c?(sa?'↑':'↓'):'⇅';
+  });
+  rs.forEach(r=>tb.appendChild(r));
+}
+
+/* ── Export CSV ──────────────────────────────────────────────────── */
+function exportCSV(){
+  if(!ROWS.length){alert('No data to export.');return;}
+  const hdr=['ID','Market','Forecast Date','Pred Date','Modal','Min','Max','Actual','Confidence','Status'];
+  const lines=[hdr.join(',')];
+  ROWS.forEach(r=>lines.push([r.id,`"${r.mkt}"`,r.fd,r.pd,r.modal,r.lo,r.hi,r.actual??'',r.conf,r.actual?'Verified':'Pending'].join(',')));
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([lines.join('\n')],{type:'text/csv'}));
+  a.download=`predictions_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+}
+
+/* ── Analytics ───────────────────────────────────────────────────── */
+let ci=null;
+function showChart(){
+  const s=ROWS.slice(0,15);
+  const lbl=s.map(r=>r.mkt.slice(0,10)+(r.mkt.length>10?'…':'')+' '+r.fd.slice(5));
+  const co=s.map(r=>r.conf>=80?'rgba(22,163,74,.75)':r.conf>=60?'rgba(217,119,6,.75)':'rgba(225,29,72,.75)');
+  if(ci)ci.destroy();
+  ci=new Chart(document.getElementById('aChart').getContext('2d'),{
+    type:'bar',
+    data:{labels:lbl,datasets:[
+      {label:'Confidence (%)',data:s.map(r=>r.conf),backgroundColor:co,borderRadius:6},
+      {label:'Target 85%',data:Array(s.length).fill(85),type:'line',borderColor:'rgba(249,115,22,.8)',borderDash:[5,4],borderWidth:2,pointRadius:0,fill:false}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom'},tooltip:{callbacks:{label:c=>`${c.dataset.label}: ${c.raw}%`}}},scales:{y:{min:0,max:100,ticks:{callback:v=>v+'%'}},x:{ticks:{font:{size:10}}}}}
+  });
+  new bootstrap.Modal(document.getElementById('chartModal')).show();
+}
+
+/* ── Detail modal ────────────────────────────────────────────────── */
+function showDetail(id){
+  const r=ROWS.find(x=>x.id===id); if(!r)return;
+  let accH='<p class="text-muted small" style="font-style:italic;">No actual price yet. Use ✎ to add one.</p>';
+  if(r.actual){
+    const p=(100-Math.abs(r.modal-r.actual)/r.actual*100).toFixed(1);
+    const cl=p>=90?'text-success':p>=75?'text-warning':'text-danger';
+    accH=`<div style="background:var(--s50);border-radius:10px;padding:14px;font-size:13px;">
+      <div class="d-flex justify-content-between mb-2"><span class="text-muted">Predicted</span><strong>₹${f(r.modal)}</strong></div>
+      <div class="d-flex justify-content-between mb-2"><span class="text-muted">Actual</span><strong class="text-success">₹${f(r.actual)}</strong></div>
+      <div class="d-flex justify-content-between mb-2"><span class="text-muted">Difference</span><strong>₹${f(Math.abs(r.modal-r.actual).toFixed(0))}</strong></div>
+      <div class="d-flex justify-content-between"><span class="text-muted">Accuracy</span><strong class="${cl}">${p}%</strong></div>
+    </div>`;
+  }
+  const cb=r.conf>=80?'bg-success':r.conf>=60?'bg-warning':'bg-danger';
+  document.getElementById('detailBody').innerHTML=`
+    <div class="dg">
+      <div class="dbox"><label>Market</label><span style="color:#0369a1;font-size:14px;">${r.mkt}</span></div>
+      <div class="dbox"><label>Forecast Date</label><span>${r.fd}</span></div>
+      <div class="dbox"><label>Prediction Made</label><span>${r.pd}</span></div>
+      <div class="dbox"><label>Confidence</label><span>${r.conf}%<div class="ct" style="margin-top:6px;"><div class="cf ${cb}" style="width:${r.conf}%;"></div></div></span></div>
+    </div>
+    <div class="ptrio">
+      <div class="pc mn"><label>Min</label><div class="amt">₹${f(r.lo)}</div></div>
+      <div class="pc md"><label>Modal</label><div class="amt">₹${f(r.modal)}</div></div>
+      <div class="pc mx"><label>Max</label><div class="amt">₹${f(r.hi)}</div></div>
+    </div>
+    <h6 style="font-size:12px;font-weight:700;color:var(--s400);text-transform:uppercase;letter-spacing:.4px;margin-bottom:10px;">Actual vs Predicted</h6>
+    ${accH}`;
+  new bootstrap.Modal(document.getElementById('detailModal')).show();
+}
+
+/* ── Update modal ────────────────────────────────────────────────── */
+let _pm=0;
+function showUpdate(id,predicted){
+  _pm=parseFloat(predicted);
+  document.getElementById('upId').value=''+id;
+  document.getElementById('upPrice').value='';
+  document.getElementById('upNotes').value='';
+  document.getElementById('upPrev').classList.add('d-none');
+  document.getElementById('upPred').textContent='₹'+f(predicted);
+  new bootstrap.Modal(document.getElementById('updateModal')).show();
+}
+document.getElementById('upPrice').addEventListener('input',function(){
+  const v=parseFloat(this.value);
+  if(!isNaN(v)&&v>0){
+    const a=(100-Math.abs(_pm-v)/v*100).toFixed(1);
+    const cl=a>=90?'text-success':a>=75?'text-warning':'text-danger';
+    document.getElementById('upAct').textContent='₹'+f(v.toFixed(0));
+    document.getElementById('upAcc').textContent=a+'%';
+    document.getElementById('upAcc').className='fw-bold '+cl;
+    document.getElementById('upPrev').classList.remove('d-none');
+  }else document.getElementById('upPrev').classList.add('d-none');
 });
-
-function applyUrlFilters() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const market = urlParams.get('market');
-    const date = urlParams.get('date');
-    const accuracy = urlParams.get('accuracy');
-    const status = urlParams.get('status');
-    
-    if (market) document.getElementById('filterMarket').value = market;
-    if (date) document.getElementById('filterDate').value = date;
-    if (accuracy) document.getElementById('filterAccuracy').value = accuracy;
-    if (status) document.getElementById('filterStatus').value = status;
-    
-    applyFilters();
+function savePrice(){
+  const id=document.getElementById('upId').value;
+  const pr=document.getElementById('upPrice').value;
+  if(!pr||parseFloat(pr)<=0){alert('Please enter a valid price.');return;}
+  fetch(`/api/predictions/${id}/update/`,{
+    method:'POST',
+    headers:{'Content-Type':'application/json','X-CSRFToken':ck('csrftoken')},
+    body:JSON.stringify({actual_price:pr,notes:document.getElementById('upNotes').value})
+  }).then(r=>r.json()).then(d=>{if(d.success)location.reload();else alert('Error: '+d.error);}).catch(()=>location.reload());
 }
 
-function applyFilters() {
-    const market = document.getElementById('filterMarket').value;
-    const dateRange = document.getElementById('filterDate').value;
-    const accuracy = document.getElementById('filterAccuracy').value;
-    const status = document.getElementById('filterStatus').value;
-    
-    const rows = document.querySelectorAll('#predictionsTable tbody tr');
-    let visibleCount = 0;
-    
-    rows.forEach(row => {
-        let show = true;
-        
-        // Market filter
-        if (market && row.dataset.market !== market) {
-            show = false;
-        }
-        
-        // Date filter
-        if (dateRange !== 'all') {
-            const predDate = new Date(row.dataset.date);
-            const now = new Date();
-            let daysDiff = (now - predDate) / (1000 * 60 * 60 * 24);
-            
-            if (dateRange === 'week' && daysDiff > 7) show = false;
-            if (dateRange === 'month' && daysDiff > 30) show = false;
-            if (dateRange === 'quarter' && daysDiff > 90) show = false;
-        }
-        
-        // Accuracy filter (simplified)
-        if (accuracy !== 'all') {
-            const conf = parseFloat(row.dataset.confidence);
-            if (accuracy === 'high' && conf < 85) show = false;
-            if (accuracy === 'medium' && (conf < 70 || conf > 85)) show = false;
-            if (accuracy === 'low' && conf > 70) show = false;
-        }
-        
-        // Status filter
-        if (status !== 'all' && row.dataset.status !== status) {
-            show = false;
-        }
-        
-        row.style.display = show ? '' : 'none';
-        if (show) visibleCount++;
-    });
-    
-    // Update visible count
-    const infoAlert = document.querySelector('.alert-info');
-    if (infoAlert) {
-        infoAlert.innerHTML = `<i class="fas fa-info-circle me-2"></i>
-            Showing ${visibleCount} predictions. Use filters to narrow down results.`;
-    }
-    
-    // Update URL
-    updateUrlFilters();
+/* ── Delete ──────────────────────────────────────────────────────── */
+function askDelete(id){
+  document.getElementById('delConfBtn').onclick=()=>doDelete(id);
+  new bootstrap.Modal(document.getElementById('delModal')).show();
+}
+function doDelete(id){
+  fetch(`/api/predictions/${id}/delete/`,{method:'DELETE',headers:{'X-CSRFToken':ck('csrftoken')}})
+  .then(r=>r.json()).then(d=>{
+    if(d.success){const row=document.getElementById('row-'+id);if(row)row.remove();bootstrap.Modal.getInstance(document.getElementById('delModal')).hide();}
+    else alert('Error: '+d.error);
+  }).catch(()=>location.reload());
 }
 
-function resetFilters() {
-    document.getElementById('filterMarket').value = '';
-    document.getElementById('filterDate').value = 'all';
-    document.getElementById('filterAccuracy').value = 'all';
-    document.getElementById('filterStatus').value = 'all';
-    applyFilters();
-}
+/* ── Clear param ─────────────────────────────────────────────────── */
+function clearParam(k){const u=new URL(window.location.href);u.searchParams.delete(k);window.location.href=u.toString();}
 
-function updateUrlFilters() {
-    const params = new URLSearchParams();
-    
-    const market = document.getElementById('filterMarket').value;
-    const date = document.getElementById('filterDate').value;
-    const accuracy = document.getElementById('filterAccuracy').value;
-    const status = document.getElementById('filterStatus').value;
-    
-    if (market) params.set('market', market);
-    if (date !== 'all') params.set('date', date);
-    if (accuracy !== 'all') params.set('accuracy', accuracy);
-    if (status !== 'all') params.set('status', status);
-    
-    const newUrl = window.location.pathname + (params.toString() ? '?' + params.toString() : '');
-    window.history.replaceState({}, '', newUrl);
-}
-
-function initializeTableSorting() {
-    const table = document.getElementById('predictionsTable');
-    const headers = table.querySelectorAll('th');
-    
-    headers.forEach((header, index) => {
-        header.style.cursor = 'pointer';
-        header.addEventListener('click', () => sortTable(index));
-    });
-}
-
-function sortTable(columnIndex) {
-    const table = document.getElementById('predictionsTable');
-    const tbody = table.querySelector('tbody');
-    const rows = Array.from(tbody.querySelectorAll('tr:not([style*="none"])'));
-    
-    if (rows.length === 0) return;
-    
-    rows.sort((a, b) => {
-        const aCell = a.cells[columnIndex];
-        const bCell = b.cells[columnIndex];
-        const aVal = aCell.textContent.trim();
-        const bVal = bCell.textContent.trim();
-        
-        // Handle numeric values
-        const aNum = parseFloat(aVal.replace(/[^0-9.-]+/g, ''));
-        const bNum = parseFloat(bVal.replace(/[^0-9.-]+/g, ''));
-        
-        if (!isNaN(aNum) && !isNaN(bNum)) {
-            return aNum - bNum;
-        }
-        
-        // Handle badges
-        const aBadge = aCell.querySelector('.badge');
-        const bBadge = bCell.querySelector('.badge');
-        if (aBadge && bBadge) {
-            return aBadge.textContent.localeCompare(bBadge.textContent);
-        }
-        
-        return aVal.localeCompare(bVal);
-    });
-    
-    // Toggle sort order
-    if (table.dataset.sortColumn === String(columnIndex)) {
-        rows.reverse();
-        table.dataset.sortOrder = table.dataset.sortOrder === 'asc' ? 'desc' : 'asc';
-    } else {
-        table.dataset.sortColumn = columnIndex;
-        table.dataset.sortOrder = 'asc';
-    }
-    
-    // Re-append rows
-    tbody.innerHTML = '';
-    rows.forEach(row => tbody.appendChild(row));
-}
-
-function exportPredictions() {
-    const rows = document.querySelectorAll('#predictionsTable tbody tr:not([style*="none"])');
-    let csv = 'ID,Prediction Date,Forecast Date,Market,Predicted Price,Actual Price,Accuracy,Confidence,Status\n';
-    
-    rows.forEach(row => {
-        const cells = row.querySelectorAll('td');
-        const rowData = Array.from(cells).slice(0, -1).map(cell => {
-            let text = cell.textContent.trim().replace(/\n/g, ' ');
-            if (text.includes(',') || text.includes('"')) {
-                text = '"' + text.replace(/"/g, '""') + '"';
-            }
-            return text;
-        });
-        csv += rowData.join(',') + '\n';
-    });
-    
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `predictions_${new Date().toISOString().slice(0,10)}.csv`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    window.URL.revokeObjectURL(url);
-}
-
-function showAccuracyChart() {
-    const rows = document.querySelectorAll('#predictionsTable tbody tr:not([style*="none"])');
-    const data = {
-        labels: [],
-        accuracies: [],
-        confidences: []
-    };
-    
-    rows.slice(0, 20).forEach(row => {
-        const cells = row.cells;
-        data.labels.push(cells[3].textContent + ' ' + cells[2].textContent);
-        
-        const accuracyBadge = cells[6].querySelector('.badge');
-        if (accuracyBadge) {
-            const accuracy = parseFloat(accuracyBadge.textContent);
-            if (!isNaN(accuracy)) {
-                data.accuracies.push(accuracy);
-            }
-        }
-        
-        const confidenceBadge = cells[7].querySelector('.badge');
-        if (confidenceBadge) {
-            const confidence = parseFloat(confidenceBadge.textContent);
-            if (!isNaN(confidence)) {
-                data.confidences.push(confidence);
-            }
-        }
-    });
-    
-    const ctx = document.getElementById('accuracyChart').getContext('2d');
-    
-    if (accuracyChart) {
-        accuracyChart.destroy();
-    }
-    
-    accuracyChart = new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: data.labels,
-            datasets: [{
-                label: 'Accuracy (%)',
-                data: data.accuracies,
-                backgroundColor: 'rgba(39, 174, 96, 0.7)',
-                borderColor: 'rgba(39, 174, 96, 1)',
-                borderWidth: 1
-            }, {
-                label: 'Confidence (%)',
-                data: data.confidences,
-                backgroundColor: 'rgba(52, 152, 219, 0.7)',
-                borderColor: 'rgba(52, 152, 219, 1)',
-                borderWidth: 1,
-                type: 'line',
-                yAxisID: 'y1'
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    max: 100,
-                    title: {
-                        display: true,
-                        text: 'Accuracy (%)'
-                    }
-                },
-                y1: {
-                    position: 'right',
-                    beginAtZero: true,
-                    max: 100,
-                    title: {
-                        display: true,
-                        text: 'Confidence (%)'
-                    },
-                    grid: {
-                        drawOnChartArea: false
-                    }
-                }
-            }
-        }
-    });
-    
-    const modal = new bootstrap.Modal(document.getElementById('accuracyModal'));
-    modal.show();
-}
-
-function viewPrediction(id) {
-    // In a real app, this would fetch from API
-    const prediction = {
-        id: id,
-        market: 'Azadpur Mandi, Delhi',
-        predicted_price: 2250,
-        actual_price: 2300,
-        accuracy: 92.5,
-        confidence: 85,
-        date: '2024-01-09',
-        forecast_date: '2024-01-16',
-        model_used: 'LSTM'
-    };
-    
-    const details = document.getElementById('predictionDetails');
-    details.innerHTML = `
-        <div class="row">
-            <div class="col-md-6">
-                <h6>Prediction Details</h6>
-                <table class="table table-sm">
-                    <tr><td>ID:</td><td>${prediction.id}</td></tr>
-                    <tr><td>Market:</td><td>${prediction.market}</td></tr>
-                    <tr><td>Prediction Date:</td><td>${prediction.date}</td></tr>
-                    <tr><td>Forecast Date:</td><td>${prediction.forecast_date}</td></tr>
-                    <tr><td>Model Used:</td><td>${prediction.model_used}</td></tr>
-                </table>
-            </div>
-            <div class="col-md-6">
-                <h6>Price Details</h6>
-                <table class="table table-sm">
-                    <tr><td>Predicted Price:</td><td>₹${prediction.predicted_price}</td></tr>
-                    <tr><td>Actual Price:</td><td>₹${prediction.actual_price}</td></tr>
-                    <tr><td>Accuracy:</td><td><span class="badge bg-success">${prediction.accuracy}%</span></td></tr>
-                    <tr><td>Confidence:</td><td><span class="badge bg-info">${prediction.confidence}%</span></td></tr>
-                    <tr><td>Difference:</td><td>₹${Math.abs(prediction.predicted_price - prediction.actual_price)}</td></tr>
-                </table>
-            </div>
-        </div>
-        <div class="alert alert-info mt-3">
-            <i class="fas fa-info-circle me-2"></i>
-            This prediction was generated using the ${prediction.model_used} model with ${prediction.confidence}% confidence.
-        </div>
-    `;
-    
-    const modal = new bootstrap.Modal(document.getElementById('viewModal'));
-    modal.show();
-}
-
-function updateActualPrice(id) {
-    currentPredictionId = id;
-    document.getElementById('predictionId').value = id;
-    document.getElementById('actualPrice').value = '';
-    document.getElementById('notes').value = '';
-    
-    const modal = new bootstrap.Modal(document.getElementById('updateModal'));
-    modal.show();
-}
-
-function saveActualPrice() {
-    const id = document.getElementById('predictionId').value;
-    const actualPrice = document.getElementById('actualPrice').value;
-    const notes = document.getElementById('notes').value;
-    
-    if (!actualPrice) {
-        alert('Please enter actual price');
-        return;
-    }
-    
-    // In a real app, this would be an API call
-    fetch(`/api/predictions/${id}/update/`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': getCookie('csrftoken')
-        },
-        body: JSON.stringify({
-            actual_price: actualPrice,
-            notes: notes
-        })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            alert('Price updated successfully');
-            location.reload();
-        } else {
-            alert('Error updating price: ' + data.error);
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('Error updating price');
-    });
-}
-
-function deletePrediction(id) {
-    if (confirm('Are you sure you want to delete this prediction?')) {
-        // In a real app, this would be an API call
-        fetch(`/api/predictions/${id}/delete/`, {
-            method: 'DELETE',
-            headers: {
-                'X-CSRFToken': getCookie('csrftoken')
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                alert('Prediction deleted successfully');
-                location.reload();
-            } else {
-                alert('Error deleting prediction: ' + data.error);
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('Error deleting prediction');
-        });
-    }
-}
-
-// Helper function to get CSRF token
-function getCookie(name) {
-    let cookieValue = null;
-    if (document.cookie && document.cookie !== '') {
-        const cookies = document.cookie.split(';');
-        for (let i = 0; i < cookies.length; i++) {
-            const cookie = cookies[i].trim();
-            if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                break;
-            }
-        }
-    }
-    return cookieValue;
-}
+/* ── Helpers ─────────────────────────────────────────────────────── */
+function f(n){return Number(n).toLocaleString('en-IN');}
+function ck(n){const m=document.cookie.match(new RegExp('(^| )'+n+'=([^;]+)'));return m?decodeURIComponent(m[2]):'';}
 </script>
 {% endblock %}

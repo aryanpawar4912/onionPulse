@@ -1,558 +1,475 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Onion Price Forecast - India</title>
-    
-    <!-- Bootstrap 5 CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <!-- AOS Animation -->
-    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
-    
-    <style>
-        :root {
-            --primary: #ff6b35;
-            --primary-dark: #e55a2b;
-            --secondary: #2d3436;
-            --accent: #00b894;
-            --light: #f8f9fa;
-            --dark: #212529;
-            --gradient: linear-gradient(135deg, #ff6b35 0%, #ffa62e 100%);
-            --shadow: 0 10px 30px rgba(0,0,0,0.08);
-            --radius: 16px;
-        }
-        
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: 'Poppins', sans-serif;
-            background: linear-gradient(135deg, #f5f7fa 0%, #e4edf5 100%);
-            color: var(--dark);
-            line-height: 1.6;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
-        
-        /* Navigation */
-        .navbar {
-            background: rgba(255, 255, 255, 0.95) !important;
-            backdrop-filter: blur(10px);
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-            padding: 1rem 0;
-            transition: all 0.3s ease;
-        }
-        
-        .navbar-brand {
-            font-weight: 700;
-            font-size: 1.8rem;
-            background: var(--gradient);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .navbar-brand i {
-            font-size: 1.8rem;
-            background: var(--gradient);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-        
-        .nav-link {
-            font-weight: 500;
-            color: var(--secondary) !important;
-            padding: 0.5rem 1rem !important;
-            margin: 0 0.2rem;
-            border-radius: 10px;
-            transition: all 0.3s ease;
-            position: relative;
-        }
-        
-        .nav-link:hover {
-            color: var(--primary) !important;
-            background: rgba(255, 107, 53, 0.1);
-            transform: translateY(-2px);
-        }
-        
-        .nav-link.active {
-            color: var(--primary) !important;
-            background: rgba(255, 107, 53, 0.1);
-        }
-        
-        .nav-link::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 0;
-            height: 3px;
-            background: var(--gradient);
-            border-radius: 2px;
-            transition: width 0.3s ease;
-        }
-        
-        .nav-link:hover::after,
-        .nav-link.active::after {
-            width: 70%;
-        }
-        
-        /* Buttons */
-        .btn-primary {
-            background: var(--gradient) !important;
-            border: none !important;
-            border-radius: 10px;
-            padding: 0.6rem 1.8rem;
-            font-weight: 500;
-            transition: all 0.3s ease !important;
-            box-shadow: 0 4px 15px rgba(255, 107, 53, 0.3);
-        }
-        
-        .btn-primary:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 25px rgba(255, 107, 53, 0.4);
-        }
-        
-        .btn-outline-primary {
-            color: var(--primary);
-            border: 2px solid var(--primary);
-            background: transparent;
-            border-radius: 10px;
-            padding: 0.5rem 1.5rem;
-            font-weight: 500;
-            transition: all 0.3s ease;
-        }
-        
-        .btn-outline-primary:hover {
-            background: var(--gradient);
-            border-color: transparent;
-            color: white;
-            transform: translateY(-3px);
-            box-shadow: 0 8px 25px rgba(255, 107, 53, 0.3);
-        }
-        
-        /* Cards */
-        .card {
-            background: white;
-            border: none;
-            border-radius: var(--radius);
-            box-shadow: var(--shadow);
-            transition: all 0.4s ease;
-            overflow: hidden;
-        }
-        
-        .card:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 20px 40px rgba(0,0,0,0.12);
-        }
-        
-        .card-header {
-            background: var(--gradient);
-            color: white;
-            border: none;
-            padding: 1.2rem;
-            font-weight: 600;
-        }
-        
-        /* Price Indicators */
-        .price-up {
-            color: #00b894;
-            font-weight: 600;
-            background: rgba(0, 184, 148, 0.1);
-            padding: 0.3rem 0.8rem;
-            border-radius: 20px;
-            display: inline-block;
-        }
-        
-        .price-down {
-            color: #e74c3c;
-            font-weight: 600;
-            background: rgba(231, 76, 60, 0.1);
-            padding: 0.3rem 0.8rem;
-            border-radius: 20px;
-            display: inline-block;
-        }
-        
-        .price-stable {
-            color: #f39c12;
-            font-weight: 600;
-            background: rgba(243, 156, 18, 0.1);
-            padding: 0.3rem 0.8rem;
-            border-radius: 20px;
-            display: inline-block;
-        }
-        
-        /* Stats Cards */
-        .stat-card {
-            background: white;
-            border-radius: var(--radius);
-            padding: 1.8rem;
-            text-align: center;
-            box-shadow: var(--shadow);
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .stat-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 4px;
-            background: var(--gradient);
-        }
-        
-        .stat-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
-        }
-        
-        .stat-card i {
-            font-size: 2.5rem;
-            margin-bottom: 1rem;
-            background: var(--gradient);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-        
-        /* Chart Container */
-        .chart-container {
-            background: white;
-            border-radius: var(--radius);
-            padding: 1.5rem;
-            box-shadow: var(--shadow);
-            position: relative;
-            height: 400px;
-            width: 100%;
-        }
-        
-        /* Alerts */
-        .alert {
-            border-radius: 12px;
-            border: none;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-            backdrop-filter: blur(10px);
-        }
-        
-        /* Footer */
-        footer {
-            background: var(--secondary);
-            color: white;
-            margin-top: auto;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        footer::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 4px;
-            background: var(--gradient);
-        }
-        
-        footer a {
-            color: #ddd;
-            text-decoration: none;
-            transition: all 0.3s ease;
-        }
-        
-        footer a:hover {
-            color: var(--primary);
-            transform: translateX(5px);
-        }
-        
-        /* Hero Section */
-        .hero-section {
-            background: var(--gradient);
-            color: white;
-            padding: 5rem 0;
-            position: relative;
-            overflow: hidden;
-            border-radius: 0 0 var(--radius) var(--radius);
-            margin-bottom: 3rem;
-        }
-        
-        .hero-section::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%23ffffff' fill-opacity='0.1' fill-rule='evenodd'/%3E%3C/svg%3E");
-        }
-        
-        /* Dropdown */
-        .dropdown-menu {
-            border: none;
-            border-radius: 12px;
-            box-shadow: var(--shadow);
-            padding: 0.5rem;
-            min-width: 200px;
-        }
-        
-        .dropdown-item {
-            padding: 0.7rem 1rem;
-            border-radius: 8px;
-            margin: 0.2rem 0;
-            transition: all 0.3s ease;
-        }
-        
-        .dropdown-item:hover {
-            background: rgba(255, 107, 53, 0.1);
-            transform: translateX(5px);
-        }
-        
-        /* Responsive Design */
-        @media (max-width: 768px) {
-            .hero-section {
-                padding: 3rem 0;
-            }
-            
-            .navbar-brand {
-                font-size: 1.5rem;
-            }
-            
-            .chart-container {
-                height: 300px;
-            }
-        }
-        
-        /* Animation Classes */
-        .fade-in {
-            animation: fadeIn 0.6s ease-in-out;
-        }
-        
-        .slide-up {
-            animation: slideUp 0.5s ease-out;
-        }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-        
-        @keyframes slideUp {
-            from { 
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to { 
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>{% block title %}Onion Price Forecast — India{% endblock %}</title>
+
+<!-- Bootstrap -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<!-- FontAwesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+{% block extra_head %}{% endblock %}
+
+<style>
+
+/* GLOBAL */
+
+body{
+background:#f8fafc;
+font-family:'Inter',system-ui,-apple-system;
+color:#1e293b;
+font-size:14.5px;
+min-height:100vh;
+display:flex;
+flex-direction:column;
+}
+
+main{flex:1}
+
+/* NAVBAR */
+
+.navbar{
+background:white;
+border-bottom:1px solid #e5e7eb;
+padding:.7rem 0;
+}
+
+.navbar-brand{
+font-weight:700;
+color:#ea580c !important;
+font-size:18px;
+}
+
+.brand-icon{
+width:30px;
+height:30px;
+background:linear-gradient(135deg,#f97316,#dc2626);
+display:inline-flex;
+align-items:center;
+justify-content:center;
+border-radius:8px;
+color:white;
+margin-right:8px;
+}
+
+.nav-link{
+font-weight:500;
+color:#475569 !important;
+padding:.45rem .8rem !important;
+border-radius:6px;
+transition:.2s;
+}
+
+.nav-link:hover{
+background:#f1f5f9;
+color:#1e293b !important;
+}
+
+.nav-link.active{
+background:#eff6ff;
+color:#2563eb !important;
+}
+
+/* LOGIN BUTTON */
+
+.btn-login{
+border:1.5px solid #2563eb;
+color:#2563eb;
+border-radius:8px;
+font-size:13px;
+font-weight:600;
+padding:.35rem .9rem;
+}
+
+.btn-login:hover{
+background:#2563eb;
+color:white;
+}
+
+/* USER CHIP */
+
+.user-chip{
+background:#f1f5f9;
+border-radius:20px;
+padding:.3rem .75rem;
+font-weight:600;
+font-size:13px;
+display:flex;
+align-items:center;
+gap:6px;
+cursor:pointer;
+}
+
+.avatar{
+width:22px;
+height:22px;
+background:linear-gradient(135deg,#2563eb,#7c3aed);
+color:white;
+border-radius:50%;
+display:flex;
+align-items:center;
+justify-content:center;
+font-size:10px;
+}
+
+/* HERO */
+
+.hero-section{
+background:linear-gradient(120deg,#f97316,#ef4444);
+padding:70px 0;
+color:white;
+border-radius:0 0 30px 30px;
+box-shadow:0 10px 30px rgba(0,0,0,0.15);
+margin-bottom:40px;
+}
+
+.hero-section h1{
+font-weight:700;
+}
+
+.hero-section .lead{
+opacity:.9;
+}
+
+/* STAT CARDS */
+
+.stat-card{
+background:white;
+padding:25px;
+border-radius:14px;
+text-align:center;
+box-shadow:0 5px 20px rgba(0,0,0,.06);
+}
+
+.stat-card h3{
+color:#2563eb;
+font-weight:700;
+}
+
+.stat-card p{
+color:#64748b;
+margin:0;
+font-size:13px;
+}
+
+/* CARDS */
+
+.card{
+border:none !important;
+border-radius:14px !important;
+box-shadow:0 6px 24px rgba(0,0,0,.06);
+transition:.25s;
+}
+
+.card:hover{
+transform:translateY(-4px);
+box-shadow:0 12px 30px rgba(0,0,0,.08);
+}
+
+/* TABLES */
+
+.table thead th{
+font-size:11px;
+letter-spacing:.4px;
+text-transform:uppercase;
+color:#64748b;
+background:#f8fafc;
+border:none;
+}
+
+.table tbody tr{
+border-color:#f1f5f9;
+}
+
+/* FORMS */
+
+.form-control,
+.form-select{
+border-radius:8px;
+border:1.5px solid #e2e8f0;
+font-size:13.5px;
+}
+
+.form-control:focus,
+.form-select:focus{
+border-color:#2563eb;
+box-shadow:0 0 0 3px rgba(37,99,235,.15);
+}
+
+/* BUTTON */
+
+.btn{
+border-radius:8px;
+font-size:13.5px;
+}
+
+.btn-primary{
+background:#2563eb;
+border:none;
+}
+
+.btn-primary:hover{
+background:#1d4ed8;
+}
+
+/* ALERT */
+
+.alert{
+border:none;
+border-radius:10px;
+}
+
+/* FOOTER */
+
+footer{
+background:#111827;
+color:#9ca3af;
+padding:45px 0 25px;
+margin-top:auto;
+}
+
+footer h6{
+color:white;
+font-weight:600;
+margin-bottom:14px;
+}
+
+footer a{
+color:#9ca3af;
+text-decoration:none;
+font-size:13px;
+}
+
+footer a:hover{
+color:white;
+}
+
+.footer-divider{
+border-color:#374151;
+}
+
+/* SCROLLBAR */
+
+::-webkit-scrollbar{
+width:6px;
+}
+
+::-webkit-scrollbar-thumb{
+background:#cbd5e1;
+border-radius:10px;
+}
+
+/* PRICE COLORS */
+
+.price-up{color:#16a34a;font-weight:700}
+.price-down{color:#dc2626;font-weight:700}
+.price-stable{color:#d97706;font-weight:700}
+
+</style>
+
 </head>
+
 <body>
-    <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-light sticky-top">
-        <div class="container">
-            <a class="navbar-brand" href="{% url 'home' %}">
-                <i class="fas fa-onion"></i>
-                <span>OnionForecast</span>
-            </a>
-            
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item">
-                        <a class="nav-link active" href="{% url 'home' %}">
-                            <i class="fas fa-home me-1"></i>Home
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'dashboard' %}">
-                            <i class="fas fa-chart-line me-1"></i>Dashboard
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'historical' %}">
-                            <i class="fas fa-history me-1"></i>Historical
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'predict' %}">
-                            <i class="fas fa-calculator me-1"></i>Predict
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'recommendations' %}">
-                            <i class="fas fa-lightbulb me-1"></i>Insights
-                        </a>
-                    </li>
-                    
-                    {% if user.is_authenticated %}
-                    <li class="nav-item dropdown ms-2">
-                        <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
-                            <div class="bg-gradient rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 32px; height: 32px;">
-                                <span class="text-white fw-bold">{{ user.username|first|upper }}</span>
-                            </div>
-                            {{ user.username }}
-                        </a>
-                        <ul class="dropdown-menu dropdown-menu-end">
-                            {% if user.is_staff %}
-                            <li>
-                                <a class="dropdown-item" href="/admin/" target="_blank">
-                                    <i class="fas fa-cog me-2"></i>Admin Panel
-                                </a>
-                            </li>
-                            <li><hr class="dropdown-divider"></li>
-                            {% endif %}
-                            <li>
-                                <a class="dropdown-item" href="{% url 'logout' %}">
-                                    <i class="fas fa-sign-out-alt me-2"></i>Logout
-                                </a>
-                            </li>
-                        </ul>
-                    </li>
-                    {% else %}
-                    <li class="nav-item ms-2">
-                        <a class="btn btn-outline-primary" href="{% url 'login' %}">
-                            <i class="fas fa-sign-in-alt me-1"></i>Login
-                        </a>
-                    </li>
-                    {% endif %}
-                </ul>
-            </div>
-        </div>
-    </nav>
 
-    <!-- Messages -->
-    {% if messages %}
-    <div class="container mt-3 fade-in">
-        {% for message in messages %}
-        <div class="alert alert-{{ message.tags }} alert-dismissible fade show d-flex align-items-center" role="alert">
-            <i class="fas 
-                {% if message.tags == 'success' %}fa-check-circle
-                {% elif message.tags == 'error' %}fa-exclamation-circle
-                {% elif message.tags == 'warning' %}fa-exclamation-triangle
-                {% else %}fa-info-circle{% endif %}
-                me-2"></i>
-            <div>{{ message }}</div>
-            <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>
-        </div>
-        {% endfor %}
-    </div>
-    {% endif %}
-    <!-- Main Content -->
-    <main class="container my-4 slide-up">
-        {% block content %}{% endblock %}
-    </main>
-    <!-- Footer -->
-    <footer class="py-5">
-        <div class="container">
-            <div class="row g-4">
-                <div class="col-lg-4 col-md-6">
-                    <h4 class="mb-4">
-                        <i class="fas fa-onion me-2"></i>OnionForecast
-                    </h4>
-                    <p class="text-light">Using AI/ML to predict onion prices and stabilize the market for farmers, traders, and consumers across India.</p>
-                    <div class="d-flex gap-3 mt-3">
-                        <a href="#" class="text-white"><i class="fab fa-twitter fa-lg"></i></a>
-                        <a href="#" class="text-white"><i class="fab fa-facebook fa-lg"></i></a>
-                        <a href="#" class="text-white"><i class="fab fa-linkedin fa-lg"></i></a>
-                        <a href="#" class="text-white"><i class="fab fa-github fa-lg"></i></a>
-                    </div>
-                </div>
-                <div class="col-lg-2 col-md-6">
-                    <h5 class="mb-4">Quick Links</h5>
-                    <ul class="list-unstyled">
-                        <li class="mb-2"><a href="{% url 'home' %}" class="text-decoration-none">Home</a></li>
-                        <li class="mb-2"><a href="{% url 'dashboard' %}" class="text-decoration-none">Dashboard</a></li>
-                        <li class="mb-2"><a href="{% url 'predict' %}" class="text-decoration-none">Predict Prices</a></li>
-                        <li class="mb-2"><a href="{% url 'historical' %}" class="text-decoration-none">Historical Data</a></li>
-                        <li class="mb-2"><a href="{% url 'recommendations' %}" class="text-decoration-none">Market Insights</a></li>
-                    </ul>
-                </div>
-                <div class="col-lg-3 col-md-6">
-                    <h5 class="mb-4">Contact Info</h5>
-                    <ul class="list-unstyled">
-                        <li class="mb-3">
-                            <i class="fas fa-envelope me-2"></i>
-                            <span>info@onionforecast.com</span>
-                        </li>
-                        <li class="mb-3">
-                            <i class="fas fa-phone me-2"></i>
-                            <span>+91 98765 43210</span>
-                        </li>
-                        <li class="mb-3">
-                            <i class="fas fa-map-marker-alt me-2"></i>
-                            <span>New Delhi, India</span>
-                        </li>
-                    </ul>
-                </div>
-                <div class="col-lg-3 col-md-6">
-                    <h5 class="mb-4">Subscribe</h5>
-                    <p>Get the latest price alerts and insights</p>
-                    <div class="input-group mb-3">
-                        <input type="email" class="form-control" placeholder="Your email" aria-label="Email">
-                        <button class="btn btn-primary" type="button">
-                            <i class="fas fa-paper-plane"></i>
-                        </button>
-                    </div>
-                </div>
-            </div>
-            <hr class="my-4 bg-light opacity-50">
-            <div class="text-center">
-                <p class="mb-0">&copy; 2024 Onion Price Forecast System. All rights reserved.</p>
-            </div>
-        </div>
-    </footer>
+<!-- NAVBAR -->
 
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
-    <!-- AOS Animation -->
-    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
-    <script>
-        // Initialize AOS
-        AOS.init({
-            duration: 800,
-            once: true
-        });
-        
-        // Add active class to current page
-        document.addEventListener('DOMContentLoaded', function() {
-            const currentPath = window.location.pathname;
-            document.querySelectorAll('.nav-link').forEach(link => {
-                if (link.getAttribute('href') === currentPath) {
-                    link.classList.add('active');
-                }
-            });
-            
-            // Add hover effects to cards
-            const cards = document.querySelectorAll('.card');
-            cards.forEach(card => {
-                card.addEventListener('mouseenter', () => {
-                    card.style.transform = 'translateY(-10px)';
-                });
-                card.addEventListener('mouseleave', () => {
-                    card.style.transform = 'translateY(0)';
-                });
-            });
-        });
-    </script>
-    
-    {% block scripts %}{% endblock %}
+<nav class="navbar navbar-expand-lg sticky-top">
+
+<div class="container">
+
+<a class="navbar-brand" href="{% url 'home' %}">
+<span class="brand-icon"><i class="fas fa-seedling"></i></span>
+Onion Forecast
+</a>
+
+<button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navMain">
+<span class="navbar-toggler-icon"></span>
+</button>
+
+<div class="collapse navbar-collapse" id="navMain">
+
+<ul class="navbar-nav mx-auto">
+
+<li class="nav-item">
+<a class="nav-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}" href="{% url 'home' %}">
+Home
+</a>
+</li>
+
+<li class="nav-item">
+<a class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}" href="{% url 'dashboard' %}">
+Dashboard
+</a>
+</li>
+
+<li class="nav-item">
+<a class="nav-link {% if request.resolver_match.url_name == 'historical' %}active{% endif %}" href="{% url 'historical' %}">
+Historical
+</a>
+</li>
+
+<li class="nav-item">
+<a class="nav-link {% if request.resolver_match.url_name == 'predict' %}active{% endif %}" href="{% url 'predict' %}">
+Predict
+</a>
+</li>
+
+<li class="nav-item">
+<a class="nav-link {% if request.resolver_match.url_name == 'recommendations' %}active{% endif %}" href="{% url 'recommendations' %}">
+Advice
+</a>
+</li>
+
+<li class="nav-item">
+<a class="nav-link {% if request.resolver_match.url_name == 'about' %}active{% endif %}" href="{% url 'about' %}">
+About
+</a>
+</li>
+
+</ul>
+
+<div class="d-flex align-items-center gap-2">
+
+{% if user.is_authenticated %}
+
+<div class="dropdown">
+
+<div class="user-chip dropdown-toggle" data-bs-toggle="dropdown">
+<span class="avatar">{{ user.username|first|upper }}</span>
+{{ user.username }}
+</div>
+
+<ul class="dropdown-menu dropdown-menu-end shadow border-0">
+
+<li class="px-3 py-2 text-muted small">Signed in as</li>
+<li class="px-3 pb-2 fw-bold">{{ user.username }}</li>
+
+<li><hr class="dropdown-divider"></li>
+
+<li>
+<a class="dropdown-item" href="{% url 'admin_dashboard' %}">
+<i class="fas fa-shield-alt me-2"></i>Admin Panel
+</a>
+</li>
+
+<li>
+<a class="dropdown-item text-danger" href="{% url 'logout' %}">
+<i class="fas fa-sign-out-alt me-2"></i>Logout
+</a>
+</li>
+
+</ul>
+
+</div>
+
+{% else %}
+
+<a href="{% url 'login' %}" class="btn-login">
+Login
+</a>
+
+{% endif %}
+
+</div>
+
+</div>
+
+</div>
+
+</nav>
+
+<!-- MESSAGES -->
+
+{% if messages %}
+<div class="container mt-3">
+{% for message in messages %}
+<div class="alert alert-info alert-dismissible fade show">
+{{ message }}
+<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+{% endfor %}
+</div>
+{% endif %}
+
+<!-- MAIN -->
+
+<main>
+{% block content %}{% endblock %}
+</main>
+
+<!-- FOOTER -->
+
+<footer>
+
+<div class="container">
+
+<div class="row g-4 mb-3">
+
+<div class="col-md-4">
+
+<h6><i class="fas fa-seedling me-1"></i> Onion Price Forecast</h6>
+
+<p class="small">
+AI powered onion price predictions helping farmers,
+traders and policymakers make informed market decisions.
+</p>
+
+</div>
+
+<div class="col-md-4">
+
+<h6>Quick Links</h6>
+
+<ul class="list-unstyled small">
+
+<li><a href="{% url 'home' %}">Home</a></li>
+<li><a href="{% url 'dashboard' %}">Dashboard</a></li>
+<li><a href="{% url 'predict' %}">Predict Prices</a></li>
+<li><a href="{% url 'historical' %}">Historical Data</a></li>
+<li><a href="{% url 'about' %}">About</a></li>
+
+</ul>
+
+</div>
+
+<div class="col-md-4">
+
+<h6>Contact</h6>
+
+<p class="small mb-1"><i class="fas fa-envelope me-2"></i>info@onionforecast.in</p>
+<p class="small mb-1"><i class="fas fa-phone me-2"></i>+91 98765 43210</p>
+<p class="small"><i class="fas fa-map-marker-alt me-2"></i>Nashik, India</p>
+
+</div>
+
+</div>
+
+<hr class="footer-divider">
+
+<div class="d-flex justify-content-between flex-wrap small">
+
+<p class="mb-0">© 2025 Onion Forecast</p>
+
+<p class="mb-0">
+Built with <i class="fas fa-heart text-danger"></i> for Indian farmers
+</p>
+
+</div>
+
+</div>
+
+</footer>
+
+<!-- JS -->
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+{% block scripts %}{% endblock %}
+
 </body>
 </html>

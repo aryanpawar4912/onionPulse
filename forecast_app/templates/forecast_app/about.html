@@ -1,355 +1,334 @@
-<!-- forecast_app/templates/forecast_app/about.html -->
 {% extends 'forecast_app/base.html' %}
 {% load static %}
 
 {% block content %}
-<div class="row mb-4">
-    <div class="col-12">
-        <div class="hero-section">
-            <div class="container">
-                <h1 class="display-5 fw-bold">About Onion Price Forecast</h1>
-                <p class="lead">Revolutionizing onion market stability through AI and machine learning</p>
+
+<!-- HERO SECTION -->
+<section class="about-hero">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6">
+                <h1 class="hero-title">AI Powered Onion Price Forecast</h1>
+                <p class="hero-text">
+                    Helping farmers, traders and policymakers make smarter decisions
+                    using machine learning powered onion price predictions.
+                </p>
+
+                <div class="mt-4">
+                    <a href="{% url 'predict' %}" class="btn btn-warning btn-lg me-3">
+                        View Forecast
+                    </a>
+
+                    <a href="{% url 'contact' %}" class="btn btn-outline-light btn-lg">
+                        Contact Us
+                    </a>
+                </div>
+            </div>
+
+            <div class="col-lg-6 text-center">
+                <img src="data:image/jpeg;base64,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" class="hero-img">
             </div>
         </div>
     </div>
-</div>
+</section>
 
+
+<!-- MISSION SECTION -->
+<section class="section-space">
 <div class="container">
-    <!-- Mission Statement -->
-    <div class="card mb-5">
-        <div class="card-body">
-            <div class="row align-items-center">
-                <div class="col-lg-8">
-                    <h2 class="mb-4">Our Mission</h2>
-                    <p class="lead">
-                        To reduce market instability in the Indian onion sector by providing accurate, 
-                        AI-powered price predictions that empower farmers, traders, consumers, and policymakers.
-                    </p>
-                    <p>
-                        Onion prices in India are notoriously volatile, causing significant problems across 
-                        the supply chain. Our platform leverages cutting-edge machine learning algorithms 
-                        to analyze historical data, market factors, and seasonal patterns to forecast prices 
-                        with unprecedented accuracy.
-                    </p>
-                </div>
-                <div class="col-lg-4 text-center">
-                    <i class="fas fa-bullseye fa-6x text-primary"></i>
-                </div>
-            </div>
-        </div>
-    </div>
 
-    <!-- Problem Statement -->
-    <div class="row mb-5">
-        <div class="col-lg-6">
-            <div class="card h-100">
-                <div class="card-header bg-danger text-white">
-                    <h5 class="mb-0"><i class="fas fa-exclamation-triangle me-2"></i>The Problem</h5>
-                </div>
-                <div class="card-body">
-                    <h6 class="text-danger mb-3">Market Instability Challenges</h6>
-                    <ul class="list-unstyled">
-                        <li class="mb-3">
-                            <i class="fas fa-user-tie text-danger me-2"></i>
-                            <strong>Farmers suffer losses</strong> during price crashes
-                        </li>
-                        <li class="mb-3">
-                            <i class="fas fa-shopping-basket text-danger me-2"></i>
-                            <strong>Consumers face price shocks</strong> during shortages
-                        </li>
-                        <li class="mb-3">
-                            <i class="fas fa-truck text-danger me-2"></i>
-                            <strong>Traders struggle with inventory management</strong>
-                        </li>
-                        <li class="mb-3">
-                            <i class="fas fa-landmark text-danger me-2"></i>
-                            <strong>Government reactive measures</strong> often come too late
-                        </li>
-                        <li>
-                            <i class="fas fa-chart-line text-danger me-2"></i>
-                            <strong>Price fluctuations up to 300%</strong> within a single season
-                        </li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-        <div class="col-lg-6">
-            <div class="card h-100">
-                <div class="card-header bg-success text-white">
-                    <h5 class="mb-0"><i class="fas fa-lightbulb me-2"></i>Our Solution</h5>
-                </div>
-                <div class="card-body">
-                    <h6 class="text-success mb-3">AI-Powered Forecasting</h6>
-                    <ul class="list-unstyled">
-                        <li class="mb-3">
-                            <i class="fas fa-brain text-success me-2"></i>
-                            <strong>Multiple ML models</strong> (LSTM, Random Forest, XGBoost, Prophet)
-                        </li>
-                        <li class="mb-3">
-                            <i class="fas fa-database text-success me-2"></i>
-                            <strong>Real-time data integration</strong> from APMC markets
-                        </li>
-                        <li class="mb-3">
-                            <i class="fas fa-cloud-sun text-success me-2"></i>
-                            <strong>Weather and seasonal analysis</strong>
-                        </li>
-                        <li class="mb-3">
-                            <i class="fas fa-chart-bar text-success me-2"></i>
-                            <strong>85%+ prediction accuracy</strong> for 7-day forecasts
-                        </li>
-                        <li>
-                            <i class="fas fa-user-friends text-success me-2"></i>
-                            <strong>Personalized recommendations</strong> for different user types
-                        </li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-    </div>
+<div class="row align-items-center">
 
-    <!-- Technology Stack -->
-    <div class="card mb-5">
-        <div class="card-header bg-dark text-white">
-            <h5 class="mb-0"><i class="fas fa-code me-2"></i>Technology Stack</h5>
-        </div>
-        <div class="card-body">
-            <div class="row text-center">
-                <div class="col-md-3 col-6 mb-4">
-                    <div class="tech-icon">
-                        <i class="fab fa-python fa-3x text-primary mb-3"></i>
-                        <h6>Python</h6>
-                        <p class="small text-muted">Backend & ML</p>
-                    </div>
-                </div>
-                <div class="col-md-3 col-6 mb-4">
-                    <div class="tech-icon">
-                        <i class="fab fa-django fa-3x text-success mb-3"></i>
-                        <h6>Django</h6>
-                        <p class="small text-muted">Web Framework</p>
-                    </div>
-                </div>
-                <div class="col-md-3 col-6 mb-4">
-                    <div class="tech-icon">
-                        <i class="fas fa-brain fa-3x text-warning mb-3"></i>
-                        <h6>TensorFlow</h6>
-                        <p class="small text-muted">Deep Learning</p>
-                    </div>
-                </div>
-                <div class="col-md-3 col-6 mb-4">
-                    <div class="tech-icon">
-                        <i class="fas fa-chart-line fa-3x text-danger mb-3"></i>
-                        <h6>Prophet</h6>
-                        <p class="small text-muted">Time Series</p>
-                    </div>
-                </div>
-                <div class="col-md-3 col-6 mb-4">
-                    <div class="tech-icon">
-                        <i class="fas fa-database fa-3x text-info mb-3"></i>
-                        <h6>MongoDB</h6>
-                        <p class="small text-muted">Database</p>
-                    </div>
-                </div>
-                <div class="col-md-3 col-6 mb-4">
-                    <div class="tech-icon">
-                        <i class="fab fa-js-square fa-3x text-warning mb-3"></i>
-                        <h6>JavaScript</h6>
-                        <p class="small text-muted">Frontend</p>
-                    </div>
-                </div>
-                <div class="col-md-3 col-6 mb-4">
-                    <div class="tech-icon">
-                        <i class="fab fa-bootstrap fa-3x text-purple mb-3"></i>
-                        <h6>Bootstrap</h6>
-                        <p class="small text-muted">UI Framework</p>
-                    </div>
-                </div>
-                <div class="col-md-3 col-6 mb-4">
-                    <div class="tech-icon">
-                        <i class="fas fa-cloud fa-3x text-primary mb-3"></i>
-                        <h6>REST APIs</h6>
-                        <p class="small text-muted">Data Integration</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+<div class="col-lg-6">
+<img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT7H4W_xgMbgPo3Asn_97JQzjx2ESeV31caRQ&s" class="img-fluid rounded shadow">
+</div>
 
-    <!-- Team -->
-    <div class="card mb-5">
-        <div class="card-header bg-primary text-white">
-            <h5 class="mb-0"><i class="fas fa-users me-2"></i>For Whom We Build</h5>
-        </div>
-        <div class="card-body">
-            <div class="row">
-                <div class="col-md-4 mb-4">
-                    <div class="card h-100 text-center">
-                        <div class="card-body">
-                            <i class="fas fa-tractor fa-3x text-success mb-3"></i>
-                            <h5>Farmers</h5>
-                            <p class="text-muted">Make informed decisions about when to sell or store onions based on price predictions.</p>
-                            <ul class="list-unstyled text-start">
-                                <li><i class="fas fa-check text-success me-2"></i>Optimal selling time</li>
-                                <li><i class="fas fa-check text-success me-2"></i>Storage recommendations</li>
-                                <li><i class="fas fa-check text-success me-2"></i>Market selection</li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-4 mb-4">
-                    <div class="card h-100 text-center">
-                        <div class="card-body">
-                            <i class="fas fa-chart-line fa-3x text-primary mb-3"></i>
-                            <h5>Traders & Wholesalers</h5>
-                            <p class="text-muted">Optimize inventory management and buying decisions with accurate price forecasts.</p>
-                            <ul class="list-unstyled text-start">
-                                <li><i class="fas fa-check text-primary me-2"></i>Inventory optimization</li>
-                                <li><i class="fas fa-check text-primary me-2"></i>Risk management</li>
-                                <li><i class="fas fa-check text-primary me-2"></i>Market analysis</li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-4 mb-4">
-                    <div class="card h-100 text-center">
-                        <div class="card-body">
-                            <i class="fas fa-landmark fa-3x text-warning mb-3"></i>
-                            <h5>Government & Policymakers</h5>
-                            <p class="text-muted">Make data-driven decisions for price stabilization and market interventions.</p>
-                            <ul class="list-unstyled text-start">
-                                <li><i class="fas fa-check text-warning me-2"></i>Policy planning</li>
-                                <li><i class="fas fa-check text-warning me-2"></i>Export/import decisions</li>
-                                <li><i class="fas fa-check text-warning me-2"></i>Market monitoring</li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+<div class="col-lg-6">
+<h2 class="section-title">Our Mission</h2>
 
-    <!-- Data Sources -->
-    <div class="card mb-5">
-        <div class="card-header bg-info text-white">
-            <h5 class="mb-0"><i class="fas fa-database me-2"></i>Data Sources & Accuracy</h5>
-        </div>
-        <div class="card-body">
-            <div class="row">
-                <div class="col-lg-8">
-                    <h6>Our Data Ecosystem</h6>
-                    <p>We integrate data from multiple reliable sources to ensure accurate predictions:</p>
-                    <ul>
-                        <li><strong>APMC Market Data:</strong> Daily price data from major agricultural markets across India</li>
-                        <li><strong>Government Databases:</strong> Historical price data from Ministry of Agriculture</li>
-                        <li><strong>Weather Data:</strong> Real-time and historical weather patterns from IMD</li>
-                        <li><strong>Market Intelligence:</strong> Policy changes, export bans, and market news</li>
-                        <li><strong>Seasonal Patterns:</strong> Historical seasonal trends and festival impacts</li>
-                    </ul>
-                    
-                    <div class="alert alert-success mt-4">
-                        <i class="fas fa-award me-2"></i>
-                        <strong>Accuracy Metrics:</strong> Our models achieve 85%+ accuracy for 7-day forecasts 
-                        and 75%+ accuracy for 30-day forecasts based on backtesting with historical data.
-                    </div>
-                </div>
-                <div class="col-lg-4">
-                    <div class="card">
-                        <div class="card-body">
-                            <h6 class="text-center">Prediction Accuracy</h6>
-                            <div class="text-center my-4">
-                                <div class="accuracy-circle mx-auto">
-                                    <span class="accuracy-value">85%</span>
-                                </div>
-                                <p class="text-muted mt-2">7-Day Forecast Accuracy</p>
-                            </div>
-                            <div class="text-center">
-                                <button onclick="showAccuracyChart()" class="btn btn-outline-info btn-sm">
-                                    <i class="fas fa-chart-bar me-1"></i> View Detailed Metrics
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+<p class="lead">
+We aim to reduce instability in India's onion market using AI powered price forecasting.
+</p>
 
-    <!-- Call to Action -->
-  <!-- Call to Action -->
-<div class="card text-center mb-5 border-0 shadow-lg">
-    <div class="card-body py-5">
-        <h2 class="mb-3">Ready to Make Informed Decisions?</h2>
-        <p class="lead mb-4">Join hundreds of users who are already benefiting from our predictive insights.</p>
-        <div class="d-flex justify-content-center flex-wrap gap-3">
-            <!-- Fixed: Changed 'forecast' to 'predict' -->
-            <a href="{% url 'predict' %}" class="btn btn-primary btn-lg">
-                <i class="fas fa-chart-line me-2"></i>View Forecast
-            </a>
-            <!-- Fixed: Changed 'register' to 'login' (since you don't have register) -->
-            <a href="{% url 'login' %}" class="btn btn-success btn-lg">
-                <i class="fas fa-user-plus me-2"></i>Sign Up Free
-            </a>
-            <a href="{% url 'contact' %}" class="btn btn-outline-primary btn-lg">
-                <i class="fas fa-question-circle me-2"></i>Contact Us
-            </a>
-        </div>
-    </div>
+<p>
+Onion prices fluctuate drastically causing losses for farmers and high prices
+for consumers. Our system analyzes historical data, seasonal patterns,
+weather impact and market trends to forecast onion prices with high accuracy.
+</p>
+
 </div>
 </div>
+
+</div>
+</section>
+
+
+<!-- PROBLEM & SOLUTION -->
+<section class="section-bg">
+<div class="container">
+
+<h2 class="text-center section-title mb-5">Market Challenge & Our Solution</h2>
+
+<div class="row">
+
+<div class="col-lg-6">
+<div class="info-card problem-card">
+
+<h4><i class="fas fa-exclamation-triangle me-2"></i> Market Problems</h4>
+
+<ul>
+<li>Farmers suffer huge losses during price crashes</li>
+<li>Consumers face sudden price spikes</li>
+<li>Traders struggle with inventory planning</li>
+<li>Government policies often react too late</li>
+<li>Prices can fluctuate up to 300%</li>
+</ul>
+
+</div>
+</div>
+
+<div class="col-lg-6">
+<div class="info-card solution-card">
+
+<h4><i class="fas fa-lightbulb me-2"></i> Our AI Solution</h4>
+
+<ul>
+<li>Machine learning prediction models</li>
+<li>Real-time APMC market data</li>
+<li>Weather pattern analysis</li>
+<li>Seasonal demand forecasting</li>
+<li>85%+ prediction accuracy</li>
+</ul>
+
+</div>
+</div>
+
+</div>
+</div>
+</section>
+
+
+<!-- TECHNOLOGY STACK -->
+<section class="section-space">
+<div class="container">
+
+<h2 class="text-center section-title mb-5">Technology Stack</h2>
+
+<div class="row text-center">
+
+<div class="col-md-3 col-6 tech-box">
+<i class="fab fa-python tech-icon"></i>
+<h6>Python</h6>
+<p>ML Backend</p>
+</div>
+
+<div class="col-md-3 col-6 tech-box">
+<i class="fab fa-django tech-icon"></i>
+<h6>Django</h6>
+<p>Web Framework</p>
+</div>
+
+<div class="col-md-3 col-6 tech-box">
+<i class="fas fa-brain tech-icon"></i>
+<h6>TensorFlow</h6>
+<p>Deep Learning</p>
+</div>
+
+<div class="col-md-3 col-6 tech-box">
+<i class="fas fa-chart-line tech-icon"></i>
+<h6>Prophet</h6>
+<p>Time Series</p>
+</div>
+
+</div>
+
+</div>
+</section>
+
+
+<!-- USERS -->
+<section class="section-bg">
+<div class="container">
+
+<h2 class="text-center section-title mb-5">Who Benefits</h2>
+
+<div class="row">
+
+<div class="col-md-4">
+<div class="user-card">
+
+<i class="fas fa-tractor user-icon"></i>
+<h5>Farmers</h5>
+
+<p>
+Get insights on the best time to sell onions and avoid losses caused
+by price crashes.
+</p>
+
+</div>
+</div>
+
+<div class="col-md-4">
+<div class="user-card">
+
+<i class="fas fa-chart-line user-icon"></i>
+<h5>Traders</h5>
+
+<p>
+Plan inventory and make better buying decisions using market forecasts.
+</p>
+
+</div>
+</div>
+
+<div class="col-md-4">
+<div class="user-card">
+
+<i class="fas fa-landmark user-icon"></i>
+<h5>Government</h5>
+
+<p>
+Support policy planning and market interventions with data-driven insights.
+</p>
+
+</div>
+</div>
+
+</div>
+
+</div>
+</section>
+
+
+<!-- CTA -->
+<section class="cta-section">
+
+<div class="container text-center">
+
+<h2>Start Using Price Forecasts Today</h2>
+
+<p class="lead">
+Make smarter agricultural market decisions with AI.
+</p>
+
+<a href="{% url 'predict' %}" class="btn btn-light btn-lg mt-3">
+Check Forecast
+</a>
+
+</div>
+
+</section>
+
+
 
 <style>
-    .hero-section {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        padding: 80px 0;
-        border-radius: 15px;
-        margin-top: 20px;
-    }
-    
-    .tech-icon {
-        padding: 20px 10px;
-        transition: transform 0.3s;
-    }
-    
-    .tech-icon:hover {
-        transform: translateY(-5px);
-    }
-    
-    .accuracy-circle {
-        width: 120px;
-        height: 120px;
-        border-radius: 50%;
-        background: conic-gradient(#4CAF50 85%, #e0e0e0 0%);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        position: relative;
-    }
-    
-    .accuracy-circle::before {
-        content: '';
-        position: absolute;
-        width: 90px;
-        height: 90px;
-        background: white;
-        border-radius: 50%;
-    }
-    .accuracy-value {
-        position: relative;
-        font-size: 24px;
-        font-weight: bold;
-        color: #4CAF50;
-        z-index: 1;
-    }
-    
-    .text-purple {
-        color: #6f42c1 !important;
-    }
+
+/* HERO */
+
+.about-hero{
+background: linear-gradient(120deg,#2e7d32,#66bb6a);
+color:white;
+padding:100px 0;
+}
+
+.hero-title{
+font-size:48px;
+font-weight:700;
+}
+
+.hero-text{
+font-size:18px;
+margin-top:15px;
+}
+
+.hero-img{
+max-width:420px;
+}
+
+
+/* SECTION SPACING */
+
+.section-space{
+padding:80px 0;
+}
+
+.section-bg{
+background:#f7f7f7;
+padding:80px 0;
+}
+
+.section-title{
+font-weight:700;
+font-size:34px;
+}
+
+
+/* INFO CARDS */
+
+.info-card{
+background:white;
+padding:35px;
+border-radius:12px;
+box-shadow:0 10px 25px rgba(0,0,0,0.08);
+transition:.3s;
+}
+
+.info-card:hover{
+transform:translateY(-5px);
+}
+
+.problem-card{
+border-left:5px solid #e53935;
+}
+
+.solution-card{
+border-left:5px solid #43a047;
+}
+
+
+/* TECH */
+
+.tech-box{
+margin-bottom:30px;
+}
+
+.tech-icon{
+font-size:40px;
+color:#2e7d32;
+margin-bottom:10px;
+}
+
+
+/* USER CARDS */
+
+.user-card{
+background:white;
+padding:30px;
+border-radius:12px;
+text-align:center;
+box-shadow:0 10px 20px rgba(0,0,0,0.08);
+transition:.3s;
+}
+
+.user-card:hover{
+transform:translateY(-6px);
+}
+
+.user-icon{
+font-size:45px;
+color:#43a047;
+margin-bottom:15px;
+}
+
+
+/* CTA */
+
+.cta-section{
+background:linear-gradient(120deg,#ffb300,#ffa000);
+padding:80px 0;
+color:white;
+}
+
 </style>
 
-<script>
-    function showAccuracyChart() {
-        // This function would typically show a modal with detailed accuracy charts
-        alert('Detailed accuracy metrics would be displayed here with charts comparing different models and time periods.');
-    }
-</script>
 {% endblock %}

@@ -4,239 +4,300 @@ from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http import JsonResponse
+from django.db.models import Avg, Count
 from django.utils import timezone
 from datetime import datetime, timedelta
-import json
-import pandas as pd
 from .models import OnionPrice, PricePrediction, MarketFactor, UserProfile
-from .ml_model.price_predictor import RealTimePredictor
-from .utils.mongodb_handler import MongoDBHandler
+
+
 def home(request):
-    """Home page"""
-    return render(request, 'forecast_app/home.html')
+    # Pass recent prices, predictions, and market factors to the home page
+    recent_prices  = OnionPrice.objects.order_by('-date')[:10]
+    market_factors = MarketFactor.objects.filter(is_active=True)[:5]
+    predictions    = PricePrediction.objects.order_by('-forecast_date')[:7]
+
+    total_prices      = OnionPrice.objects.count()
+    total_factors     = MarketFactor.objects.filter(is_active=True).count()
+    total_predictions = PricePrediction.objects.count()
+
+    context = {
+        'recent_prices':      recent_prices,
+        'market_factors':     market_factors,
+        'predictions':        predictions,
+        'total_prices':       total_prices,
+        'total_factors':      total_factors,
+        'total_predictions':  total_predictions,
+        'accuracy':           85,
+    }
+    return render(request, 'forecast_app/home.html', context)
+
 
 def dashboard(request):
-    """Main dashboard"""
-    predictor = RealTimePredictor()
-    
-    # Get current trends
-    trend_data = predictor.get_price_trend()
-    
-    # Get predictions
-    predictions = predictor.predict_next_7_days()
-    
-    # Get market factors
+    try:
+        from .ml_model.price_predictor import RealTimePredictor
+        predictor        = RealTimePredictor()
+        trend_data       = predictor.get_price_trend()
+        predictions_df   = predictor.predict_next_7_days()
+        predictions_list = predictions_df.to_dict('records') if predictions_df is not None else []
+    except Exception:
+        trend_data       = None
+        predictions_list = []
+
     factors = MarketFactor.objects.filter(is_active=True)[:5]
-    
     context = {
-        'trend_data': trend_data,
-        'predictions': predictions.to_dict('records') if predictions is not None else [],
-        'factors': factors,
-        'user_type': request.user.userprofile.user_type if hasattr(request.user, 'userprofile') else None
+        'trend_data':  trend_data,
+        'predictions': predictions_list,
+        'factors':     factors,
+        'user_type':   request.user.userprofile.user_type if hasattr(request.user, 'userprofile') else None,
     }
-    
     return render(request, 'forecast_app/dashboard.html', context)
 
+
 def historical_data(request):
-    """View historical price data"""
-    mongo = MongoDBHandler()
-    
-    # Get filter parameters
-    market = request.GET.get('market', '')
+    market     = request.GET.get('market', '')
     start_date = request.GET.get('start_date', '')
-    end_date = request.GET.get('end_date', '')
-    
-    # Convert dates
-    start_date_obj = None
-    end_date_obj = None
-    
+    end_date   = request.GET.get('end_date', '')
+
+    qs = OnionPrice.objects.all().order_by('-date')
+    if market:
+        qs = qs.filter(market__iexact=market)
     if start_date:
         try:
-            start_date_obj = datetime.strptime(start_date, '%Y-%m-%d')
+            qs = qs.filter(date__gte=datetime.strptime(start_date, '%Y-%m-%d').date())
         except ValueError:
-            start_date_obj = None
-    
+            pass
     if end_date:
         try:
-            end_date_obj = datetime.strptime(end_date, '%Y-%m-%d')
+            qs = qs.filter(date__lte=datetime.strptime(end_date, '%Y-%m-%d').date())
         except ValueError:
-            end_date_obj = None
-    
-    # Get data
-    df = mongo.get_price_data(
-        start_date=start_date_obj,
-        end_date=end_date_obj,
-        market=market
-    )
-    
-    # Get markets list for filter dropdown
-    markets = mongo.get_markets_list()
-    
+            pass
+
+    markets = list(OnionPrice.objects.values_list('market', flat=True).distinct().order_by('market'))
     context = {
-        'data': df.to_dict('records') if not df.empty else [],
-        'markets': markets,
+        'data':            list(qs.values()),
+        'markets':         markets,
         'selected_market': market,
-        'start_date': start_date,
-        'end_date': end_date
+        'start_date':      start_date,
+        'end_date':        end_date,
     }
-    
     return render(request, 'forecast_app/historical.html', context)
+
 
 @login_required
 def predict_price(request):
-    """Make price predictions"""
+    """Price prediction page."""
     if request.method == 'POST':
-        # Get form data
-        market = request.POST.get('market')
+        market     = request.POST.get('market', 'All Markets')
         days_ahead = int(request.POST.get('days_ahead', 7))
         model_type = request.POST.get('model_type', 'lstm')
-        
-        # Make prediction
-        predictor = RealTimePredictor()
-        predictor.load_latest_data()
-        
-        predictions = predictor.predictor.predict_future(
-            model_name=model_type,
-            future_days=days_ahead
-        )
-        
-        if predictions is not None:
-            # Save prediction to database
-            for _, row in predictions.iterrows():
-                prediction = PricePrediction.objects.create(
-                    prediction_date=timezone.now().date(),
-                    forecast_date=row['ds'] if 'ds' in row else timezone.now().date() + timedelta(days=1),
-                    market=market or 'All Markets',
-                    predicted_modal_price=row['yhat'] if 'yhat' in row else row['predicted_price'],
-                    predicted_min_price=row.get('yhat_lower', row['yhat'] * 0.95) if 'yhat_lower' in row else row['predicted_price'] * 0.95,
-                    predicted_max_price=row.get('yhat_upper', row['yhat'] * 1.05) if 'yhat_upper' in row else row['predicted_price'] * 1.05,
-                    confidence_interval=85.0,
-                    model_used_id=1  # Assuming model ID 1 exists
+        saved      = 0
+        error_msg  = None
+
+        try:
+            from .ml_model.price_predictor import RealTimePredictor
+            predictor = RealTimePredictor()
+            predictor.load_latest_data()
+
+            predictions_df = None
+
+            if hasattr(predictor, 'predict_future'):
+                predictions_df = predictor.predict_future(
+                    model_name=model_type, future_days=days_ahead
                 )
-            
-            messages.success(request, 'Prediction completed successfully!')
-            return redirect('prediction_results')
-    
-    # GET request - show form
-    mongo = MongoDBHandler()
-    markets = mongo.get_markets_list()
-    
+            elif hasattr(predictor, 'predictor') and hasattr(predictor.predictor, 'predict_future'):
+                predictions_df = predictor.predictor.predict_future(
+                    model_name=model_type, future_days=days_ahead
+                )
+            elif hasattr(predictor, 'predict_next_7_days'):
+                predictions_df = predictor.predict_next_7_days(market=market)
+
+            if predictions_df is not None and not predictions_df.empty:
+                for _, row in predictions_df.iterrows():
+                    if 'ds' in row:
+                        raw_date      = row['ds']
+                        forecast_date = raw_date.date() if hasattr(raw_date, 'date') else datetime.strptime(str(raw_date)[:10], '%Y-%m-%d').date()
+                        modal = float(row.get('yhat', 0))
+                        lo    = float(row.get('yhat_lower', modal * 0.95))
+                        hi    = float(row.get('yhat_upper', modal * 1.05))
+                    else:
+                        forecast_date = timezone.now().date() + timedelta(days=saved + 1)
+                        modal = float(row.get('predicted_price', 0))
+                        lo    = modal * 0.95
+                        hi    = modal * 1.05
+
+                    PricePrediction.objects.create(
+                        prediction_date       = timezone.now().date(),
+                        forecast_date         = forecast_date,
+                        market                = market,
+                        predicted_modal_price = modal,
+                        predicted_min_price   = lo,
+                        predicted_max_price   = hi,
+                        confidence_interval   = 85.0,
+                    )
+                    saved += 1
+
+                messages.success(request, f'✅ {saved} prediction{"s" if saved != 1 else ""} generated for {market}!')
+                return redirect('prediction_results')
+            else:
+                error_msg = 'The ML model returned no predictions. Make sure enough historical data exists for this market.'
+
+        except Exception as e:
+            error_msg = f'Prediction engine error: {e}'
+
+        messages.error(request, error_msg)
+
+    markets            = list(OnionPrice.objects.values_list('market', flat=True).distinct().order_by('market'))
+    recent_predictions = PricePrediction.objects.order_by('-prediction_date')[:5]
+
     context = {
-        'markets': markets,
+        'markets':            markets,
+        'recent_predictions': recent_predictions,
         'model_types': [
-            ('lstm', 'LSTM Neural Network'),
-            ('rf', 'Random Forest'),
-            ('xgb', 'XGBoost'),
-            ('prophet', 'Facebook Prophet')
-        ]
+            ('lstm',    'LSTM Neural Network'),
+            ('rf',      'Random Forest'),
+            ('xgb',     'XGBoost'),
+            ('prophet', 'Facebook Prophet'),
+        ],
     }
-    
     return render(request, 'forecast_app/predict.html', context)
 
+
 def prediction_results(request):
-    """View prediction results"""
-    predictions = PricePrediction.objects.all().order_by('-forecast_date')[:50]
-    
+    """Prediction results page with filtering support."""
+    # --- filter params ---
+    market_filter = request.GET.get('market', '')
+    date_filter   = request.GET.get('date_range', 'all')
+    status_filter = request.GET.get('status', 'all')
+
+    qs = PricePrediction.objects.all().order_by('-forecast_date')
+
+    if market_filter:
+        qs = qs.filter(market__iexact=market_filter)
+
+    if date_filter == 'week':
+        qs = qs.filter(prediction_date__gte=timezone.now().date() - timedelta(days=7))
+    elif date_filter == 'month':
+        qs = qs.filter(prediction_date__gte=timezone.now().date() - timedelta(days=30))
+    elif date_filter == 'quarter':
+        qs = qs.filter(prediction_date__gte=timezone.now().date() - timedelta(days=90))
+
+    if status_filter == 'verified':
+        qs = qs.filter(actual_price__isnull=False)
+    elif status_filter == 'pending':
+        qs = qs.filter(actual_price__isnull=True)
+
+    predictions = qs[:100]
+
+    # --- stats ---
+    all_predictions       = PricePrediction.objects.all()
+    avg_confidence        = all_predictions.aggregate(Avg('confidence_interval'))['confidence_interval__avg'] or 0
+    accurate_predictions  = all_predictions.filter(actual_price__isnull=False).count()
+    pending_predictions   = all_predictions.filter(actual_price__isnull=True).count()
+    total_count           = all_predictions.count()
+
+    # --- distinct markets for filter dropdown ---
+    markets = list(
+        PricePrediction.objects.values_list('market', flat=True)
+        .distinct()
+        .order_by('market')
+    )
+
     context = {
-        'predictions': predictions
+        'predictions':           predictions,
+        'markets':               markets,
+        'avg_confidence':        round(avg_confidence, 1),
+        'accurate_predictions':  accurate_predictions,
+        'pending_predictions':   pending_predictions,
+        'total_count':           total_count,
+        # preserve filter state
+        'selected_market':       market_filter,
+        'selected_date':         date_filter,
+        'selected_status':       status_filter,
     }
-    
     return render(request, 'forecast_app/prediction_results.html', context)
 
+
 def api_get_prices(request):
-    """API endpoint to get price data"""
-    mongo = MongoDBHandler()
-    
-    # Get parameters
+    """JSON endpoint — historical prices for preview chart."""
     market = request.GET.get('market', '')
-    days = int(request.GET.get('days', 30))
-    
-    # Calculate dates
-    end_date = datetime.now()
-    start_date = end_date - timedelta(days=days)
-    
-    # Get data
-    df = mongo.get_price_data(
-        start_date=start_date,
-        end_date=end_date,
-        market=market
-    )
-    
-    # Format response
-    if df.empty:
-        return JsonResponse({'data': [], 'message': 'No data found'})
-    
-    # Convert to list of dicts
-    data = []
-    for _, row in df.iterrows():
-        data.append({
-            'date': row['date'].strftime('%Y-%m-%d') if hasattr(row['date'], 'strftime') else str(row['date']),
-            'market': row.get('market', ''),
-            'modal_price': row.get('modal_price', 0),
-            'min_price': row.get('min_price', 0),
-            'max_price': row.get('max_price', 0)
-        })
-    
+    days   = int(request.GET.get('days', 60))
+
+    end_dt   = datetime.now()
+    start_dt = end_dt - timedelta(days=days)
+
+    qs = OnionPrice.objects.filter(
+        date__gte=start_dt.date(), date__lte=end_dt.date()
+    ).order_by('date')
+    if market:
+        qs = qs.filter(market__iexact=market)
+
+    data = [
+        {
+            'date':        obj.date.strftime('%Y-%m-%d'),
+            'market':      obj.market,
+            'modal_price': float(obj.modal_price or 0),
+            'min_price':   float(obj.min_price   or 0),
+            'max_price':   float(obj.max_price   or 0),
+        }
+        for obj in qs
+    ]
     return JsonResponse({'data': data})
 
+
 def api_get_prediction(request):
-    """API endpoint to get predictions"""
-    predictor = RealTimePredictor()
-    
     market = request.GET.get('market', '')
-    days = int(request.GET.get('days', 7))
-    
-    predictions = predictor.predict_next_7_days(market=market)
-    
+    try:
+        from .ml_model.price_predictor import RealTimePredictor
+        predictor   = RealTimePredictor()
+        predictions = predictor.predict_next_7_days(market=market)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
     if predictions is None:
         return JsonResponse({'error': 'Prediction failed'}, status=500)
-    
+
     data = []
-    if 'ds' in predictions.columns:  # Prophet format
+    if 'ds' in predictions.columns:
         for _, row in predictions.iterrows():
             data.append({
-                'date': row['ds'].strftime('%Y-%m-%d'),
+                'date':            row['ds'].strftime('%Y-%m-%d'),
                 'predicted_price': float(row['yhat']),
-                'lower_bound': float(row.get('yhat_lower', row['yhat'] * 0.95)),
-                'upper_bound': float(row.get('yhat_upper', row['yhat'] * 1.05))
+                'lower_bound':     float(row.get('yhat_lower', row['yhat'] * 0.95)),
+                'upper_bound':     float(row.get('yhat_upper', row['yhat'] * 1.05)),
             })
     else:
         for _, row in predictions.iterrows():
             data.append({
-                'date': row['date'].strftime('%Y-%m-%d'),
-                'predicted_price': float(row['predicted_price'])
+                'date':            row['date'].strftime('%Y-%m-%d'),
+                'predicted_price': float(row['predicted_price']),
             })
-    
     return JsonResponse({'predictions': data})
+
 
 @login_required
 def user_recommendations(request):
-    """Get personalized recommendations"""
-    # Get user type or use default
-    user_type = 'GENERAL'  # Default user type
-    
+    user_type = 'GENERAL'
     if hasattr(request.user, 'userprofile'):
         user_type = request.user.userprofile.user_type
     else:
-        messages.info(request, 'Complete your profile in admin for personalized recommendations.')
-    
-    predictor = RealTimePredictor()
-    
-    recommendations = predictor.get_recommendation(user_type)
-    trend = predictor.get_price_trend()
-    
-    context = {
-        'user_type': user_type,
-        'recommendations': recommendations,
-        'trend': trend
-    }
-    
+        messages.info(request, 'Complete your profile for personalised recommendations.')
+
+    try:
+        from .ml_model.price_predictor import RealTimePredictor
+        predictor       = RealTimePredictor()
+        recommendations = predictor.get_recommendation(user_type)
+        trend           = predictor.get_price_trend()
+    except Exception:
+        recommendations = []
+        trend           = None
+
+    context = {'user_type': user_type, 'recommendations': recommendations, 'trend': trend}
     return render(request, 'forecast_app/recommendations.html', context)
 
+
 def about(request):
-    """About page"""
     return render(request, 'forecast_app/about.html')
 
+
 def contact(request):
-    """Contact page"""
     return render(request, 'forecast_app/contact.html')

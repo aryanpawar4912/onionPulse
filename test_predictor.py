@@ -3,7 +3,6 @@ import os
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'onion_forecast.settings')
 import django
 django.setup()
-
 import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta
