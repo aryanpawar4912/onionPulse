@@ -39,8 +39,11 @@
         <p>Real-time monitoring and analysis across Indian APMC markets</p>
       </div>
       <div class="d-flex gap-2">
-        <a href="{% url 'predict' %}" class="btn-or" style="padding:10px 20px;font-size:13.5px"><i class="fas fa-magic"></i> New Forecast</a>
-        <a href="{% url 'historical' %}" style="background:rgba(255,255,255,.2);border:2px solid rgba(255,255,255,.45);color:#fff;border-radius:var(--r-xs);font-size:13.5px;padding:9px 18px;font-weight:600;display:inline-flex;align-items:center;gap:6px"><i class="fas fa-history"></i> History</a>
+        <a href="{% url 'predict' %}" class="btn-or" style="padding:10px 20px;font-size:13.5px">
+          <i class="fas fa-magic"></i> New Forecast</a>
+
+        <a href="{% url 'historical' %}" style="background:rgba(255,255,255,.2);border:2px solid rgba(255,255,255,.45);color:#fff;border-radius:var(--r-xs);font-size:13.5px;padding:9px 18px;font-weight:600;display:inline-flex;align-items:center;gap:6px">
+          <i class="fas fa-history"></i> History</a>
       </div>
     </div>
   </div>
@@ -48,10 +51,61 @@
 
 <div class="container py-4 pb-5">
   <div class="row g-3 mb-4">
-    <div class="col-6 col-lg-3"><div class="kpi"><div class="kpi-ic gr"><i class="fas fa-rupee-sign"></i></div><div><div class="kpi-v">₹{{ trend_data.current_price|floatformat:0|default:"2,250" }}</div><div class="kpi-l">Current Price</div></div></div></div>
-    <div class="col-6 col-lg-3"><div class="kpi"><div class="kpi-ic or"><i class="fas fa-chart-line"></i></div><div><div class="kpi-v" style="font-size:19px">{% if 'Increasing' in trend_data.trend|default:'' %}<span style="color:var(--green)">↑</span>{% elif 'Decreasing' in trend_data.trend|default:'' %}<span style="color:#dc2626">↓</span>{% else %}<span style="color:#d97706">→</span>{% endif %}{{ trend_data.trend|default:"Stable" }}</div><div class="kpi-l">Price Trend</div></div></div></div>
-    <div class="col-6 col-lg-3"><div class="kpi"><div class="kpi-ic bl"><i class="fas fa-calendar-alt"></i></div><div><div class="kpi-v">₹{{ trend_data.avg_30d|floatformat:0|default:"2,100" }}</div><div class="kpi-l">30-Day Avg</div></div></div></div>
-    <div class="col-6 col-lg-3"><div class="kpi"><div class="kpi-ic am"><i class="fas fa-arrows-alt-v"></i></div><div><div class="kpi-v" style="font-size:16px"><span style="color:var(--green)">₹{{ trend_data.min_30d|floatformat:0|default:"1,800" }}</span><span style="color:var(--text-lt);font-size:13px"> – </span><span style="color:#dc2626">₹{{ trend_data.max_30d|floatformat:0|default:"2,500" }}</span></div><div class="kpi-l">Price Range</div></div></div></div>
+    <div class="col-6 col-lg-3">
+      <div class="kpi"><div class="kpi-ic gr">
+        <i class="fas fa-rupee-sign"></i></div><div><div class="kpi-v">
+          ₹{{ trend_data.current_price|floatformat:0|default:"950" }}
+        </div>
+      <div class="kpi-l">Current Price</div>
+    </div>
+  </div>
+</div>
+  <div class="col-6 col-lg-3">
+    <div class="kpi">
+      <div class="kpi-ic or">
+        <i class="fas fa-chart-line"></i>
+      </div>
+      <div>
+        <div class="kpi-v" style="font-size:19px">
+          {% if 'Increasing' in trend_data.trend|default:'' %}
+            <span style="color:var(--green)">↑</span>
+          {% elif 'Decreasing' in trend_data.trend|default:'' %}
+            <span style="color:#dc2626">↓</span>
+          {% else %}
+            <span style="color:#d97706">→</span>
+          {% endif %}
+      {{ trend_data.trend|default:"Stable" }}
+    </div>
+    <div class="kpi-l">Price Trend</div>
+  </div>
+</div>
+</div>
+
+    <div class="col-6 col-lg-3">
+      <div class="kpi">
+        <div class="kpi-ic bl">
+          <i class="fas fa-calendar-alt"></i>
+        </div><div><div class="kpi-v">
+          ₹{{ trend_data.avg_30d|floatformat:0|default:"970" }}</div>
+          <div class="kpi-l">30-Day Avg</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-6 col-lg-3">
+      <div class="kpi">
+        <div class="kpi-ic am">
+          <i class="fas fa-arrows-alt-v"></i>
+        </div>
+        <div>
+          <div class="kpi-v" style="font-size:16px">
+            <span style="color:var(--green)">
+              ₹{{ trend_data.min_30d|floatformat:0|default:"800" }}</span>
+              <span style="color:var(--text-lt);font-size:13px"> – </span>
+              <span style="color:#dc2626">₹{{ trend_data.max_30d|floatformat:0|default:"1,100" }}</span>
+            </div><div class="kpi-l">Price Range</div>
+          </div>
+        </div>
+      </div>
   </div>
 
   <div class="row g-4">
@@ -100,10 +154,18 @@
       <div class="sb">
         <div class="sb-h"><i class="fas fa-lightbulb"></i> Quick Insights</div>
         <div class="sb-b">
-          <div class="ins"><div class="id" style="background:var(--green)"></div><span>Lasalgaon prices up 5% this week — selling window open for farmers.</span></div>
-          <div class="ins"><div class="id" style="background:var(--orange)"></div><span>Export ban risk elevated — watch government policy announcements.</span></div>
-          <div class="ins"><div class="id" style="background:#2563eb"></div><span>Kharif harvest approaching — supply increase expected in 6–8 weeks.</span></div>
-          <a href="{% url 'recommendations' %}" class="btn-gr w-100 mt-3" style="justify-content:center"><i class="fas fa-magic"></i> Get AI Recommendations</a>
+          <div class="ins"><div class="id" style="background:var(--green)"></div>
+          <span>Lasalgaon prices up 5% this week — selling window open for farmers.</span>
+        </div>
+          <div class="ins"><div class="id" style="background:var(--orange)"></div>
+            <span>Export ban risk elevated — watch government policy announcements.</span>
+          </div>
+          <div class="ins"><div class="id" style="background:#2563eb">
+          </div>
+            <span>Kharif harvest approaching — supply increase expected in 6–8 weeks.</span>
+          </div>
+          <a href="{% url 'recommendations' %}" class="btn-gr w-100 mt-3" style="justify-content:center">
+            <i class="fas fa-magic"></i> Get AI Recommendations</a>
         </div>
       </div>
       <div class="sb">
@@ -121,7 +183,20 @@
 {% endblock %}
 {% block scripts %}
 <script>
-const PD={7:{l:['Mon','Tue','Wed','Thu','Fri','Sat','Sun'],p:[2100,2150,2200,2180,2250,2300,2280]},30:{l:Array.from({length:30},(_,i)=>{const d=new Date();d.setDate(d.getDate()-29+i);return d.toLocaleDateString('en-IN',{day:'2-digit',month:'short'})}),p:Array.from({length:30},()=>Math.round(2000+Math.random()*400))},90:{l:Array.from({length:12},(_,i)=>'Wk '+(i+1)),p:[1900,1950,2000,2100,2150,2200,2180,2250,2300,2350,2280,2320]},180:{l:['Jan','Feb','Mar','Apr','May','Jun'],p:[1800,2000,2200,2100,2300,2250]}};
+const PD={
+  7:{l:['Mon','Tue','Wed','Thu','Fri','Sat','Sun'],
+  p:[1000,900,900,900,950,971,950]},
+
+  30:{l:Array.from({length:30},(_,i)=>{const d=new Date();d.setDate(d.getDate()-29+i);return d.toLocaleDateString('en-IN',{day:'2-digit',month:'short'})}),
+  p:Array.from({length:30},()=>Math.round(800+Math.random()*300))},
+  
+  90:{l:Array.from({length:12},(_,i)=>'Wk '+(i+1)),
+  p:[1100,1080,1065,975,890,905,920,930,940,950,935,925]},
+
+  180:{l:['Jan','Feb','Mar','Apr','May','Jun'],
+  p:[2100,1950,1850,1750,1100,900]}
+};
+
 let pc=null;
 function loadPD(d,btn){
   document.querySelectorAll('.pb').forEach(b=>b.classList.remove('on'));
@@ -135,9 +210,9 @@ function loadPD(d,btn){
 }
 new Chart(document.getElementById('forecastChart').getContext('2d'),{
   type:'line',data:{labels:['Day 1','Day 2','Day 3','Day 4','Day 5','Day 6','Day 7'],datasets:[
-    {label:'Forecast',data:[2280,2300,2350,2320,2380,2400,2370],borderColor:'#f97316',backgroundColor:'rgba(249,115,22,.06)',borderWidth:2.5,tension:.4,fill:false,pointRadius:4,pointBackgroundColor:'#f97316',pointBorderColor:'#fff',pointBorderWidth:2},
-    {label:'Upper Band',data:[2360,2380,2430,2400,2460,2490,2460],borderColor:'rgba(22,163,74,.35)',borderWidth:1.5,borderDash:[5,4],pointRadius:0,fill:false},
-    {label:'Lower Band',data:[2200,2220,2270,2240,2290,2310,2280],borderColor:'rgba(220,38,38,.35)',borderWidth:1.5,borderDash:[5,4],pointRadius:0,fill:false}
+    {label:'Forecast',data:[1000,900,900,900,950,971,950],borderColor:'#f97316',backgroundColor:'rgba(249,115,22,.06)',borderWidth:2.5,tension:.4,fill:false,pointRadius:4,pointBackgroundColor:'#f97316',pointBorderColor:'#fff',pointBorderWidth:2},
+    {label:'Upper Band',data:[600,500,500,500,500,500,500],borderColor:'rgba(22,163,74,.35)',borderWidth:1.5,borderDash:[5,4],pointRadius:0,fill:false},
+    {label:'Lower Band',data:[1299,1141,1131,1100,1252,1126,1100],borderColor:'rgba(220,38,38,.35)',borderWidth:1.5,borderDash:[5,4],pointRadius:0,fill:false}
   ]},options:{responsive:true,plugins:{legend:{position:'bottom'}},scales:{y:{grid:{color:'#f0fdf4'},ticks:{callback:v=>'₹'+v}},x:{grid:{display:false}}}}
 });
 loadPD(7,null);
