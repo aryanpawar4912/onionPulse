@@ -1,9 +1,11 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>{% block title %}OnionPulse AI — Smarter Markets{% endblock %}</title>
+<link rel="icon" type="image/png" href="{% static 'images/logo.png' %}">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -189,7 +191,7 @@ footer a:hover{color:var(--orange)}
           </ul>
         </div>
         {% else %}
-        <a href="{% url 'admin_login' %}" class="btn-login">Login</a>
+        <a href="{% url 'login' %}" class="btn-login">Login</a>
         {% endif %}
       </div>
     </div>

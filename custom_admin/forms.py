@@ -3,6 +3,7 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 from ..models import *
+from forecast_app.models import OnionPrice
 
 class AdminLoginForm(forms.Form):
     username = forms.CharField(

@@ -13,6 +13,8 @@ urlpatterns = [
     path('about/', views.about, name='about'),
     path('contact/', views.contact, name='contact'),
     # Add authentication URLs
+    path('login/', views.login_view, name='login'),
+    path('register/', views.register_view, name='register'),
      path('logout/', auth_views.LogoutView.as_view(next_page='/'), name='logout'),
     # API endpoints
     path('api/prices/', views.api_get_prices, name='api_prices'),

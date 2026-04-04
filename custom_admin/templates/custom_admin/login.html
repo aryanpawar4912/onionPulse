@@ -1,519 +1,138 @@
-<!-- forecast_app/templates/custom_admin/login.html -->
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Login | Onion Price Forecast</title>
-    
-    <!-- Bootstrap 5 CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Animate.css -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
-    
-    <style>
-        :root {
-            --primary-color: #6366f1;
-            --primary-dark: #4f46e5;
-            --secondary-color: #10b981;
-            --accent-color: #f59e0b;
-            --dark-color: #1e293b;
-            --light-color: #f8fafc;
-            --danger-color: #ef4444;
-            --success-color: #10b981;
-        }
-        
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: 'Segoe UI', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: linear-gradient(135deg, 
-                rgba(99, 102, 241, 0.1) 0%, 
-                rgba(16, 185, 129, 0.1) 100%);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-            position: relative;
-            overflow-x: hidden;
-        }
-        
-        /* Background Pattern */
-        body::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: 
-                radial-gradient(circle at 20% 80%, rgba(99, 102, 241, 0.08) 0%, transparent 50%),
-                radial-gradient(circle at 80% 20%, rgba(16, 185, 129, 0.08) 0%, transparent 50%),
-                radial-gradient(circle at 40% 40%, rgba(245, 158, 11, 0.05) 0%, transparent 50%);
-            z-index: -1;
-        }
-        
-        /* Login Container */
-        .login-container {
-            width: 100%;
-            max-width: 420px;
-            animation: fadeInUp 0.6s ease-out;
-        }
-        
-        .login-card {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(20px);
-            border-radius: 24px;
-            box-shadow: 
-                0 10px 40px rgba(0, 0, 0, 0.08),
-                0 20px 80px rgba(0, 0, 0, 0.05);
-            overflow: hidden;
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-        
-        .login-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 
-                0 15px 50px rgba(0, 0, 0, 0.12),
-                0 25px 100px rgba(0, 0, 0, 0.08);
-        }
-        
-        /* Header */
-        .login-header {
-            background: linear-gradient(
-135deg, #f50606, #e5464694);
-            color: white;
-            padding: 40px 30px;
-            text-align: center;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .login-header::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            right: -50%;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
-            animation: pulse 4s infinite alternate;
-        }
-        
-        .logo-container {
-            position: relative;
-            z-index: 2;
-        }
-        
-        .logo-icon {
-            width: 70px;
-            height: 70px;
-            background: rgba(255, 255, 255, 0.2);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 20px;
-            font-size: 28px;
-            color: white;
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-        }
-        
-        .login-header h1 {
-            font-weight: 700;
-            font-size: 1.8rem;
-            margin-bottom: 8px;
-            letter-spacing: -0.5px;
-        }
-        
-        .login-header p {
-            opacity: 0.9;
-            font-size: 0.95rem;
-            margin-bottom: 0;
-        }
-        
-        /* Body */
-        .login-body {
-            padding: 40px;
-        }
-        
-        /* Alerts */
-        .alert-container {
-            margin-bottom: 25px;
-        }
-        
-        .alert {
-            border-radius: 12px;
-            border: none;
-            padding: 15px 20px;
-            font-size: 0.9rem;
-            animation: slideInDown 0.5s ease-out;
-        }
-        
-        .alert-danger {
-            background: linear-gradient(135deg, #fee, #fdd);
-            color: #dc2626;
-            border-left: 4px solid var(--danger-color);
-        }
-        
-        .alert-success {
-            background: linear-gradient(135deg, #d1fae5, #a7f3d0);
-            color: #059669;
-            border-left: 4px solid var(--success-color);
-        }
-        
-        .alert-warning {
-            background: linear-gradient(135deg, #fef3c7, #fde68a);
-            color: #d97706;
-            border-left: 4px solid var(--accent-color);
-        }
-        
-        .alert-info {
-            background: linear-gradient(135deg, #dbeafe, #bfdbfe);
-            color: #1d4ed8;
-            border-left: 4px solid var(--primary-color);
-        }
-        
-        /* Form */
-        .form-label {
-            font-weight: 600;
-            color: #f16363;
-            font-size: 0.9rem;
-            margin-bottom: 8px;
-            display: flex;
-            align-items: center;
-        }
-        
-        .form-label i {
-            margin-right: 10px;
-            color: var(--primary-color);
-            font-size: 1.1rem;
-            width: 20px;
-            text-align: center;
-        }
-        
-        .form-control {
-            padding: 14px 18px;
-            border-radius: 12px;
-            border: 2px solid #e2e8f0;
-            background: var(--light-color);
-            font-size: 1rem;
-            transition: all 0.3s ease;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
-        }
-        
-        .form-control:focus {
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
-            background: white;
-        }
-        
-        .form-control::placeholder {
-            color: #94a3b8;
-            font-size: 0.95rem;
-        }
-        
-        .input-group {
-            margin-bottom: 25px;
-            position: relative;
-        }
-        
-        /* Password Toggle */
-        .password-toggle {
-            position: absolute;
-            right: 15px;
-            top: 50%;
-            transform: translateY(-50%);
-            background: none;
-            border: none;
-            color: #94a3b8;
-            cursor: pointer;
-            padding: 5px;
-            transition: color 0.3s ease;
-            z-index: 10;
-        }
-        
-        .password-toggle:hover {
-            color: var(--primary-color);
-        }
-        
-        /* Submit Button */
-        .btn-login {
-            background:linear-gradient(135deg, #f16363, #e54646);
-            color: white;
-            border: none;
-            padding: 16px;
-            font-weight: 600;
-            font-size: 1rem;
-            border-radius: 12px;
-            width: 100%;
-            transition: all 0.3s ease;
-            margin-top: 10px;
-            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .btn-login::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-            transition: left 0.7s ease;
-        }
-        
-        .btn-login:hover::before {
-            left: 100%;
-        }
-        
-        .btn-login:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
-        }
-        
-        .btn-login:active {
-            transform: translateY(0);
-        }
-        
-        .btn-login i {
-            margin-right: 10px;
-            font-size: 1.1rem;
-        }
-        
-        /* Footer */
-        .login-footer {
-            padding: 25px;
-            text-align: center;
-            background: linear-gradient(135deg, #f8fafc, #f1f5f9);
-            border-top: 1px solid #e2e8f0;
-        }
-        
-        .login-footer p {
-            color: #64748b;
-            font-size: 0.85rem;
-            margin-bottom: 0;
-        }
-        
-        .login-footer a {
-            color: var(--primary-color);
-            text-decoration: none;
-            font-weight: 500;
-            transition: color 0.3s ease;
-        }
-        
-        .login-footer a:hover {
-            color: var(--primary-dark);
-            text-decoration: underline;
-        }
-        
-        /* Animations */
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-        
-        @keyframes pulse {
-            0% {
-                transform: scale(1);
-                opacity: 0.3;
-            }
-            100% {
-                transform: scale(1.1);
-                opacity: 0.5;
-            }
-        }
-        
-        @keyframes slideInDown {
-            from {
-                opacity: 0;
-                transform: translateY(-20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-        
-        /* Responsive */
-        @media (max-width: 480px) {
-            .login-card {
-                border-radius: 20px;
-            }
-            .login-header {
-                padding: 10px 20px;
-            }
-            .login-body {
-                padding: 30px 25px;
-            }
-            
-            .logo-icon {
-                width: 60px;
-                height: 60px;
-                font-size: 24px;
-            }
-            
-            .login-header h1 {
-                font-size: 1.6rem;
-            }
-            
-            .form-control {
-                padding: 12px 16px;
-            }
-            
-            .btn-login {
-                padding: 14px;
-            }
-        }
-        
-        /* Loading Animation */
-        .btn-login.loading {
-            pointer-events: none;
-            opacity: 0.8;
-        }
-        
-        .btn-login.loading i {
-            animation: spin 1s linear infinite;
-        }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-    </style>
-</head>
-<body>
-    <div class="login-container">
-        <div class="login-card animate__animated animate__fadeInUp">
-            <div class="login-header">
-                <div class="logo-container">
-                    <div class="logo-icon">
-                        <i class="fas fa-chart-line"></i>
-                    </div>
-                    <h1>Admin Panel</h1>
-                    <p>Onion Price Forecasting System</p>
-                </div>
+{% extends 'forecast_app/base.html' %}
+{% load static %}
+
+{% block title %}Admin Access | OnionPulse AI{% endblock %}
+
+{% block content %}
+<div class="register-wrapper admin-theme">
+    <div class="reg-sidebar d-none d-lg-flex">
+        <div class="reg-sidebar-content">
+            <div class="hero-badge mb-4">
+                <i class="fas fa-user-shield me-2"></i> Authorized Personnel Only
             </div>
+            <h1 class="display-4 fw-bold text-white mb-4" style="font-family: var(--font-d);">Management <br><span class="text-indigo">Console.</span></h1>
+            <p class="text-white-50 fs-5 mb-5">Oversee market data, manage user accounts, and monitor AI model performance in real-time.</p>
             
-            <div class="login-body">
-                {% if messages %}
-                <div class="alert-container">
-                    {% for message in messages %}
-                    <div class="alert alert-{{ message.tags }} animate__animated animate__slideInDown">
-                        {% if message.tags == 'danger' %}
-                            <i class="fas fa-exclamation-triangle me-2"></i>
-                        {% elif message.tags == 'success' %}
-                            <i class="fas fa-check-circle me-2"></i>
-                        {% else %}
-                            <i class="fas fa-info-circle me-2"></i>
-                        {% endif %}
-                        {{ message }}
+            <div class="feature-list">
+                <div class="feature-item">
+                    <div class="f-icon"><i class="fas fa-server"></i></div>
+                    <div>
+                        <h6 class="text-white mb-0">System Health</h6>
+                        <p class="small text-white-50 mb-0">99.9% Uptime on Nashik market scrapers.</p>
                     </div>
-                    {% endfor %}
                 </div>
-                {% endif %}
-                
-                <form method="POST" id="loginForm">
-                    {% csrf_token %}
-                    
-                    <div class="input-group">
-                        <label for="username" class="form-label">
-                            <i class="fas fa-user"></i>Username
-                        </label>
-                        <input type="text" class="form-control" id="username" name="username" 
-                               placeholder="Enter admin username" required autofocus>
+                <div class="feature-item">
+                    <div class="f-icon"><i class="fas fa-user-lock"></i></div>
+                    <div>
+                        <h6 class="text-white mb-0">Audit Logs</h6>
+                        <p class="small text-white-50 mb-0">Track every change with enterprise security.</p>
                     </div>
-                    
-                    <div class="input-group">
-                        <label for="password" class="form-label">
-                            <i class="fas fa-lock"></i>Password
-                        </label>
-                        <input type="password" class="form-control" id="password" name="password" 
-                               placeholder="Enter your password" required>
-                        <button type="button" class="password-toggle" id="togglePassword">
-                            <i class="fas fa-eye"></i>
-                        </button>
-                    </div>
-                    
-                    <button type="submit" class="btn btn-login" id="loginBtn">
-                        <i class="fas fa-sign-in-alt"></i>Login to Admin Dashboard
-                    </button>
-                </form>
-            </div>
-            
-            <div class="login-footer">
-                <p>© 2024 Onion Price Forecast System • <a href="#" onclick="return false;">Security & Privacy</a></p>
-                <small class="text-muted">v2.1.0 • Restricted Access</small>
+                </div>
             </div>
         </div>
+        <div class="sidebar-pattern"></div>
     </div>
-    
-    <!-- Bootstrap JS Bundle with Popper -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
-    
-    <script>
-        // Password visibility toggle
-        const togglePassword = document.getElementById('togglePassword');
-        const passwordField = document.getElementById('password');
-        
-        togglePassword.addEventListener('click', function() {
-            const type = passwordField.getAttribute('type') === 'password' ? 'text' : 'password';
-            passwordField.setAttribute('type', type);
-            this.innerHTML = type === 'password' ? '<i class="fas fa-eye"></i>' : '<i class="fas fa-eye-slash"></i>';
-        });
-        
-        // Form submission animation
-        const loginForm = document.getElementById('loginForm');
-        const loginBtn = document.getElementById('loginBtn');
-        
-        loginForm.addEventListener('submit', function() {
-            loginBtn.classList.add('loading');
-            loginBtn.innerHTML = '<i class="fas fa-spinner"></i> Authenticating...';
-        });
-        
-        // Auto-focus username field on load
-        window.onload = function() {
-            document.getElementById('username').focus();
-        };
-        
-        // Input field animations
-        const inputs = document.querySelectorAll('.form-control');
-        inputs.forEach(input => {
-            input.addEventListener('focus', function() {
-                this.parentElement.style.transform = 'translateY(-2px)';
-            });
-            
-            input.addEventListener('blur', function() {
-                this.parentElement.style.transform = 'translateY(0)';
-            });
-        });
-        
-        // Enter key to submit
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                if (document.activeElement.tagName !== 'TEXTAREA') {
-                    loginForm.requestSubmit();
-                }
-            }
-        });
-    </script>
-</body>
-</html>
+
+    <div class="reg-form-container">
+        <div class="form-inner" style="max-width: 420px;">
+            <div class="form-header mb-5">
+                <div class="brand-tag mb-2">SYSTEM ADMINISTRATION</div>
+                <h2 class="section-title mb-1">Admin <em>Login</em></h2>
+                <p class="text-muted small">Initialize a secure session to the control panel.</p>
+            </div>
+
+            {% if messages %}
+                {% for message in messages %}
+                <div class="alert alert-dark border-0 shadow-sm mb-4" style="font-size: 13px; background: #f8fafc;">
+                    <i class="fas fa-info-circle text-primary me-2"></i> {{ message }}
+                </div>
+                {% endfor %}
+            {% endif %}
+
+            <form method="POST" class="row g-4">
+                {% csrf_token %}
+                
+                <div class="col-12">
+                    <label class="form-lbl">Admin ID</label>
+                    <div class="input-group-custom">
+                        <i class="fas fa-id-badge"></i>
+                        <input type="text" name="username" class="form-ctrl" placeholder="admin_username" required autofocus>
+                    </div>
+                </div>
+
+                <div class="col-12">
+                    <label class="form-lbl">Access Key</label>
+                    <div class="input-group-custom">
+                        <i class="fas fa-key"></i>
+                        <input type="password" name="password" class="form-ctrl" placeholder="••••••••" required>
+                    </div>
+                </div>
+
+                <div class="col-12 mt-5">
+                    <button type="submit" class="btn-admin w-100 py-3">
+                        Launch Dashboard <i class="fas fa-terminal ms-2"></i>
+                    </button>
+                    <div class="text-center mt-4">
+                        <a href="{% url 'home' %}" class="small text-muted text-decoration-none">
+                            <i class="fas fa-arrow-left me-1"></i> Return to Main Site
+                        </a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+/* 1. Base Layout (Matches User Login) */
+.register-wrapper { display: flex; min-height: 100vh; background: #fff; }
+
+/* 2. Admin Specific Theme */
+.admin-theme .reg-sidebar {
+    flex: 1;
+    background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%); /* Deeper Blue/Indigo */
+    position: relative; padding: 60px; align-items: center; overflow: hidden;
+}
+
+.text-indigo { color: #818cf8; }
+
+.admin-theme .hero-badge {
+    display: inline-block; padding: 6px 15px; border-radius: 50px; font-size: 12px;
+    font-weight: 700; text-transform: uppercase; background: rgba(129, 140, 248, 0.2);
+    color: #c7d2fe; border: 1px solid rgba(129, 140, 248, 0.3);
+}
+
+/* 3. Features */
+.feature-item { display: flex; gap: 15px; margin-bottom: 25px; }
+.f-icon { 
+    width: 40px; height: 40px; background: rgba(129, 140, 248, 0.15); 
+    color: #818cf8; border-radius: 10px; display: flex; 
+    align-items: center; justify-content: center; flex-shrink: 0;
+}
+
+/* 4. Form Components */
+.reg-form-container { flex: 1.2; padding: 60px; display: flex; align-items: center; justify-content: center; }
+.brand-tag { font-size: 10px; font-weight: 900; color: var(--orange); letter-spacing: 2px; }
+
+.input-group-custom { position: relative; }
+.input-group-custom i {
+    position: absolute; left: 15px; top: 50%; transform: translateY(-50%);
+    color: #94a3b8; font-size: 14px;
+}
+.input-group-custom .form-ctrl {
+    width: 100%; padding: 12px 12px 12px 42px; border-radius: 10px;
+    border: 1px solid #e2e8f0; background: #f8fafc; transition: 0.3s;
+}
+.input-group-custom .form-ctrl:focus {
+    outline: none; border-color: var(--orange); background: #fff; box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+}
+
+.btn-admin {
+    background: var(--orange); color: white; border: none; border-radius: 10px;
+    font-weight: 600; transition: 0.3s; box-shadow: 0 10px 20px -5px var(--orange);
+}
+.btn-admin:hover { background: var(--orange); transform: translateY(-2px); }
+
+@media (max-width: 992px) { .reg-form-container { padding: 30px 20px; } }
+</style>
+{% endblock %}

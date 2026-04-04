@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # 🧅 Onion Price Forecasting System
 
 A Django-based web application for predicting onion prices using machine learning models. The system includes a custom admin panel for managing price data, predictions, users, and market analytics.
@@ -420,3 +421,7 @@ python manage.py runserver
 1.login page redirection
 2.change logo name
 3.change theme
+=======
+# onionPulse
+Solving Onion Market Instability by Forecasting Onion Price Using ML Approach
+>>>>>>> 621b0299e44bf6b4f9d51289cb0ff93f4a980338

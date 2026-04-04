@@ -1,0 +1,191 @@
+{% extends 'forecast_app/base.html' %}
+{% load static %}
+
+{% block title %}Create Account | OnionPulse AI{% endblock %}
+
+{% block content %}
+<div class="register-wrapper">
+    <div class="reg-sidebar d-none d-lg-flex">
+        <div class="reg-sidebar-content">
+            <div class="hero-badge mb-4" style="background: rgba(255,255,255,0.15); color: #fff; border-color: rgba(255,255,255,0.3);">
+                <i class="fas fa-bolt me-2"></i> Next-Gen Agri-Tech
+            </div>
+            <h1 class="display-4 fw-bold text-white mb-4" style="font-family: var(--font-d);">Predicting the <br><span style="color: var(--orange-mid);">Future of Farming.</span></h1>
+            <p class="text-white-50 fs-5 mb-5">Join thousands of traders and farmers using AI to stabilize the market and maximize profits.</p>
+            
+            <div class="feature-list">
+                <div class="feature-item">
+                    <div class="f-icon"><i class="fas fa-chart-line"></i></div>
+                    <div>
+                        <h6 class="text-white mb-0">LSTM Accuracy</h6>
+                        <p class="small text-white-50 mb-0">94% Prediction precision for Nashik markets.</p>
+                    </div>
+                </div>
+                <div class="feature-item">
+                    <div class="f-icon"><i class="fas fa-cloud-sun"></i></div>
+                    <div>
+                        <h6 class="text-white mb-0">Weather Integration</h6>
+                        <p class="small text-white-50 mb-0">Real-time rainfall & climate impact analysis.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="sidebar-pattern"></div>
+    </div>
+
+    <div class="reg-form-container">
+        <div class="form-inner">
+            <div class="d-lg-none text-center mb-4">
+                 <div class="brand-dot mx-auto mb-2"><i class="fas fa-seedling"></i></div>
+                 <h4 class="fw-bold">OnionPulse AI</h4>
+            </div>
+
+            <div class="form-header mb-4">
+                <h2 class="section-title mb-1">Create <em>Account</em></h2>
+                <p class="text-muted small">Step into the future of agricultural intelligence.</p>
+            </div>
+
+            <form method="POST" class="row g-3">
+                {% csrf_token %}
+                
+                <div class="col-12">
+                    <div class="section-label">Account Security</div>
+                </div>
+                <div class="col-md-12">
+                    <label class="form-lbl">Username</label>
+                    <div class="input-group-custom">
+                        <i class="fas fa-at"></i>
+                        <input type="text" name="username" class="form-ctrl" placeholder="unique_username" required>
+                    </div>
+                </div>
+
+                <div class="col-12 mt-4">
+                    <div class="section-label">Personal Identity</div>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-lbl">First Name</label>
+                    <input type="text" name="first_name" class="form-ctrl" placeholder="Rahul" required>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-lbl">Last Name</label>
+                    <input type="text" name="last_name" class="form-ctrl" placeholder="Pawar" required>
+                </div>
+                <div class="col-12">
+                    <label class="form-lbl">Email Address</label>
+                    <div class="input-group-custom">
+                        <i class="fas fa-envelope"></i>
+                        <input type="email" name="email" class="form-ctrl" placeholder="name@domain.com" required>
+                    </div>
+                </div>
+
+                <div class="col-12 mt-4">
+                    <div class="section-label">Market Profile</div>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-lbl">I am a...</label>
+                    <select name="user_type" class="form-ctrl select-custom">
+                        {% for value, text in form.fields.user_type.choices %}
+                            <option value="{{ value }}">{{ text }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-lbl">Phone Number</label>
+                    <input type="text" name="phone" class="form-ctrl" placeholder="+91" required>
+                </div>
+                <div class="col-12">
+                    <label class="form-lbl">Operating Location</label>
+                    <div class="input-group-custom">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <input type="text" name="location" class="form-ctrl" placeholder="e.g. Nashik, MH" required>
+                    </div>
+                </div>
+
+                <div class="col-12 mt-4">
+                    <div class="section-label">Security</div>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-lbl">Password</label>
+                    <input type="password" name="password1" class="form-ctrl" placeholder="••••••••" required>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-lbl">Confirm</label>
+                    <input type="password" name="password2" class="form-ctrl" placeholder="••••••••" required>
+                </div>
+
+                <div class="col-12 mt-5">
+                    <button type="submit" class="btn-orange w-100 py-3 shadow-lg">
+                        SIGN IN <i class="fas fa-arrow-right ms-2"></i>
+                    </button>
+                    <p class="text-center mt-4 small text-muted">
+                        Already have an account? <a href="{% url 'login' %}" class="fw-bold text-orange">Login here</a>
+                    </p>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+/* 1. Layout Structure */
+.register-wrapper {
+    display: flex;
+    min-height: 100vh;
+    background: #fff;
+}
+
+/* 2. Sidebar (Left) */
+.reg-sidebar {
+    flex: 1;
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+    position: relative;
+    padding: 60px;
+    align-items: center;
+    overflow: hidden;
+}
+.reg-sidebar-content { position: relative; z-index: 2; max-width: 500px; }
+.sidebar-pattern {
+    position: absolute; inset: 0;
+    background-image: radial-gradient(var(--orange) 0.5px, transparent 0.5px);
+    background-size: 24px 24px;
+    opacity: 0.1;
+}
+
+/* 3. Features UI */
+.feature-item { display: flex; gap: 15px; margin-bottom: 25px; }
+.f-icon { 
+    width: 40px; height: 40px; background: rgba(249,115,22,0.2); 
+    color: var(--orange); border-radius: 10px; 
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+
+/* 4. Form Container (Right) */
+.reg-form-container {
+    flex: 1.2;
+    padding: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.form-inner { max-width: 520px; width: 100%; }
+
+/* 5. Custom Inputs */
+.input-group-custom { position: relative; }
+.input-group-custom i {
+    position: absolute; left: 15px; top: 50%; transform: translateY(-50%);
+    color: var(--text-light); font-size: 14px;
+}
+.input-group-custom .form-ctrl { padding-left: 42px; }
+
+/* 6. Section Labels */
+.section-label {
+    font-size: 11px; font-weight: 800; text-transform: uppercase;
+    letter-spacing: 1px; color: var(--text-light);
+    border-bottom: 1px solid var(--border); padding-bottom: 5px;
+}
+
+@media (max-width: 992px) {
+    .reg-form-container { padding: 30px 20px; }
+}
+</style>
+{% endblock %}

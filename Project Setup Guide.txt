@@ -1,0 +1,16 @@
+superadmin123
+superadmin123
+
+active virtual env
+venv/Scripts/activate
+
+(venv) PS C:\Onion\onion-price-forecast> python manage.py runserver
+
+
+http://127.0.0.1:8000/admin-panel/login
+
+
+
+change on local 
+git reset --hard HEAD 
+git pull origin main 

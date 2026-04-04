@@ -1,0 +1,162 @@
+{% extends 'forecast_app/base.html' %}
+{% load static %}
+
+{% block title %}Login | OnionPulse AI{% endblock %}
+
+{% block content %}
+<div class="register-wrapper">
+    <div class="reg-sidebar d-none d-lg-flex">
+        <div class="reg-sidebar-content">
+            <div class="hero-badge mb-4" style="background: rgba(255,255,255,0.15); color: #fff; border-color: rgba(255,255,255,0.3);">
+                <i class="fas fa-shield-alt me-2"></i> Secure Infrastructure
+            </div>
+            <h1 class="display-4 fw-bold text-white mb-4" style="font-family: var(--font-d);">Access Your <br><span style="color: var(--orange-mid);">Market Insights.</span></h1>
+            <p class="text-white-50 fs-5 mb-5">Log in to view real-time price trends, manage your inventory, and get AI-driven trade recommendations.</p>
+            
+            <div class="feature-list">
+                <div class="feature-item">
+                    <div class="f-icon"><i class="fas fa-fingerprint"></i></div>
+                    <div>
+                        <h6 class="text-white mb-0">Secure Session</h6>
+                        <p class="small text-white-50 mb-0">Encrypted authentication for your trade data.</p>
+                    </div>
+                </div>
+                <div class="feature-item">
+                    <div class="f-icon"><i class="fas fa-sync"></i></div>
+                    <div>
+                        <h6 class="text-white mb-0">Live Updates</h6>
+                        <p class="small text-white-50 mb-0">Get the latest arrivals from 100+ APMC markets.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="sidebar-pattern"></div>
+    </div>
+
+    <div class="reg-form-container">
+        <div class="form-inner" style="max-width: 450px;">
+            <div class="d-lg-none text-center mb-4">
+                 <div class="brand-dot mx-auto mb-2"><i class="fas fa-seedling"></i></div>
+                 <h4 class="fw-bold">OnionPulse AI</h4>
+            </div>
+
+            <div class="form-header mb-5">
+                <h2 class="section-title mb-1">Welcome <em>Back</em></h2>
+                <p class="text-muted small">Enter your credentials to access the dashboard.</p>
+            </div>
+
+            {% if form.errors %}
+            <div class="alert alert-danger" style="font-size: 13px; border-radius: 10px; background: #fee2e2; color: #b91c1c; border: none;">
+                <i class="fas fa-exclamation-circle me-1"></i> The username or password you entered is incorrect.
+            </div>
+            {% endif %}
+
+            <form method="POST" action="{% url 'login' %}" class="row g-4">
+                {% csrf_token %}
+                
+                <div class="col-12">
+                    <label class="form-lbl">Username</label>
+                    <div class="input-group-custom">
+                        <i class="fas fa-user"></i>
+                        <input type="text" name="username" class="form-ctrl" placeholder="Enter your username" required autofocus>
+                    </div>
+                </div>
+
+                <div class="col-12">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <label class="form-lbl mb-0">Password</label>
+                        <a href="#" class="text-orange fw-bold" style="font-size: 11px; text-transform: uppercase; text-decoration: none;">Forgot?</a>
+                    </div>
+                    <div class="input-group-custom">
+                        <i class="fas fa-lock"></i>
+                        <input type="password" name="password" class="form-ctrl" placeholder="••••••••" required>
+                    </div>
+                </div>
+
+                <div class="col-12 mt-3">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="rememberMe">
+                        <label class="form-check-label small text-muted" for="rememberMe">
+                            Keep me logged in
+                        </label>
+                    </div>
+                </div>
+
+                <div class="col-12 mt-5">
+                    <button type="submit" class="btn-orange w-100 py-3 shadow-lg">
+                        LOG IN <i class="fas fa-sign-in-alt ms-2"></i>
+                    </button>
+                    
+                    <p class="text-center mt-4 small text-muted">
+                        New to the platform? <a href="{% url 'register' %}" class="fw-bold text-orange" style="text-decoration: none;">Create an account</a>
+                    </p>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Same layout structure as Register Page to ensure a smooth transition */
+.register-wrapper {
+    display: flex;
+    min-height: 100vh;
+    background: #fff;
+}
+
+.reg-sidebar {
+    flex: 1;
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+    position: relative;
+    padding: 60px;
+    align-items: center;
+    overflow: hidden;
+}
+.reg-sidebar-content { position: relative; z-index: 2; max-width: 500px; }
+.sidebar-pattern {
+    position: absolute; inset: 0;
+    background-image: radial-gradient(var(--orange) 0.5px, transparent 0.5px);
+    background-size: 24px 24px;
+    opacity: 0.1;
+}
+
+.feature-item { display: flex; gap: 15px; margin-bottom: 25px; }
+.f-icon { 
+    width: 40px; height: 40px; background: rgba(249,115,22,0.2); 
+    color: var(--orange); border-radius: 10px; 
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+
+.reg-form-container {
+    flex: 1.2;
+    padding: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.form-inner { width: 100%; }
+
+.input-group-custom { position: relative; }
+.input-group-custom i {
+    position: absolute; left: 15px; top: 50%; transform: translateY(-50%);
+    color: var(--text-light); font-size: 14px;
+}
+.input-group-custom .form-ctrl { padding-left: 42px; }
+
+.section-label {
+    font-size: 11px; font-weight: 800; text-transform: uppercase;
+    letter-spacing: 1px; color: var(--text-light);
+    border-bottom: 1px solid var(--border); padding-bottom: 5px;
+}
+
+/* Custom checkbox color for login page */
+.form-check-input:checked {
+    background-color: var(--orange);
+    border-color: var(--orange);
+}
+
+@media (max-width: 992px) {
+    .reg-form-container { padding: 30px 20px; }
+}
+</style>
+{% endblock %}

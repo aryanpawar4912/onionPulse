@@ -9,6 +9,58 @@ from django.utils import timezone
 from datetime import datetime, timedelta
 from .models import OnionPrice, PricePrediction, MarketFactor, UserProfile
 
+from django.contrib.auth import authenticate, login
+from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
+from .forms import UserRegisterForm
+
+
+def login_view(request):
+    next_url = request.GET.get('next', 'dashboard')  # Default redirect to dashboard
+    
+    if request.method == 'POST':
+        form = AuthenticationForm(request, data=request.POST)
+        if form.is_valid():
+            username = form.cleaned_data.get('username')
+            password = form.cleaned_data.get('password')
+            user = authenticate(username=username, password=password)
+            
+            if user is not None:
+                login(request, user)
+                # Redirect to 'next' hidden input value if it exists
+                redirect_to = request.POST.get('next', 'dashboard')
+                return redirect(redirect_to)
+        else:
+            # The form.errors will be passed to the template automatically
+            return render(request, 'forecast_app/login.html',{'form': form})
+
+    # GET request
+    form = AuthenticationForm()
+    return render(request, 'forecast_app/login.html', {
+        'form': form, 
+        'next': next_url
+    })
+
+
+def register_view(request):
+    if request.method == 'POST':
+        form = UserRegisterForm(request.POST)
+        if form.is_valid():
+            # 1. Save the main User object
+            user = form.save()
+            
+            # 2. Create the linked UserProfile
+            UserProfile.objects.create(
+                user=user,
+                user_type=form.cleaned_data.get('user_type'),
+                phone=form.cleaned_data.get('phone'),
+                location=form.cleaned_data.get('location')
+            )
+            
+            messages.success(request, f'Account created for {user.username}! You can now login.')
+            return redirect('login')
+    else:
+        form = UserRegisterForm()
+    return render(request, 'forecast_app/register.html', {'form': form})
 
 def home(request):
     # Pass recent prices, predictions, and market factors to the home page
@@ -52,7 +104,7 @@ def dashboard(request):
     }
     return render(request, 'forecast_app/dashboard.html', context)
 
-
+@login_required
 def historical_data(request):
     market     = request.GET.get('market', '')
     start_date = request.GET.get('start_date', '')
