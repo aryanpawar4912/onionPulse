@@ -16,3 +16,7 @@ python manage.py collectstatic --no-input
 
 # Migrate tables to Render PostgreSQL
 python manage.py migrate
+
+# CREATE SUPERUSER AUTOMATICALLY WITHOUT INTERACTIVE SHELL
+# The "|| true" ensures the build won't crash if the user already exists
+python manage.py createsuperuser --no-input || true
