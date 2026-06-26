@@ -75,7 +75,7 @@
         <p>Reach out for support, partnerships, data access, or any inquiries</p>
       </div>
       <div class="d-flex gap-2 mt-2">
-        <a href="mailto:info@onionforecast.in" class="btn-out-orange" style="padding:10px 20px;font-size:13.5px;border-color:rgba(255,255,255,.45);color:#fff;background:rgba(255,255,255,.12)"><i class="fas fa-envelope"></i> Email Us</a>
+        <a href="mailto:onionpulse88@gmail.com" class="btn-out-orange" style="padding:10px 20px;font-size:13.5px;border-color:rgba(255,255,255,.45);color:#fff;background:rgba(255,255,255,.12)"><i class="fas fa-envelope"></i> Email Us</a>
       </div>
     </div>
   </div>
@@ -203,14 +203,14 @@
             <div class="ci-icon ph"><i class="fas fa-phone-alt"></i></div>
             <div class="ci-body">
               <h6>Phone Numbers</h6>
-              <p>+91 98765 43210 (Support)<br>+91 91234 56789 (Sales)</p>
+              <p>+91 9922381236 (Support)<br>+91 826282215 (Sales)</p>
             </div>
           </div>
           <div class="contact-item">
             <div class="ci-icon em"><i class="fas fa-envelope"></i></div>
             <div class="ci-body">
               <h6>Email Addresses</h6>
-              <p>support@onionforecast.in<br>info@onionforecast.in</p>
+              <p>onionpulse88@gmail.com<br>aryanpawar049120@gmail.com<br>rohansalve334@gmail.com<br>monaliphad9@gmail.com<br>harshadatambe2@gmail.com</p>
             </div>
           </div>
           <div class="contact-item">
@@ -251,7 +251,7 @@
               <i class="fas fa-chevron-down"></i>
             </button>
             <div class="faq-body">
-              API access is available for enterprise clients. Contact us via the form or email <strong>api@onionforecast.in</strong> for pricing.
+              API access is available for enterprise clients. Contact us via the form or email <strong>onionpulse88@gmail.com</strong> for pricing.
             </div>
           </div>
           <div class="faq-item">
@@ -302,7 +302,7 @@
         <div class="support-icon" style="background:var(--orange-light);color:var(--orange)"><i class="fas fa-headset"></i></div>
         <h5>Technical Support</h5>
         <p>Get help with platform features, data access, prediction setup, and technical issues.</p>
-        <a href="mailto:support@onionforecast.in" class="btn-orange" style="padding:9px 20px;font-size:13.5px"><i class="fas fa-envelope"></i> Email Support</a>
+        <a href="mailto:onionpulse88@gmail.com" class="btn-orange" style="padding:9px 20px;font-size:13.5px"><i class="fas fa-envelope"></i> Email Support</a>
       </div>
     </div>
     <div class="col-md-4">
@@ -310,7 +310,7 @@
         <div class="support-icon" style="background:var(--green-light);color:var(--green)"><i class="fas fa-handshake"></i></div>
         <h5>Partnerships</h5>
         <p>Interested in collaborating with us or integrating our data into your platform?</p>
-        <a href="mailto:partners@onionforecast.in" class="btn-green" style="padding:9px 20px;font-size:13.5px"><i class="fas fa-handshake"></i> Partner With Us</a>
+        <a href="mailto:aryanpawar049120@gmail.com" class="btn-green" style="padding:9px 20px;font-size:13.5px"><i class="fas fa-handshake"></i> Partner With Us</a>
       </div>
     </div>
     <div class="col-md-4">
@@ -318,7 +318,7 @@
         <div class="support-icon" style="background:#eff6ff;color:#2563eb"><i class="fas fa-database"></i></div>
         <h5>Data Services</h5>
         <p>Need bulk historical data, custom market reports, or enterprise API access?</p>
-        <a href="mailto:data@onionforecast.in" class="btn-out-orange" style="padding:9px 20px;font-size:13.5px;border-color:#2563eb;color:#2563eb"><i class="fas fa-download"></i> Request Data</a>
+        <a href="mailto:rohansalve334@gmail.com" class="btn-out-orange" style="padding:9px 20px;font-size:13.5px;border-color:#2563eb;color:#2563eb"><i class="fas fa-download"></i> Request Data</a>
       </div>
     </div>
   </div>
@@ -366,10 +366,14 @@ document.getElementById('contactForm').addEventListener('submit',function(e){
   btn.classList.add('btn-loading');
 });
 
-// Auto show success if Django messages present
-// {% if messages %}
-// document.getElementById('formSuccess').style.display='flex';
-// setTimeout(()=>{document.getElementById('formSuccess').style.display='none';},6000);
-// {% endif %}
-// </script>
-// {% endblock %}
+// Auto hide Django fallback success banner if desired after 6 seconds
+const serverBanner = document.querySelector('.success-banner');
+if (serverBanner) {
+    setTimeout(() => {
+        serverBanner.style.transition = "opacity 0.5s ease";
+        serverBanner.style.opacity = "0";
+        setTimeout(() => serverBanner.remove(), 500);
+    }, 6000);
+}
+</script>
+{% endblock %}

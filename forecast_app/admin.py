@@ -25,6 +25,22 @@ class UserProfileAdmin(admin.ModelAdmin):
     list_filter = ('user_type',)
     search_fields = ('user__username', 'location')
 
+@admin.register(ContactMessage)
+class ContactMessageAdmin(admin.ModelAdmin):
+    # Columns that will show up directly in the table view checklist
+    list_display = ('name', 'email', 'user_type', 'subject', 'subscribed_to_alerts', 'created_at')
+    
+    # Clickable filters on the right sidebar panel
+    list_filter = ('user_type', 'subscribed_to_alerts', 'created_at')
+    
+    # Search pool parameters for finding specific logs quickly
+    search_fields = ('name', 'email', 'subject', 'message')
+    
+    # Force chronological order in listing records
+    ordering = ('-created_at',)
+    
+    # Read-only security restriction so administration logs cannot be altered historical data
+    readonly_fields = ('created_at',)
 admin.site.register(OnionPrice, OnionPriceAdmin)
 admin.site.register(WeatherData)
 admin.site.register(PredictionModel)

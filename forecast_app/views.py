@@ -1,17 +1,19 @@
-# forecast_app/views.py
-
+# forecast_app/views.py - PRODUCTION HARDENED FOR RENDER (PYTHON 3.10)
+import os
+from datetime import datetime, timedelta
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http import JsonResponse
 from django.db.models import Avg, Count
 from django.utils import timezone
-from datetime import datetime, timedelta
-from .models import OnionPrice, PricePrediction, MarketFactor, UserProfile
+from django.core.mail import send_mail
+from django.conf import settings
 
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 from .forms import UserRegisterForm
+from .models import ContactMessage, OnionPrice, PricePrediction, MarketFactor, UserProfile
 
 
 def login_view(request):
@@ -31,7 +33,7 @@ def login_view(request):
                 return redirect(redirect_to)
         else:
             # The form.errors will be passed to the template automatically
-            return render(request, 'forecast_app/login.html',{'form': form})
+            return render(request, 'forecast_app/login.html', {'form': form})
 
     # GET request
     form = AuthenticationForm()
@@ -62,6 +64,7 @@ def register_view(request):
         form = UserRegisterForm()
     return render(request, 'forecast_app/register.html', {'form': form})
 
+
 def home(request):
     # Pass recent prices, predictions, and market factors to the home page
     recent_prices  = OnionPrice.objects.order_by('-date')[:10]
@@ -84,16 +87,25 @@ def home(request):
     return render(request, 'forecast_app/home.html', context)
 
 
+@login_required
 def dashboard(request):
+    trend_data = None
+    predictions_list = []
+    
     try:
+        # Hard cap threading rules prior to model subsystem imports
+        import tensorflow as tf
+        tf.config.threading.set_intra_op_parallelism_threads(1)
+        tf.config.threading.set_inter_op_parallelism_threads(1)
+        
         from .ml_model.price_predictor import RealTimePredictor
-        predictor        = RealTimePredictor()
-        trend_data       = predictor.get_price_trend()
-        predictions_df   = predictor.predict_next_7_days()
+        predictor = RealTimePredictor()
+        trend_data = predictor.get_price_trend()
+        predictions_df = predictor.predict_next_7_days()
         predictions_list = predictions_df.to_dict('records') if predictions_df is not None else []
-    except Exception:
-        trend_data       = None
-        predictions_list = []
+    except Exception as e:
+        # Fallback tracking to prevent application crashes if memory flags trigger
+        print(f"Dashboard ML Execution Failure: {e}")
 
     factors = MarketFactor.objects.filter(is_active=True)[:5]
     context = {
@@ -103,6 +115,7 @@ def dashboard(request):
         'user_type':   request.user.userprofile.user_type if hasattr(request.user, 'userprofile') else None,
     }
     return render(request, 'forecast_app/dashboard.html', context)
+
 
 @login_required
 def historical_data(request):
@@ -146,6 +159,11 @@ def predict_price(request):
         error_msg  = None
 
         try:
+            # Enforce execution thread limits inside the execution route
+            import tensorflow as tf
+            tf.config.threading.set_intra_op_parallelism_threads(1)
+            tf.config.threading.set_inter_op_parallelism_threads(1)
+            
             from .ml_model.price_predictor import RealTimePredictor
             predictor = RealTimePredictor()
             predictor.load_latest_data()
@@ -216,7 +234,6 @@ def predict_price(request):
 
 def prediction_results(request):
     """Prediction results page with filtering support."""
-    # --- filter params ---
     market_filter = request.GET.get('market', '')
     date_filter   = request.GET.get('date_range', 'all')
     status_filter = request.GET.get('status', 'all')
@@ -240,14 +257,12 @@ def prediction_results(request):
 
     predictions = qs[:100]
 
-    # --- stats ---
     all_predictions       = PricePrediction.objects.all()
     avg_confidence        = all_predictions.aggregate(Avg('confidence_interval'))['confidence_interval__avg'] or 0
     accurate_predictions  = all_predictions.filter(actual_price__isnull=False).count()
     pending_predictions   = all_predictions.filter(actual_price__isnull=True).count()
     total_count           = all_predictions.count()
 
-    # --- distinct markets for filter dropdown ---
     markets = list(
         PricePrediction.objects.values_list('market', flat=True)
         .distinct()
@@ -261,7 +276,6 @@ def prediction_results(request):
         'accurate_predictions':  accurate_predictions,
         'pending_predictions':   pending_predictions,
         'total_count':           total_count,
-        # preserve filter state
         'selected_market':       market_filter,
         'selected_date':         date_filter,
         'selected_status':       status_filter,
@@ -299,6 +313,10 @@ def api_get_prices(request):
 def api_get_prediction(request):
     market = request.GET.get('market', '')
     try:
+        import tensorflow as tf
+        tf.config.threading.set_intra_op_parallelism_threads(1)
+        tf.config.threading.set_inter_op_parallelism_threads(1)
+        
         from .ml_model.price_predictor import RealTimePredictor
         predictor   = RealTimePredictor()
         predictions = predictor.predict_next_7_days(market=market)
@@ -335,6 +353,10 @@ def user_recommendations(request):
         messages.info(request, 'Complete your profile for personalised recommendations.')
 
     try:
+        import tensorflow as tf
+        tf.config.threading.set_intra_op_parallelism_threads(1)
+        tf.config.threading.set_inter_op_parallelism_threads(1)
+        
         from .ml_model.price_predictor import RealTimePredictor
         predictor       = RealTimePredictor()
         recommendations = predictor.get_recommendation(user_type)
@@ -347,9 +369,57 @@ def user_recommendations(request):
     return render(request, 'forecast_app/recommendations.html', context)
 
 
+def contact_view(request):
+    if request.method == 'POST':
+        name = request.POST.get('name')
+        email = request.POST.get('email')
+        phone = request.POST.get('phone')
+        subject = request.POST.get('subject')
+        user_type = request.POST.get('user_type')
+        message_text = request.POST.get('message')
+        subscribe = request.POST.get('subscribe') == 'on'
+
+        if not name or not email or not message_text:
+            messages.error(request, "Please fill in all required fields.")
+            return render(request, 'forecast_app/contact.html')
+
+        # 1. Saves to Database
+        ContactMessage.objects.create(
+            name=name,
+            email=email,
+            phone=phone,
+            subject=subject,
+            user_type=user_type,
+            message=message_text,
+            subscribed_to_alerts=subscribe
+        )
+
+        # 2. Send confirmation email directly to the user
+        try:
+            user_email_body = f"""Hello {name},
+
+Thank you for contacting OnionPulse AI! 
+
+We have successfully received your inquiry regarding "{subject or 'General Inquiry'}". Our team is reviewing it, and we will reach out to you within the next 24 hours.
+
+Best regards,
+The OnionPulse AI Team
+"""
+            send_mail(
+                subject="We received your message! — OnionPulse AI",
+                message=user_email_body,
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[email],
+                fail_silently=False,
+            )
+        except Exception as e:
+            print(f"SMTP Auto-reply failure: {e}")
+
+        messages.success(request, "Your message has been sent successfully! We'll get back to you within 24 hours.")
+        return redirect('contact') 
+
+    return render(request, 'forecast_app/contact.html')
+
+
 def about(request):
     return render(request, 'forecast_app/about.html')
-
-
-def contact(request):
-    return render(request, 'forecast_app/contact.html')

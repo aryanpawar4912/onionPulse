@@ -1482,3 +1482,60 @@ def delete_factor(request, factor_id):
         messages.error(request, f'Error deleting market factor: {str(e)}')
     
     return redirect('manage_factors')
+
+from django.db.models import Q
+from django.http import JsonResponse
+from django.shortcuts import get_object_or_404, redirect, render
+from django.contrib.admin.views.decorators import staff_member_required
+from django.contrib.auth.decorators import login_required
+from django.core.paginator import Paginator
+from forecast_app.models import ContactMessage
+
+@staff_member_required
+@login_required
+def system_contacts_view(request):
+    # 1. Fetch messages and apply Search Filter
+    search_query = request.GET.get('search', '')
+    all_messages = ContactMessage.objects.all().order_by('-created_at')
+
+    if search_query:
+        all_messages = all_messages.filter(
+            Q(name__icontains=search_query) | 
+            Q(email__icontains=search_query) | 
+            Q(subject__icontains=search_query)
+        )
+
+    # 2. Calculate Metrics
+    total_count = all_messages.count()
+    alert_subscribers = all_messages.filter(subscribed_to_alerts=True).count()
+    
+    # 3. Paginate
+    paginator = Paginator(all_messages, 10) 
+    page_number = request.GET.get('page')
+    contact_records = paginator.get_page(page_number)
+
+    context = {
+        'contact_records': contact_records, 
+        'total_count': total_count,
+        'alert_subscribers': alert_subscribers,
+    }
+    return render(request, 'custom_admin/manage_messages.html', context)
+
+@staff_member_required
+@login_required
+def mark_contact_as_read(request, msg_id):
+    if request.method == 'POST':
+        message = get_object_or_404(ContactMessage, id=msg_id)
+        message.is_read = True
+        message.save()
+        return JsonResponse({'status': 'success'})
+    return JsonResponse({'status': 'error'}, status=400)
+
+@staff_member_required
+@login_required
+def delete_contact_message(request, msg_id):
+    if request.method == 'POST':
+        message = get_object_or_404(ContactMessage, id=msg_id)
+        message.delete()
+        return redirect('system_contacts')
+    return redirect('system_contacts')

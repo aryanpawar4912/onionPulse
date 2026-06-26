@@ -14,3 +14,97 @@ http://127.0.0.1:8000/admin-panel/login
 change on local 
 git reset --hard HEAD 
 git pull origin main 
+
+
+
+========================================================================
+ONION PULSE AI — COMPREHENSIVE DEVELOPER BLUEPRINT & PROJECT SETUP GUIDE
+========================================================================
+
+SYSTEM REQUIREMENTS:
+--------------------
+- Local Engine Target: Python 3.10.x (Production Matching Runtime)
+- Framework Backend: Django 3.2.25
+- Deployment Environment Node: Render Cloud Infrastructure Platform
+- Relational Core Data Store: SQLite (Local Dev Target) / PostgreSQL (Cloud Prod Target)
+
+
+1. FRESH SYSTEM REPOSITORY INITIALIZATION
+------------------------------------------
+If you are initializing a fresh pull of this workspace to a separate development environment workstation, run the following terminal baseline:
+
+# Create a scoped virtual environment matrix layer
+python -m venv venv
+
+# Engage the execution execution shell environment mapping
+# On Windows PowerShell:
+.\venv\Scripts\Activate.ps1
+# On macOS / Linux Bash:
+source venv/bin/activate
+
+# Upgrade local setup tools tracking packages
+pip install --upgrade pip
+
+
+2. PARSING THE REQUIREMENTS MANIFEST
+------------------------------------
+Your dependency list contains a memory-conscious configuration specifically assembled to prevent Render Free Tier "Out of Memory (OOM) Exit Code 137" events:
+
+# Installs the lightweight CPU-only ML modules without raw GPU/CUDA overhead
+pip install -r requirements.txt
+
+*Note: For local model optimization and inference tracking, tensorflow-cpu functions completely identically to standard tensorflow.*
+
+
+3. LOCAL ENVIRONMENT INITIALIZATION (.env)
+------------------------------------------
+Your repository is guarded by a robust .gitignore file configuration. You must construct a local `.env` setup mapping file manually inside the base root directory (the same level containing manage.py):
+
+--- Create a file named ".env" and paste the following parameters ---
+DEBUG=True
+KEY=django-insecure-dev-temporary-token-string-1234567890
+HOSTS=localhost,127.0.0.1
+DATABASE_URL=sqlite:///db.sqlite3
+EMAIL_PASSWORD=your_gmail_app_password_here
+--------------------------------------------------------------------
+
+
+4. ESTABLISHING SYSTEM ARCHITECTURE AND DATA MIGRATIONS
+------------------------------------------------------
+With your virtual framework engaged and variable configurations parsed, map your initial SQLite tables layout structure:
+
+# Verify code base models map smoothly against current infrastructure states
+python manage.py makemigrations
+
+# Execute table generations schemas 
+python manage.py migrate
+
+# Initialize administrative superuser access credential entry sets
+python manage.py createsuperuser
+
+
+5. LOCAL ENGINE VERIFICATION ENGINE RUNTIME
+-------------------------------------------
+Kickstart the native development thread pool engine loop structure:
+
+python manage.py runserver
+
+Open your target web browser interface and locate: http://127.0.0.1:8000/
+
+
+6. PRODUCTION DEPLOYMENT ENGINE SPECS (RENDER SEEDING)
+------------------------------------------------------
+When launching this repository build setup dynamically inside Render:
+- The system automatically triggers the "render.yaml" blueprint structure.
+- The pipeline utilizes the specialized "build.sh" file to configure pip packages under memory restrictions.
+- WARNING FOR EDITORS: If "build.sh" is saved or altered on a Windows workstation, you MUST toggle line-endings from CRLF to LF (Unix Format) inside your editor (VS Code -> Bottom Right -> Click 'CRLF' -> Switch to 'LF'). If left as CRLF, Render container terminals will throw a "Command Not Found / bin/bash^M" structural execution crash.
+
+7. RENDER PRODUCTION ENVIRONMENTAL CLOUD MAPPING
+------------------------------------------------
+Verify that the following environmental variable nodes are present under the cloud control panel interface dashboard values:
+- DEBUG: False
+- HOSTS: .render.com,localhost,127.0.0.1
+- KEY: [Hardened Secure Multi-character Security String Override]
+- EMAIL_PASSWORD: [Your 16-Character Secure Inbox Verification Token Wrapper App Pass]
+- DATABASE_URL: Automatically wired via your Render PostgreSQL deployment mapping connection pipe.
+========================================================================

@@ -1,0 +1,105 @@
+{% extends 'custom_admin/base.html' %}
+
+{% block page_title %}System Contacts{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <form method="GET" action="{% url 'system_contacts' %}" class="search-container">
+                <i class="fas fa-search search-icon"></i>
+                <input type="text" name="search" class="search-box" placeholder="Search by name, email, subject..." value="{{ request.GET.search }}">
+            </form>
+        </div>
+    </div>
+
+    <div class="table-container">
+        <table class="table align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Status</th>
+                    <th>Name</th>
+                    <th>Subject</th>
+                    <th>Date</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for msg in contact_records %}
+                <tr style="cursor: pointer;" onclick="openMessageModal('{{ msg.id }}', '{{ msg.name|escapejs }}', '{{ msg.email|escapejs }}', '{{ msg.subject|escapejs }}', '{{ msg.message|escapejs }}', this)">                    <td>
+                        {% if msg.is_read %}
+                        <span class="badge bg-secondary">Read</span>
+                        {% else %}
+                        <span class="badge bg-primary">New</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ msg.name }}</td>
+                    <td>{{ msg.subject }}</td>
+                    <td>{{ msg.created_at|date:"M d, Y" }}</td>
+                    <td>
+                        <form method="POST" action="{% url 'delete_contact_message' msg.id %}" onsubmit="return confirm('Are you sure?');">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+                        </form>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="5" class="text-center">No messages found.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="modal fade" id="messageModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalSubject"></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p><strong>From:</strong> <span id="modalName"></span> &lt;<span id="modalEmail"></span>&gt;</p>
+                <div class="p-3 bg-light border rounded" id="modalBody"></div>
+            </div>
+            <div class="modal-footer">
+                <a id="replyBtn" href="#" class="btn btn-primary"><i class="fas fa-envelope"></i> Reply via Email</a>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function openMessageModal(id, name, email, subject, body, element) {
+    // 1. Populate Modal Content
+    document.getElementById('modalSubject').innerText = subject;
+    document.getElementById('modalName').innerText = name;
+    document.getElementById('modalEmail').innerText = email;
+    document.getElementById('modalBody').innerText = body;
+    document.getElementById('replyBtn').href = "mailto:" + email + "?subject=Re: " + subject;
+    
+    // 2. AJAX Call to Mark as Read
+    fetch(`/contacts/mark-read/${id}/`, { 
+        method: 'POST', 
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+            'Content-Type': 'application/json'
+        }
+    }).then(response => {
+        if(response.ok) {
+            // Find the badge within the clicked row and update it visually
+            const badge = element.querySelector('.badge');
+            if (badge) {
+                badge.innerText = 'Read';
+                badge.classList.remove('bg-primary');
+                badge.classList.add('bg-secondary');
+            }
+        }
+    }).catch(error => console.error('Error marking as read:', error));
+
+    // 3. Show Modal
+    new bootstrap.Modal(document.getElementById('messageModal')).show();
+}
+</script>
+{% endblock %}

@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: onion-pulse-ai
+    env: python
+    buildCommand: "./build.sh"
+    startCommand: "gunicorn onion_forecast.wsgi:application --workers 2 --threads 2"
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.10.12
+      - key: DEBUG
+        value: "False"
+      - key: HOSTS
+        value: ".render.com"
+      - key: WEB_CONCURRENCY
+        value: "2"
+      - key: SECRET_KEY
+        generateValue: true

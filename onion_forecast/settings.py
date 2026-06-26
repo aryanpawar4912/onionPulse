@@ -1,14 +1,17 @@
-# onion_forecast/settings.py - COMPLETE CORRECT VERSION
+# onion_forecast/settings.py - PRODUCTION READY VERSION
 import os
 from pathlib import Path
+import dj_database_url  # Import this to handle Render PostgreSQL
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# Quick-start development settings
-SECRET_KEY = 'django-insecure-onion-price-forecast-2024-india-12345'
-DEBUG = True
-ALLOWED_HOSTS = ['*']
+# --- ENVIRONMENT CONFIGURATION ---
+SECRET_KEY = os.environ.get('KEY', 'your-fallback-dev-key-if-needed')
+DEBUG = os.environ.get('DEBUG', 'False').lower() == 'true'
+
+# Parse comma-separated hosts from environment, or default to Render wildcard
+ALLOWED_HOSTS = os.environ.get('HOSTS', '.render.com').split(',')
 
 # Application definition
 INSTALLED_APPS = [
@@ -17,13 +20,15 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
+    'whitenoise.runserver_nostatic',  # WhiteNoise goes right above staticfiles
     'django.contrib.staticfiles',
     'forecast_app',
-    'custom_admin',  # Add this as separate app
+    'custom_admin',  
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # WhiteNoise goes right here
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -39,7 +44,7 @@ TEMPLATES = [
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [
             os.path.join(BASE_DIR, 'forecast_app/templates'),
-            os.path.join(BASE_DIR, 'custom_admin/templates'),  # Add this line
+            os.path.join(BASE_DIR, 'custom_admin/templates'),  
         ],
         'APP_DIRS': True,
         'OPTIONS': {
@@ -55,15 +60,17 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'onion_forecast.wsgi.application'
 
-# Database - SQLite only (NO MongoDB)
+# --- DATABASE SETUP (Render PostgreSQL) ---
+# It automatically reads the DATABASE_URL provided by Render's PostgreSQL instance.
+# If it can't find it (like on your local PC), it safely falls back to local SQLite.
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    'default': dj_database_url.config(
+        default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
+        conn_max_age=600
+    )
 }
 
-# Password validation (disabled for development)
+# Password validation (disabled for development/quick launch)
 AUTH_PASSWORD_VALIDATORS = []
 
 # Internationalization
@@ -73,45 +80,47 @@ USE_I18N = True
 USE_L10N = True
 USE_TZ = True
 
-# Static files (CSS, JavaScript, Images)
+# --- STATIC & MEDIA FILES HANDLING ---
 STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'forecast_app/static'),
-    os.path.join(BASE_DIR, 'custom_admin/static'),  # Add if you have static files in custom_admin
+    os.path.join(BASE_DIR, 'custom_admin/static'),  
 ]
 
-# Media files (Uploads)
+# Production static file storage optimizing compression
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
-# Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
-# Session engine (use database-backed sessions)
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'
 
-# Login URL for authentication
+# Authentication URLs
 LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/dashboard/'
 LOGOUT_REDIRECT_URL = '/'
 
-# Email backend (for development)
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+# --- EMAIL CONFIGURATION ---
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'onionpulse88@gmail.com'
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_PASSWORD')  
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
-# Security settings for development
+# Security settings (Keep lenient for now, can harden later)
 SECURE_BROWSER_XSS_FILTER = False
 SECURE_CONTENT_TYPE_NOSNIFF = False
 X_FRAME_OPTIONS = 'SAMEORIGIN'
 
-# Logging configuration
+# --- LOGGING (Fixed for Render's Read-Only Container Filesystem) ---
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
     'formatters': {
-        'verbose': {
-            'format': '{levelname} {asctime} {module} {message}',
-            'style': '{',
-        },
         'simple': {
             'format': '{levelname} {message}',
             'style': '{',
@@ -122,34 +131,29 @@ LOGGING = {
             'class': 'logging.StreamHandler',
             'formatter': 'simple',
         },
-        'file': {
-            'class': 'logging.FileHandler',
-            'filename': os.path.join(BASE_DIR, 'debug.log'),
-            'formatter': 'verbose',
-        },
     },
     'loggers': {
         'django': {
-            'handlers': ['console', 'file'],
+            'handlers': ['console'],
             'level': 'INFO',
             'propagate': True,
         },
         'forecast_app': {
-            'handlers': ['console', 'file'],
+            'handlers': ['console'],
             'level': 'DEBUG',
             'propagate': False,
         },
         'custom_admin': {
-            'handlers': ['console', 'file'],
+            'handlers': ['console'],
             'level': 'DEBUG',
             'propagate': False,
         },
     },
 }
 
-# Custom settings for your app
+# Onion Pulse AI App Custom Settings
 ONION_FORECAST_SETTINGS = {
-    'DEFAULT_MARKET': 'Mumbai',
+    'DEFAULT_MARKET': 'Nashik',
     'PRICE_RANGE_DAYS': 30,
     'PREDICTION_DAYS': 7,
     'CURRENCY': 'INR',

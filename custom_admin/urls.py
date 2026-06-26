@@ -48,4 +48,9 @@ urlpatterns = [
     # Additional pages
     path('settings/', views.system_settings, name='system_settings'),
     path('analytics/', views.system_analytics, name='system_analytics'),
+
+    # Contact Messages Management
+    path('contacts/', views.system_contacts_view, name='system_contacts'),
+    path('contacts/mark-read/<int:msg_id>/', views.mark_contact_as_read, name='mark_contact_as_read'),
+    path('contacts/delete/<int:msg_id>/', views.delete_contact_message, name='delete_contact_message'),
 ]
