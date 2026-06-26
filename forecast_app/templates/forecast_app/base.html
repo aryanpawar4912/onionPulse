@@ -154,6 +154,7 @@ footer a:hover{color:var(--orange)}
 .footer-divider{border-color:#1e293b!important;margin:24px 0 18px!important}
 .footer-bottom{font-size:13px;color:#334155;display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px}
 @media(max-width:768px){.kpi-card{padding:13px}.kpi-val{font-size:20px}.section-title{font-size:24px}}
+
 </style>
 </head>
 <body>
@@ -240,6 +241,13 @@ footer a:hover{color:var(--orange)}
         <a href="#">Privacy Policy</a>
         <a href="#">Terms of Use</a>
       </div>
+      <div class="col-md-3">
+      <h6>Information</h6>
+      <a href="#" data-bs-toggle="modal" data-bs-target="#devModal">Developer Info</a>
+      <a href="#" data-bs-toggle="modal" data-bs-target="#mentorModal">Mentor Details</a>
+      <a href="#" data-bs-toggle="modal" data-bs-target="#researchModal">Research Paper</a>
+    </div>
+
       <div class="col-md-4">
         <h6>Get In Touch</h6>
         <p class="mb-2" style="max-width:100%"><i class="fas fa-envelope me-2" style="color:var(--orange)"></i>info@onionforecast.in</p>
@@ -254,6 +262,66 @@ footer a:hover{color:var(--orange)}
     </div>
   </div>
 </footer>
+
+<div class="modal fade" id="devModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content" style="border-radius: var(--radius); border: none; box-shadow: var(--sh-xl);">
+      <div class="modal-header" style="border-bottom: 1px solid var(--border); padding: 20px 25px;">
+        <h5 class="modal-title" style="font-family: var(--font-d); font-weight: 700;">Development Team</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body" style="padding: 25px;">
+        <div class="row g-3">
+          <div class="col-md-6"><div class="p-3 border rounded d-flex align-items-center gap-3" style="background: var(--bg);"><div style="width: 40px; height: 40px; border-radius: 50%; background: #fff; display: flex; align-items: center; justify-content: center; border: 1px solid var(--border); color: var(--orange);"><i class="fas fa-code"></i></div><div><div class="fw-bold">Aryan Pawar</div><div class="text-muted" style="font-size: 12px;">Full Stack Dev & Project Lead</div><a href="https://www.linkedin.com/in/pawararyan4912" style="font-size: 11px;"><i class="fab fa-linkedin"></i> LinkedIn</a></div></div></div>
+          <div class="col-md-6"><div class="p-3 border rounded d-flex align-items-center gap-3" style="background: var(--bg);"><div style="width: 40px; height: 40px; border-radius: 50%; background: #fff; display: flex; align-items: center; justify-content: center; border: 1px solid var(--border); color: var(--orange);"><i class="fas fa-server"></i></div><div><div class="fw-bold">Monali Phad</div><div class="text-muted" style="font-size: 12px;">Backend & API Handler</div><a href="https://www.linkedin.com/in/monali-p-421ab9348" style="font-size: 11px;"><i class="fab fa-linkedin"></i> LinkedIn</a></div></div></div>
+          <div class="col-md-6"><div class="p-3 border rounded d-flex align-items-center gap-3" style="background: var(--bg);"><div style="width: 40px; height: 40px; border-radius: 50%; background: #fff; display: flex; align-items: center; justify-content: center; border: 1px solid var(--border); color: var(--orange);"><i class="fas fa-database"></i></div><div><div class="fw-bold">Harshada Tambe</div><div class="text-muted" style="font-size: 12px;">Frontend & Database Designer</div><a href="https://www.linkedin.com/in/harshada-tambe-b80507324" style="font-size: 11px;"><i class="fab fa-linkedin"></i> LinkedIn</a></div></div></div>
+          <div class="col-md-6"><div class="p-3 border rounded d-flex align-items-center gap-3" style="background: var(--bg);"><div style="width: 40px; height: 40px; border-radius: 50%; background: #fff; display: flex; align-items: center; justify-content: center; border: 1px solid var(--border); color: var(--orange);"><i class="fas fa-pen-nib"></i></div><div><div class="fw-bold">Rohan Salve</div><div class="text-muted" style="font-size: 12px;">UI/UX Designer</div><a href="https://www.linkedin.com/in/rohan-salve-312710272" style="font-size: 11px;"><i class="fab fa-linkedin"></i> LinkedIn</a></div></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="mentorModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content" style="border-radius: var(--radius); border: none; box-shadow: var(--sh-xl);">
+      <div class="modal-header" style="border-bottom: 1px solid var(--border); padding: 20px 25px;">
+        <h5 class="modal-title" style="font-family: var(--font-d); font-weight: 700;">Academic Mentor</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body" style="padding: 25px;">
+        <div class="p-4 rounded d-flex align-items-center gap-3" style="background: var(--orange-light); border: 1px solid var(--orange-mid);">
+          <div style="width: 50px; height: 50px; background: #fff; display: flex; align-items: center; justify-content: center; border-radius: 50%; color: var(--orange); font-size: 20px;"><i class="fas fa-chalkboard-teacher"></i></div>
+          <div>
+            <div class="fw-bold text-dark">Mr. Anup Sonawane</div>
+            <div class="text-muted" style="font-size: 12px;">HOD, Computer Engineering</div>
+            <div class="text-secondary" style="font-size: 12px;">Mahavir Polytechnic, Nashik</div>
+            <a href="https://www.linkedin.com/in/anupsonawane" target="_blank" class="text-orange" style="font-size: 11px; font-weight: 700;"><i class="fab fa-linkedin"></i> VIEW PROFILE</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="researchModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content" style="border-radius: var(--radius); border: none; box-shadow: var(--sh-xl);">
+      <div class="modal-header" style="border-bottom: 1px solid var(--border); padding: 20px 25px;">
+        <h5 class="modal-title" style="font-family: var(--font-d); font-weight: 700;">Research & Publication</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body" style="padding: 25px;">
+        <div class="p-4 rounded text-center" style="background: var(--green-light); border: 1px solid var(--green-mid);">
+          <i class="fas fa-file-alt fa-3x mb-3" style="color: var(--green);"></i>
+          <h6 class="fw-bold">IJARSCT Published Research</h6>
+          <p class="text-muted" style="font-size: 13px;">Volume 6, Issue 2, March 2026</p>
+          <a href="https://ijarsct.co.in/Paper31525.pdf" target="_blank" class="btn btn-green w-100 mt-2">SHOW PAPER</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 
 <div class="toast-msg" id="toastMsg"><i class="fas fa-check-circle" style="color:var(--green)"></i><span id="toastText"></span></div>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
