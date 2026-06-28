@@ -181,40 +181,195 @@
   </div>
 </div>
 {% endblock %}
-{% block scripts %}
 <script>
-const PD={
-  7:{l:['Mon','Tue','Wed','Thu','Fri','Sat','Sun'],
-  p:[1150,1120,1075,1110,1125,1135,1150]},
+const PD = {
+  // 1. Dynamic 7-Day Historical Data Block
+  7: {
+    l: [
+      {% if trend_data.prices_7d %}
+        {% for row in trend_data.prices_7d %}"{{ row.date|date:'D' }}"{% if not forloop.last %},{% endif %}{% endfor %}
+      {% else %}
+        'Mon','Tue','Wed','Thu','Fri','Sat','Sun'
+      {% endif %}
+    ],
+    p: [
+      {% if trend_data.prices_7d %}
+        {% for row in trend_data.prices_7d %}{{ row.modal_price }}{% if not forloop.last %},{% endif %}{% endfor %}
+      {% else %}
+        1850,1950,2025,2225,2250,2300,2300
+      {% endif %}
+    ]
+  },
 
-  30:{l:Array.from({length:30},(_,i)=>{const d=new Date();d.setDate(d.getDate()-29+i);return d.toLocaleDateString('en-IN',{day:'2-digit',month:'short'})}),
-  p:Array.from({length:30},()=>Math.round(900+Math.random()*300))},
-  
-  90:{l:Array.from({length:12},(_,i)=>'Wk '+(i+1)),
-  p:[1100,1080,1065,1080,1095,1140,1130,1110,1120,1130,1260,1280]},
+  // 2. Dynamic 30-Day Historical Data Block
+  30: {
+    l: [
+      {% if trend_data.prices_30d %}
+        {% for row in trend_data.prices_30d %}"{{ row.date|date:'d M' }}"{% if not forloop.last %},{% endif %}{% endfor %}
+      {% else %}
+        ...Array.from({length: 30}, (_, i) => {
+          const d = new Date(); d.setDate(d.getDate() - 29 + i);
+          return d.toLocaleDateString('en-IN', {day: '2-digit', month: 'short'});
+        })
+      {% endif %}
+    ],
+    p: [
+      {% if trend_data.prices_30d %}
+        {% for row in trend_data.prices_30d %}{{ row.modal_price }}{% if not forloop.last %},{% endif %}{% endfor %}
+      {% else %}
+        ...Array.from({length: 30}, (_, i) => i < 20 ? Math.round(1000 + (i * 35) + (Math.random() * 150)) : Math.round(2000 + ((i - 20) * 60) + (Math.random() * 120)))
+      {% endif %}
+    ]
+  },
 
-  180:{l:['Jan','Feb','Mar','Apr','May','Jun'],
-  p:[1000,1150,1200,1220,1225,1310]}
+  // 3. Dynamic 90-Day Historical Data Block
+  90: {
+    l: [
+      {% if trend_data.prices_90d %}
+        {% for row in trend_data.prices_90d %}"Wk {{ forloop.counter }}"{% if not forloop.last %},{% endif %}{% endfor %}
+      {% else %}
+        'Wk 1','Wk 2','Wk 3','Wk 4','Wk 5','Wk 6','Wk 7','Wk 8','Wk 9','Wk 10','Wk 11','Wk 12'
+      {% endif %}
+    ],
+    p: [
+      {% if trend_data.prices_90d %}
+        {% for row in trend_data.prices_90d %}{{ row.modal_price }}{% if not forloop.last %},{% endif %}{% endfor %}
+      {% else %}
+        1250,1180,1220,1360,1410,1450,1580,1620,1700,1850,2100,2300
+      {% endif %}
+    ]
+  },
+
+  // 4. Dynamic 180-Day (6-Month) Historical Data Block
+  180: {
+    l: [
+      {% if trend_data.prices_180d %}
+        {% for row in trend_data.prices_180d %}"{{ row.date|date:'b' }}"{% if not forloop.last %},{% endif %}{% endfor %}
+      {% else %}
+        'Jan','Feb','Mar','Apr','May','Jun'
+      {% endif %}
+    ],
+    p: [
+      {% if trend_data.prices_180d %}
+        {% for row in trend_data.prices_180d %}{{ row.modal_price }}{% if not forloop.last %},{% endif %}{% endfor %}
+      {% else %}
+        1450,1320,1150,1250,1480,2150
+      {% endif %}
+    ]
+  }
 };
 
-let pc=null;
-function loadPD(d,btn){
-  document.querySelectorAll('.pb').forEach(b=>b.classList.remove('on'));
-  if(btn)btn.classList.add('on');
-  const data=PD[d]||PD[7];
-  if(pc)pc.destroy();
-  pc=new Chart(document.getElementById('priceChart').getContext('2d'),{
-    type:'line',data:{labels:data.l,datasets:[{label:'Price (₹/qtl)',data:data.p,borderColor:'#16a34a',backgroundColor:'rgba(22,163,74,.07)',borderWidth:2.5,tension:.4,fill:true,pointRadius:3,pointBackgroundColor:'#16a34a',pointBorderColor:'#fff',pointBorderWidth:2}]},
-    options:{responsive:true,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>'₹'+c.raw.toLocaleString('en-IN')}}},scales:{y:{grid:{color:'#f0fdf4'},ticks:{callback:v=>'₹'+v.toLocaleString('en-IN')}},x:{grid:{display:false}}}}
+let pc = null;
+function loadPD(d, btn) {
+  document.querySelectorAll('.pb').forEach(b => b.classList.remove('on'));
+  if (btn) btn.classList.add('on');
+  const data = PD[d] || PD[7];
+  if (pc) pc.destroy();
+  pc = new Chart(document.getElementById('priceChart').getContext('2d'), {
+    type: 'line',
+    data: {
+      labels: data.l,
+      datasets: [{
+        label: 'Price (₹/qtl)',
+        data: data.p,
+        borderColor: '#16a34a',
+        backgroundColor: 'rgba(22,163,74,.07)',
+        borderWidth: 2.5,
+        tension: .4,
+        fill: true,
+        pointRadius: 3,
+        pointBackgroundColor: '#16a34a',
+        pointBorderColor: '#fff',
+        pointBorderWidth: 2
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: c => '₹' + c.raw.toLocaleString('en-IN') } }
+      },
+      scales: {
+        y: { grid: { color: '#f0fdf4' }, ticks: { callback: v => '₹' + v.toLocaleString('en-IN') } },
+        x: { grid: { display: false } }
+      }
+    }
   });
 }
-new Chart(document.getElementById('forecastChart').getContext('2d'),{
-  type:'line',data:{labels:['Day 1','Day 2','Day 3','Day 4','Day 5','Day 6','Day 7'],datasets:[
-    {label:'Forecast',data:[1000,900,900,900,950,971,950],borderColor:'#f97316',backgroundColor:'rgba(249,115,22,.06)',borderWidth:2.5,tension:.4,fill:false,pointRadius:4,pointBackgroundColor:'#f97316',pointBorderColor:'#fff',pointBorderWidth:2},
-    {label:'Upper Band',data:[600,500,500,500,500,500,500],borderColor:'rgba(22,163,74,.35)',borderWidth:1.5,borderDash:[5,4],pointRadius:0,fill:false},
-    {label:'Lower Band',data:[1299,1141,1131,1100,1252,1126,1100],borderColor:'rgba(220,38,38,.35)',borderWidth:1.5,borderDash:[5,4],pointRadius:0,fill:false}
-  ]},options:{responsive:true,plugins:{legend:{position:'bottom'}},scales:{y:{grid:{color:'#f0fdf4'},ticks:{callback:v=>'₹'+v}},x:{grid:{display:false}}}}
+
+// 5. Fully Dynamic 7-Day ML Forecast Engine Connection
+new Chart(document.getElementById('forecastChart').getContext('2d'), {
+  type: 'line',
+  data: {
+    labels: [
+      {% for row in predictions %}
+        {% if row.ds %}"{{ row.ds|date:'d M' }}"{% else %}"{{ row.date|date:'d M' }}"{% endif %}{% if not forloop.last %},{% endif %}
+      {% empty %}
+        'Day 1','Day 2','Day 3','Day 4','Day 5','Day 6','Day 7'
+      {% endfor %}
+    ],
+    datasets: [
+      {
+        label: 'Forecast',
+        data: [
+          {% for row in predictions %}
+            {% if row.yhat %}{{ row.yhat|floatformat:0 }}{% else %}{{ row.predicted_price|floatformat:0 }}{% endif %}{% if not forloop.last %},{% endif %}
+          {% empty %}
+            1650, 1700, 1750, 1750, 1750, 1780, 1800
+          {% endfor %}
+        ],
+        borderColor: '#f97316',
+        backgroundColor: 'rgba(249,115,22,.06)',
+        borderWidth: 2.5,
+        tension: .4,
+        fill: false,
+        pointRadius: 4,
+        pointBackgroundColor: '#f97316',
+        pointBorderColor: '#fff',
+        pointBorderWidth: 2
+      },
+      {
+        label: 'Upper Band',
+        data: [
+          {% for row in predictions %}
+            {% if row.yhat_upper %}{{ row.yhat_upper|floatformat:0 }}{% else %}{{ row.predicted_max_price|default:row.predicted_price|floatformat:0 }}{% endif %}{% if not forloop.last %},{% endif %}
+          {% empty %}
+            2200, 2400, 2400, 2400, 2500, 2561, 2600
+          {% endfor %}
+        ],
+        borderColor: 'rgba(22,163,74,.35)',
+        borderWidth: 1.5,
+        borderDash: [5, 4],
+        pointRadius: 0,
+        fill: false
+      },
+      {
+        label: 'Lower Band',
+        data: [
+          {% for row in predictions %}
+            {% if row.yhat_lower %}{{ row.yhat_lower|floatformat:0 }}{% else %}{{ row.predicted_min_price|default:row.predicted_price|floatformat:0 }}{% endif %}{% if not forloop.last %},{% endif %}
+          {% empty %}
+            650, 700, 700, 700, 600, 400, 400
+          {% endfor %}
+        ],
+        borderColor: 'rgba(220,38,38,.35)',
+        borderWidth: 1.5,
+        borderDash: [5, 4],
+        pointRadius: 0,
+        fill: false
+      }
+    ]
+  },
+  options: {
+    responsive: true,
+    plugins: { legend: { position: 'bottom' } },
+    scales: {
+      y: { grid: { color: '#f0fdf4' }, ticks: { callback: v => '₹' + v.toLocaleString('en-IN') } },
+      x: { grid: { display: false } }
+    }
+  }
 });
-loadPD(7,null);
+
+loadPD(7, null);
 </script>
 {% endblock %}
