@@ -202,24 +202,40 @@ def home(request):
     total_predictions = PricePrediction.objects.count()
     accuracy = round(predictions.aggregate(Avg('confidence_interval'))['confidence_interval__avg'] or 0, 1)
 
-    markets = list(OnionPrice.objects.values_list('market', flat=True).distinct().order_by('market'))
+    latest_price = OnionPrice.objects.order_by('-date').first()
+    hero_market = None
+    if latest_price:
+        hero_market = _build_market_summary(
+            latest_price.market,
+            OnionPrice.objects.filter(market__iexact=latest_price.market).order_by('date')
+        )
+
     market_cards = []
-    for market in markets[:4]:
+    for market in ['Nasik', 'Lasalgaon']:
+        if hero_market and market == hero_market['market']:
+            continue
         market_records = OnionPrice.objects.filter(market__iexact=market).order_by('date')
         summary = _build_market_summary(market, market_records)
         if summary:
             market_cards.append(summary)
 
-    if not market_cards:
-        market_cards = [{
-            'market': 'Lasalgaon',
+    if not hero_market:
+        hero_market = {
+            'market': 'Live Market',
             'current_price': 0,
             'trend': 'stable',
             'change_pct': 0,
             'trend_label': 'Stable',
-        }]
+        }
 
-    hero_market = market_cards[0] if market_cards else None
+    if not hero_market:
+        hero_market = {
+            'market': 'Live Market',
+            'current_price': 0,
+            'trend': 'stable',
+            'change_pct': 0,
+            'trend_label': 'Stable',
+        }
     context = {
         'recent_prices': recent_price_rows,
         'market_factors': market_factors,
