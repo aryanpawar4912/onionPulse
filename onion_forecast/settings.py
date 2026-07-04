@@ -1,5 +1,6 @@
 # onion_forecast/settings.py - PRODUCTION READY VERSION
 import os
+import sys
 from pathlib import Path
 import dj_database_url  # Import this to handle Render PostgreSQL
 
@@ -7,11 +8,12 @@ import dj_database_url  # Import this to handle Render PostgreSQL
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # --- ENVIRONMENT CONFIGURATION ---
-SECRET_KEY = os.environ.get('KEY', 'your-fallback-dev-key-if-needed')
+SECRET_KEY = os.environ.get('SECRET_KEY') or 'onionpulse-ai-development-secret-key-please-change-in-production-2026'
 DEBUG = os.environ.get('DEBUG', 'False').lower() == 'true'
 
-# Parse comma-separated hosts from environment, or default to Render wildcard
-ALLOWED_HOSTS = os.environ.get('HOSTS', '.render.com').split(',')
+# Parse comma-separated hosts from environment, or default to common local/Render hosts
+ALLOWED_HOSTS = [host.strip() for host in os.environ.get('HOSTS', 'localhost,127.0.0.1,.onrender.com,.render.com').split(',') if host.strip()]
+CSRF_TRUSTED_ORIGINS = [origin.strip() for origin in os.environ.get('CSRF_TRUSTED_ORIGINS', 'https://localhost,https://127.0.0.1,https://onion-pulse-ai.onrender.com').split(',') if origin.strip()]
 
 # Application definition
 INSTALLED_APPS = [
@@ -62,13 +64,21 @@ WSGI_APPLICATION = 'onion_forecast.wsgi.application'
 
 # --- DATABASE SETUP (Render PostgreSQL) ---
 # It automatically reads the DATABASE_URL provided by Render's PostgreSQL instance.
-# If it can't find it (like on your local PC), it safely falls back to local SQLite.
-DATABASES = {
-    'default': dj_database_url.config(
-        default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
-        conn_max_age=600
-    )
-}
+# For local test runs we use SQLite so the suite can execute without the external host.
+if 'test' in sys.argv:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'test_db.sqlite3',
+        }
+    }
+else:
+    DATABASES = {
+        'default': dj_database_url.config(
+            default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
+            conn_max_age=600
+        )
+    }
 
 # Password validation (disabled for development/quick launch)
 AUTH_PASSWORD_VALIDATORS = []
@@ -111,10 +121,17 @@ EMAIL_HOST_USER = 'onionpulse88@gmail.com'
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_PASSWORD')  
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
-# Security settings (Keep lenient for now, can harden later)
-SECURE_BROWSER_XSS_FILTER = False
-SECURE_CONTENT_TYPE_NOSNIFF = False
-X_FRAME_OPTIONS = 'SAMEORIGIN'
+# Security settings for production deployments
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+SECURE_SSL_REDIRECT = os.environ.get('SECURE_SSL_REDIRECT', 'False').lower() == 'true'
+SESSION_COOKIE_SECURE = os.environ.get('SESSION_COOKIE_SECURE', 'True').lower() == 'true'
+CSRF_COOKIE_SECURE = os.environ.get('CSRF_COOKIE_SECURE', 'True').lower() == 'true'
+SECURE_HSTS_SECONDS = int(os.environ.get('SECURE_HSTS_SECONDS', '31536000'))
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+SECURE_HSTS_PRELOAD = True
+SECURE_BROWSER_XSS_FILTER = True
+SECURE_CONTENT_TYPE_NOSNIFF = True
+X_FRAME_OPTIONS = 'DENY'
 
 # --- LOGGING (Fixed for Render's Read-Only Container Filesystem) ---
 LOGGING = {

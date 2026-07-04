@@ -10,8 +10,12 @@ services:
       - key: DEBUG
         value: "False"
       - key: HOSTS
-        value: ".render.com"
+        value: ".onrender.com,localhost,127.0.0.1"
       - key: WEB_CONCURRENCY
         value: "2"
       - key: SECRET_KEY
         generateValue: true
+      - key: SECURE_SSL_REDIRECT
+        value: "True"
+      - key: CSRF_TRUSTED_ORIGINS
+        value: "https://onion-pulse-ai.onrender.com"

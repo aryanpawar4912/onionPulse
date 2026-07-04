@@ -72,25 +72,25 @@
     <div class="col-6 col-md-3">
       <div class="kpi-card">
         <div class="kpi-icon green"><i class="fas fa-database"></i></div>
-        <div><div class="kpi-val">50K+</div><div class="kpi-lbl">Total Records</div></div>
+        <div><div class="kpi-val">{{ total_records|default:0 }}</div><div class="kpi-lbl">Total Records</div></div>
       </div>
     </div>
     <div class="col-6 col-md-3">
       <div class="kpi-card">
         <div class="kpi-icon orange"><i class="fas fa-store"></i></div>
-        <div><div class="kpi-val">8+</div><div class="kpi-lbl">Markets</div></div>
+        <div><div class="kpi-val">{{ market_count|default:0 }}</div><div class="kpi-lbl">Markets</div></div>
       </div>
     </div>
     <div class="col-6 col-md-3">
       <div class="kpi-card">
         <div class="kpi-icon blue"><i class="fas fa-rupee-sign"></i></div>
-        <div><div class="kpi-val">₹1,200</div><div class="kpi-lbl">Avg Min Price</div></div>
+        <div><div class="kpi-val">₹{{ avg_min_price|floatformat:0|default:0 }}</div><div class="kpi-lbl">Avg Min Price</div></div>
       </div>
     </div>
     <div class="col-6 col-md-3">
       <div class="kpi-card">
         <div class="kpi-icon amber"><i class="fas fa-chart-line"></i></div>
-        <div><div class="kpi-val">₹4,800</div><div class="kpi-lbl">Avg Max Price</div></div>
+        <div><div class="kpi-val">₹{{ avg_max_price|floatformat:0|default:0 }}</div><div class="kpi-lbl">Avg Max Price</div></div>
       </div>
     </div>
   </div>
@@ -181,28 +181,7 @@
 {% block scripts %}
 <script>
 // Static demo data as fallback
-const STATIC_DATA = [
-  {date:'2026-03-06',market:'Lasalgaon',min_price:1900,max_price:2400,modal_price:2150,trend:'up'},
-  {date:'2026-03-06',market:'Pune',min_price:1750,max_price:2200,modal_price:1980,trend:'down'},
-  {date:'2026-03-05',market:'Nashik',min_price:1850,max_price:2350,modal_price:2080,trend:'up'},
-  {date:'2026-03-05',market:'Ahmednagar',min_price:1700,max_price:2100,modal_price:1850,trend:'down'},
-  {date:'2026-03-04',market:'Solapur',min_price:1600,max_price:2000,modal_price:1750,trend:'up'},
-  {date:'2026-03-04',market:'Kolhapur',min_price:1800,max_price:2100,modal_price:1920,trend:'stable'},
-  {date:'2026-03-03',market:'Nagpur',min_price:1750,max_price:2050,modal_price:1880,trend:'down'},
-  {date:'2026-03-03',market:'Aurangabad',min_price:1820,max_price:2150,modal_price:1950,trend:'up'},
-  {date:'2026-03-02',market:'Lasalgaon',min_price:1870,max_price:2350,modal_price:2100,trend:'up'},
-  {date:'2026-03-02',market:'Pune',min_price:1800,max_price:2250,modal_price:2010,trend:'stable'},
-  {date:'2026-03-01',market:'Nashik',min_price:1820,max_price:2300,modal_price:2040,trend:'up'},
-  {date:'2026-03-01',market:'Ahmednagar',min_price:1680,max_price:2080,modal_price:1820,trend:'stable'},
-  {date:'2026-02-28',market:'Solapur',min_price:1580,max_price:1980,modal_price:1720,trend:'stable'},
-  {date:'2026-02-28',market:'Lasalgaon',min_price:1850,max_price:2300,modal_price:2080,trend:'up'},
-  {date:'2026-02-27',market:'Pune',min_price:1820,max_price:2280,modal_price:2020,trend:'down'},
-  {date:'2026-02-27',market:'Kolhapur',min_price:1850,max_price:2120,modal_price:1960,trend:'up'},
-  {date:'2026-02-26',market:'Nagpur',min_price:1720,max_price:2020,modal_price:1850,trend:'stable'},
-  {date:'2026-02-26',market:'Nashik',min_price:1800,max_price:2280,modal_price:2020,trend:'up'},
-  {date:'2026-02-25',market:'Lasalgaon',min_price:1820,max_price:2250,modal_price:2050,trend:'up'},
-  {date:'2026-02-25',market:'Aurangabad',min_price:1800,max_price:2100,modal_price:1920,trend:'stable'},
-];
+const STATIC_DATA = {{ data_json|safe }};
 
 let allData = [];
 let filteredData = [];
@@ -236,9 +215,9 @@ function displayTable(){
   tbody.innerHTML = rows.map(r=>{
     const trend = r.trend||'stable';
     const trendHtml = trend==='up'
-      ? `<span class="pill pill-green"><i class="fas fa-arrow-up"></i> Rising</span>`
+      ? `<span class="pill pill-green"><i class="fas fa-arrow-up"></i> Increase</span>`
       : trend==='down'
-      ? `<span class="pill pill-red"><i class="fas fa-arrow-down"></i> Falling</span>`
+      ? `<span class="pill pill-red"><i class="fas fa-arrow-down"></i> Decrease</span>`
       : `<span class="pill pill-amber">→ Stable</span>`;
     const modal = r.modal_price||r.modal||0;
     const modalClass = trend==='up'?'price-up':trend==='down'?'price-down':'price-stable';

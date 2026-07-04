@@ -153,7 +153,8 @@ footer a:hover{color:var(--orange)}
 .footer-social a:hover{background:var(--orange);color:#fff;border-color:var(--orange)}
 .footer-divider{border-color:#1e293b!important;margin:24px 0 18px!important}
 .footer-bottom{font-size:13px;color:#334155;display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px}
-@media(max-width:768px){.kpi-card{padding:13px}.kpi-val{font-size:20px}.section-title{font-size:24px}}
+@media(max-width:768px){.kpi-card{padding:13px}.kpi-val{font-size:20px}.section-title{font-size:24px}.navbar{padding:.45rem 0}.navbar-brand{font-size:16px}.navbar-nav{padding:10px 0}.nav-link{padding:.5rem .8rem!important}.hero-content{padding:70px 0 50px}.hero-stats{gap:16px;margin-top:28px}.hero-stat{min-width:70px}.hero-card{padding:18px}.hero-card .val{font-size:22px}.mobile-bottom-nav{position:fixed;left:0;right:0;bottom:0;z-index:1100;display:flex;justify-content:space-around;align-items:center;background:#fff;border-top:1px solid var(--border);padding:10px 8px 14px;box-shadow:0 -8px 24px rgba(15,23,42,.08)}}
+@media(min-width:769px){.mobile-bottom-nav{display:none}}
 
 </style>
 </head>
@@ -212,6 +213,13 @@ footer a:hover{color:var(--orange)}
 {% endif %}
 
 <main>{% block content %}{% endblock %}</main>
+
+<nav class="mobile-bottom-nav" aria-label="Mobile navigation">
+  <a class="nav-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}" href="{% url 'home' %}"><i class="fas fa-home"></i><span>Home</span></a>
+  <a class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}" href="{% url 'dashboard' %}"><i class="fas fa-chart-line"></i><span>Dash</span></a>
+  <a class="nav-link {% if request.resolver_match.url_name == 'historical' %}active{% endif %}" href="{% url 'historical' %}"><i class="fas fa-history"></i><span>History</span></a>
+  <a class="nav-link {% if request.resolver_match.url_name == 'predict' %}active{% endif %}" href="{% url 'predict' %}"><i class="fas fa-magic"></i><span>Predict</span></a>
+</nav>
 
 <footer>
   <div class="container">

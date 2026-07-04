@@ -54,7 +54,7 @@
     <div class="col-6 col-lg-3">
       <div class="kpi"><div class="kpi-ic gr">
         <i class="fas fa-rupee-sign"></i></div><div><div class="kpi-v">
-          ₹{{ trend_data.current_price|floatformat:0|default:"950" }}
+          ₹{{ trend_data.current_price|floatformat:0|default:0 }}
         </div>
       <div class="kpi-l">Current Price</div>
     </div>
@@ -86,7 +86,7 @@
         <div class="kpi-ic bl">
           <i class="fas fa-calendar-alt"></i>
         </div><div><div class="kpi-v">
-          ₹{{ trend_data.avg_30d|floatformat:0|default:"970" }}</div>
+          ₹{{ trend_data.avg_30d|floatformat:0|default:0 }}</div>
           <div class="kpi-l">30-Day Avg</div>
         </div>
       </div>
@@ -99,9 +99,9 @@
         <div>
           <div class="kpi-v" style="font-size:16px">
             <span style="color:var(--green)">
-              ₹{{ trend_data.min_30d|floatformat:0|default:"800" }}</span>
+              ₹{{ trend_data.min_30d|floatformat:0|default:0 }}</span>
               <span style="color:var(--text-lt);font-size:13px"> – </span>
-              <span style="color:#dc2626">₹{{ trend_data.max_30d|floatformat:0|default:"1,100" }}</span>
+              <span style="color:#dc2626">₹{{ trend_data.max_30d|floatformat:0|default:0 }}</span>
             </div><div class="kpi-l">Price Range</div>
           </div>
         </div>
@@ -144,10 +144,9 @@
           {% for factor in factors %}
           <div class="fr"><span>{{ factor.name }}</span><span class="pill {% if factor.impact_score > 0 %}pill-red{% else %}pill-gr{% endif %}">{{ factor.impact_score|floatformat:2 }}</span></div>
           {% empty %}
-          <div class="fr"><span>Monsoon Rainfall</span><span class="pill pill-red">High</span></div>
-          <div class="fr"><span>Export Policy</span><span class="pill pill-am">Medium</span></div>
-          <div class="fr"><span>Fuel Prices</span><span class="pill pill-bl">Low</span></div>
-          <div class="fr"><span>Cold Storage</span><span class="pill pill-gr">Stable</span></div>
+          {% if not factors %}
+        <div class="fr"><span>No market factors available</span><span class="pill pill-gray">—</span></div>
+        {% endif %}
           {% endfor %}
         </div>
       </div>
@@ -155,14 +154,14 @@
         <div class="sb-h"><i class="fas fa-lightbulb"></i> Quick Insights</div>
         <div class="sb-b">
           <div class="ins"><div class="id" style="background:var(--green)"></div>
-          <span>Lasalgaon prices up 5% this week — selling window open for farmers.</span>
+          <span>Latest market reading: ₹{{ trend_data.current_price|floatformat:0|default:0 }} for {{ trend_data.market|default:'selected market' }}.</span>
         </div>
           <div class="ins"><div class="id" style="background:var(--orange)"></div>
-            <span>Export ban risk elevated — watch government policy announcements.</span>
+            <span>Current trend is {{ trend_data.trend|default:'Stable' }} based on the latest stored price movement.</span>
           </div>
           <div class="ins"><div class="id" style="background:#2563eb">
           </div>
-            <span>Kharif harvest approaching — supply increase expected in 6–8 weeks.</span>
+            <span>{{ predictions|length|default:0 }} forecast points are available from saved predictions.</span>
           </div>
           <a href="{% url 'recommendations' %}" class="btn-gr w-100 mt-3" style="justify-content:center">
             <i class="fas fa-magic"></i> Get AI Recommendations</a>
@@ -171,16 +170,17 @@
       <div class="sb">
         <div class="sb-h"><i class="fas fa-tachometer-alt"></i> Quick Stats</div>
         <div class="sb-b">
-          <div class="fr"><span>Prediction Accuracy</span><span style="font-weight:700;color:var(--green)">85%+</span></div>
-          <div class="fr"><span>Active Markets</span><span style="font-weight:700;color:var(--text)">8</span></div>
-          <div class="fr"><span>Data Points</span><span style="font-weight:700;color:var(--orange)">50K+</span></div>
-          <div class="fr"><span>ML Models</span><span style="font-weight:700;color:var(--text)">4</span></div>
+          <div class="fr"><span>Prediction Accuracy</span><span style="font-weight:700;color:var(--green)">{{ predictions|length|default:0 }} points</span></div>
+          <div class="fr"><span>Active Markets</span><span style="font-weight:700;color:var(--text)">{{ trend_data.market|default:'N/A' }}</span></div>
+          <div class="fr"><span>Data Points</span><span style="font-weight:700;color:var(--orange)">{{ trend_data.prices_30d|length|default:0 }} recent</span></div>
+          <div class="fr"><span>Forecast Range</span><span style="font-weight:700;color:var(--text)">₹{{ trend_data.min_30d|floatformat:0|default:0 }}–₹{{ trend_data.max_30d|floatformat:0|default:0 }}</span></div>
         </div>
       </div>
     </div>
   </div>
 </div>
 {% endblock %}
+{% block scripts %}
 <script>
 const PD = {
   // 1. Dynamic 7-Day Historical Data Block
