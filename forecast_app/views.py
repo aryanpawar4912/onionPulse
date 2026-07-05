@@ -1,130 +1,17 @@
-# forecast_app/views.py - PRODUCTION HARDENED FOR RENDER (PYTHON 3.10)
-import json
-import os
-from datetime import datetime, timedelta
+# forecast_app/views.py
+
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http import JsonResponse
 from django.db.models import Avg, Count
 from django.utils import timezone
-from django.core.mail import send_mail
-from django.conf import settings
+from datetime import datetime, timedelta
+from .models import ContactMessage, OnionPrice, PricePrediction, MarketFactor, UserProfile
 
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 from .forms import UserRegisterForm
-from .models import ContactMessage, OnionPrice, PricePrediction, MarketFactor, UserProfile
-
-
-def _build_trend_label(current_price, previous_price):
-    if previous_price is None or previous_price <= 0:
-        return 'stable'
-    change_pct = ((current_price - previous_price) / previous_price) * 100
-    if change_pct > 2:
-        return 'up'
-    if change_pct < -2:
-        return 'down'
-    return 'stable'
-
-
-def _build_market_summary(market_name, records):
-    records = list(records.order_by('date'))
-    if not records:
-        return None
-
-    latest = records[-1]
-    previous = records[-2] if len(records) > 1 else None
-    current_price = float(latest.modal_price or 0)
-    previous_price = float(previous.modal_price or 0) if previous else None
-    trend = _build_trend_label(current_price, previous_price)
-    change_pct = None
-    if previous_price and previous_price > 0:
-        change_pct = round(((current_price - previous_price) / previous_price) * 100, 1)
-
-    return {
-        'market': market_name,
-        'current_price': current_price,
-        'trend': trend,
-        'change_pct': change_pct,
-        'trend_label': 'Increase' if trend == 'up' else 'Decrease' if trend == 'down' else 'Stable',
-        'date': latest.date,
-    }
-
-
-def _get_dashboard_context(market_name=None):
-    latest_price = OnionPrice.objects.order_by('-date').first()
-    if latest_price:
-        market_name = market_name or latest_price.market
-    else:
-        market_name = market_name or 'Lasalgaon'
-
-    market_prices = OnionPrice.objects.filter(market__iexact=market_name).order_by('date')
-    if not market_prices.exists():
-        market_prices = OnionPrice.objects.order_by('date')
-
-    recent_prices = list(market_prices.order_by('date'))
-    if len(recent_prices) > 30:
-        recent_prices = recent_prices[-30:]
-
-    latest_entry = recent_prices[-1] if recent_prices else None
-    previous_entry = recent_prices[-2] if len(recent_prices) > 1 else None
-    current_price = float(latest_entry.modal_price or 0) if latest_entry else 0
-    previous_price = float(previous_entry.modal_price or 0) if previous_entry else None
-    trend = _build_trend_label(current_price, previous_price)
-
-    if recent_prices:
-        avg_30d = sum(float(item.modal_price or 0) for item in recent_prices) / len(recent_prices)
-        min_30d = min(float(item.modal_price or 0) for item in recent_prices)
-        max_30d = max(float(item.modal_price or 0) for item in recent_prices)
-    else:
-        avg_30d = min_30d = max_30d = 0
-
-    predictions = list(
-        PricePrediction.objects.filter(market__iexact=market_name)
-        .order_by('forecast_date')[:7]
-        .values('forecast_date', 'predicted_modal_price', 'predicted_min_price', 'predicted_max_price')
-    )
-    forecast_rows = []
-    for row in predictions:
-        forecast_rows.append({
-            'date': row['forecast_date'],
-            'predicted_price': row['predicted_modal_price'],
-            'predicted_min_price': row['predicted_min_price'],
-            'predicted_max_price': row['predicted_max_price'],
-        })
-
-    ordered_prices = list(market_prices.order_by('date'))
-    chart_7d = [
-        {'date': entry.date, 'modal_price': float(entry.modal_price or 0)}
-        for entry in ordered_prices[-7:]
-    ]
-    chart_30d = [
-        {'date': entry.date, 'modal_price': float(entry.modal_price or 0)}
-        for entry in ordered_prices[-30:]
-    ]
-    chart_90d = [
-        {'date': entry.date, 'modal_price': float(entry.modal_price or 0)}
-        for entry in ordered_prices[-90:]
-    ]
-    chart_180d = [
-        {'date': entry.date, 'modal_price': float(entry.modal_price or 0)}
-        for entry in ordered_prices[-180:]
-    ]
-
-    return {
-        'current_price': current_price,
-        'trend': 'Increasing' if trend == 'up' else 'Decreasing' if trend == 'down' else 'Stable',
-        'min_30d': min_30d,
-        'max_30d': max_30d,
-        'avg_30d': avg_30d,
-        'prices_7d': chart_7d,
-        'prices_30d': chart_30d,
-        'prices_90d': chart_90d,
-        'prices_180d': chart_180d,
-        'market': market_name,
-        'predictions': forecast_rows,
-    }
 
 
 def login_view(request):
@@ -144,7 +31,7 @@ def login_view(request):
                 return redirect(redirect_to)
         else:
             # The form.errors will be passed to the template automatically
-            return render(request, 'forecast_app/login.html', {'form': form})
+            return render(request, 'forecast_app/login.html',{'form': form})
 
     # GET request
     form = AuthenticationForm()
@@ -175,99 +62,200 @@ def register_view(request):
         form = UserRegisterForm()
     return render(request, 'forecast_app/register.html', {'form': form})
 
-
 def home(request):
-    recent_prices = OnionPrice.objects.order_by('-date')[:10]
+    # Pass recent prices, predictions, and market factors to the home page
+    recent_prices  = OnionPrice.objects.order_by('-date')[:10]
     market_factors = MarketFactor.objects.filter(is_active=True)[:5]
-    predictions = PricePrediction.objects.order_by('-forecast_date')[:7]
+    predictions    = PricePrediction.objects.order_by('-forecast_date')[:7]
 
-    recent_price_rows = []
-    for price in recent_prices:
-        previous_record = OnionPrice.objects.filter(market__iexact=price.market, date__lt=price.date).order_by('-date').first()
-        previous_price = float(previous_record.modal_price or 0) if previous_record else None
-        current_price = float(price.modal_price or 0)
-        trend = _build_trend_label(current_price, previous_price)
-        recent_price_rows.append({
-            'date': price.date,
-            'market': price.market,
-            'min_price': float(price.min_price or 0),
-            'max_price': float(price.max_price or 0),
-            'modal_price': current_price,
-            'trend': trend,
-            'trend_label': 'Increase' if trend == 'up' else 'Decrease' if trend == 'down' else 'Stable',
+    total_prices      = OnionPrice.objects.count()
+    total_factors     = MarketFactor.objects.filter(is_active=True).count()
+    total_predictions = PricePrediction.objects.count()
+
+    latest_price_records = list(OnionPrice.objects.order_by('-date', '-created_at')[:50])
+    latest_by_market = {}
+    for record in latest_price_records:
+        existing = latest_by_market.get(record.market)
+        if existing is None:
+            latest_by_market[record.market] = record
+        else:
+            current_key = (record.date, record.created_at)
+            existing_key = (existing.date, existing.created_at)
+            if current_key > existing_key:
+                latest_by_market[record.market] = record
+
+    recent_market_records = list(latest_by_market.values())
+    market_cards = []
+    for record in recent_market_records[:3]:
+        market_cards.append({
+            'market': record.market,
+            'price': float(record.modal_price),
+            'change_percent': 0.0,
         })
 
-    total_prices = OnionPrice.objects.count()
-    total_factors = MarketFactor.objects.filter(is_active=True).count()
-    total_predictions = PricePrediction.objects.count()
-    accuracy = round(predictions.aggregate(Avg('confidence_interval'))['confidence_interval__avg'] or 0, 1)
-
-    latest_price = OnionPrice.objects.order_by('-date').first()
-    hero_market = None
-    if latest_price:
-        hero_market = _build_market_summary(
-            latest_price.market,
-            OnionPrice.objects.filter(market__iexact=latest_price.market).order_by('date')
+    market_pulse = None
+    if market_cards:
+        pulse_record = max(market_cards, key=lambda item: item['price'])
+        pulse_market = pulse_record['market']
+        previous_prices = list(
+            OnionPrice.objects.filter(market=pulse_market).order_by('-date', '-created_at')[:2]
         )
+        previous_price = None
+        if len(previous_prices) > 1:
+            previous_price = float(previous_prices[1].modal_price)
+        else:
+            previous_candidates = [
+                float(item.modal_price)
+                for item in latest_price_records
+                if item.market != pulse_market and item.date < previous_prices[0].date
+            ]
+            if previous_candidates:
+                previous_price = max(previous_candidates)
 
-    market_cards = []
-    for market in ['Nasik', 'Lasalgaon']:
-        if hero_market and market == hero_market['market']:
-            continue
-        market_records = OnionPrice.objects.filter(market__iexact=market).order_by('date')
-        summary = _build_market_summary(market, market_records)
-        if summary:
-            market_cards.append(summary)
+        change_percent = 0.0
+        if previous_price and previous_price != 0:
+            change_percent = round(((pulse_record['price'] - previous_price) / previous_price) * 100, 1)
 
-    if not hero_market:
-        hero_market = {
-            'market': 'Live Market',
-            'current_price': 0,
-            'trend': 'stable',
-            'change_pct': 0,
-            'trend_label': 'Stable',
+        market_pulse = {
+            'price': pulse_record['price'],
+            'change_percent': change_percent,
+            'trend': 'up' if change_percent >= 0 else 'down',
         }
 
-    if not hero_market:
-        hero_market = {
-            'market': 'Live Market',
-            'current_price': 0,
-            'trend': 'stable',
-            'change_pct': 0,
-            'trend_label': 'Stable',
-        }
     context = {
-        'recent_prices': recent_price_rows,
-        'market_factors': market_factors,
-        'predictions': predictions,
-        'total_prices': total_prices,
-        'total_factors': total_factors,
-        'total_predictions': total_predictions,
-        'accuracy': accuracy,
-        'market_cards': market_cards[:2],
-        'hero_market': hero_market,
+        'recent_prices':      recent_prices,
+        'market_factors':     market_factors,
+        'predictions':        predictions,
+        'total_prices':       total_prices,
+        'total_factors':      total_factors,
+        'total_predictions':  total_predictions,
+        'accuracy':           85,
+        'market_pulse':       market_pulse,
+        'market_cards':       market_cards,
     }
     return render(request, 'forecast_app/home.html', context)
 
 
-@login_required
+def _get_daily_price_series(days=180):
+    recent_records = list(
+        OnionPrice.objects.order_by('-date', '-created_at')[:days]
+    )
+
+    if not recent_records:
+        return []
+
+    recent_records = sorted(recent_records, key=lambda item: item.date)
+
+    grouped = {}
+    for item in recent_records:
+        grouped.setdefault(item.date, []).append(float(item.modal_price))
+
+    daily_prices = []
+    for price_date in sorted(grouped):
+        values = grouped[price_date]
+        daily_prices.append({
+            'date': price_date,
+            'modal_price': sum(values) / len(values),
+        })
+
+    return daily_prices[-days:]
+
+
+def _build_dashboard_trend_data():
+    daily_prices = _get_daily_price_series(180)
+
+    if not daily_prices:
+        return {
+            'current_price': None,
+            'trend': 'No data',
+            'min_30d': None,
+            'max_30d': None,
+            'avg_30d': None,
+            'prices_7d': [],
+            'prices_30d': [],
+            'prices_90d': [],
+            'prices_180d': [],
+        }
+
+    recent_prices = daily_prices[-30:]
+    current_price = recent_prices[-1]['modal_price'] if recent_prices else None
+    avg_30d = sum(item['modal_price'] for item in recent_prices) / len(recent_prices) if recent_prices else None
+    min_30d = min(item['modal_price'] for item in recent_prices) if recent_prices else None
+    max_30d = max(item['modal_price'] for item in recent_prices) if recent_prices else None
+
+    trend = 'Stable'
+    if len(recent_prices) >= 2:
+        prev_price = recent_prices[-2]['modal_price']
+        change = ((current_price - prev_price) / prev_price * 100) if prev_price else 0
+        if change > 5:
+            trend = 'Increasing Rapidly'
+        elif change > 2:
+            trend = 'Increasing'
+        elif change < -5:
+            trend = 'Decreasing Rapidly'
+        elif change < -2:
+            trend = 'Decreasing'
+
+    return {
+        'current_price': current_price,
+        'trend': trend,
+        'min_30d': min_30d,
+        'max_30d': max_30d,
+        'avg_30d': avg_30d,
+        'prices_7d': daily_prices[-7:],
+        'prices_30d': recent_prices,
+        'prices_90d': daily_prices[-90:],
+        'prices_180d': daily_prices[-180:],
+    }
+
+
+def _get_dashboard_predictions(limit=7):
+    predictions = []
+    db_predictions = PricePrediction.objects.order_by('forecast_date', 'created_at')[:limit]
+
+    for item in db_predictions:
+        predictions.append({
+            'date': item.forecast_date,
+            'predicted_price': float(item.predicted_modal_price),
+            'predicted_min_price': float(item.predicted_min_price),
+            'predicted_max_price': float(item.predicted_max_price),
+            'confidence': item.confidence_interval,
+        })
+
+    if predictions:
+        return predictions
+
+    try:
+        from .ml_model.price_predictor import RealTimePredictor
+
+        predictor = RealTimePredictor()
+        prediction_df = predictor.predict_next_7_days()
+        if prediction_df is not None and not prediction_df.empty:
+            return prediction_df.to_dict('records')
+    except Exception:
+        pass
+
+    return []
+
+
 def dashboard(request):
-    trend_data = _get_dashboard_context()
+    trend_data = _build_dashboard_trend_data()
+    predictions_list = _get_dashboard_predictions()
+
     factors = MarketFactor.objects.filter(is_active=True)[:5]
     context = {
-        'trend_data': trend_data,
-        'predictions': trend_data.get('predictions', []),
-        'factors': factors,
-        'user_type': request.user.userprofile.user_type if hasattr(request.user, 'userprofile') else None,
+        'trend_data':  trend_data,
+        'predictions': predictions_list,
+        'factors':     factors,
+        'user_type':   request.user.userprofile.user_type if hasattr(request.user, 'userprofile') else None,
     }
     return render(request, 'forecast_app/dashboard.html', context)
 
-
 @login_required
 def historical_data(request):
-    market = request.GET.get('market', '')
+    market     = request.GET.get('market', '')
     start_date = request.GET.get('start_date', '')
-    end_date = request.GET.get('end_date', '')
+    end_date   = request.GET.get('end_date', '')
 
     qs = OnionPrice.objects.all().order_by('-date')
     if market:
@@ -283,42 +271,13 @@ def historical_data(request):
         except ValueError:
             pass
 
-    data_rows = []
-    for price in qs:
-        previous_price = None
-        previous_records = OnionPrice.objects.filter(market__iexact=price.market, date__lt=price.date).order_by('-date')[:1]
-        if previous_records.exists():
-            previous_price = float(previous_records[0].modal_price or 0)
-        current_price = float(price.modal_price or 0)
-        trend = _build_trend_label(current_price, previous_price)
-        data_rows.append({
-            'date': price.date,
-            'market': price.market,
-            'min_price': float(price.min_price or 0),
-            'max_price': float(price.max_price or 0),
-            'modal_price': current_price,
-            'trend': trend,
-            'trend_label': 'Increase' if trend == 'up' else 'Decrease' if trend == 'down' else 'Stable',
-        })
-
     markets = list(OnionPrice.objects.values_list('market', flat=True).distinct().order_by('market'))
-    serializable_rows = []
-    for row in data_rows:
-        serializable_row = dict(row)
-        serializable_row['date'] = serializable_row['date'].strftime('%Y-%m-%d')
-        serializable_rows.append(serializable_row)
-
     context = {
-        'data': data_rows,
-        'data_json': json.dumps(serializable_rows),
-        'markets': markets,
+        'data':            list(qs.values()),
+        'markets':         markets,
         'selected_market': market,
-        'start_date': start_date,
-        'end_date': end_date,
-        'avg_min_price': round(qs.aggregate(Avg('min_price'))['min_price__avg'] or 0, 2),
-        'avg_max_price': round(qs.aggregate(Avg('max_price'))['max_price__avg'] or 0, 2),
-        'total_records': qs.count(),
-        'market_count': len(markets),
+        'start_date':      start_date,
+        'end_date':        end_date,
     }
     return render(request, 'forecast_app/historical.html', context)
 
@@ -334,11 +293,6 @@ def predict_price(request):
         error_msg  = None
 
         try:
-            # Enforce execution thread limits inside the execution route
-            import tensorflow as tf
-            tf.config.threading.set_intra_op_parallelism_threads(1)
-            tf.config.threading.set_inter_op_parallelism_threads(1)
-            
             from .ml_model.price_predictor import RealTimePredictor
             predictor = RealTimePredictor()
             predictor.load_latest_data()
@@ -409,6 +363,7 @@ def predict_price(request):
 
 def prediction_results(request):
     """Prediction results page with filtering support."""
+    # --- filter params ---
     market_filter = request.GET.get('market', '')
     date_filter   = request.GET.get('date_range', 'all')
     status_filter = request.GET.get('status', 'all')
@@ -432,12 +387,14 @@ def prediction_results(request):
 
     predictions = qs[:100]
 
+    # --- stats ---
     all_predictions       = PricePrediction.objects.all()
     avg_confidence        = all_predictions.aggregate(Avg('confidence_interval'))['confidence_interval__avg'] or 0
     accurate_predictions  = all_predictions.filter(actual_price__isnull=False).count()
     pending_predictions   = all_predictions.filter(actual_price__isnull=True).count()
     total_count           = all_predictions.count()
 
+    # --- distinct markets for filter dropdown ---
     markets = list(
         PricePrediction.objects.values_list('market', flat=True)
         .distinct()
@@ -451,6 +408,7 @@ def prediction_results(request):
         'accurate_predictions':  accurate_predictions,
         'pending_predictions':   pending_predictions,
         'total_count':           total_count,
+        # preserve filter state
         'selected_market':       market_filter,
         'selected_date':         date_filter,
         'selected_status':       status_filter,
@@ -461,9 +419,9 @@ def prediction_results(request):
 def api_get_prices(request):
     """JSON endpoint — historical prices for preview chart."""
     market = request.GET.get('market', '')
-    days = int(request.GET.get('days', 60))
+    days   = int(request.GET.get('days', 60))
 
-    end_dt = datetime.now()
+    end_dt   = datetime.now()
     start_dt = end_dt - timedelta(days=days)
 
     qs = OnionPrice.objects.filter(
@@ -472,32 +430,22 @@ def api_get_prices(request):
     if market:
         qs = qs.filter(market__iexact=market)
 
-    data = []
-    for obj in qs:
-        previous_price = None
-        previous_records = OnionPrice.objects.filter(market__iexact=obj.market, date__lt=obj.date).order_by('-date')[:1]
-        if previous_records.exists():
-            previous_price = float(previous_records[0].modal_price or 0)
-        current_price = float(obj.modal_price or 0)
-        trend = _build_trend_label(current_price, previous_price)
-        data.append({
-            'date': obj.date.strftime('%Y-%m-%d'),
-            'market': obj.market,
-            'modal_price': current_price,
-            'min_price': float(obj.min_price or 0),
-            'max_price': float(obj.max_price or 0),
-            'trend': trend,
-        })
+    data = [
+        {
+            'date':        obj.date.strftime('%Y-%m-%d'),
+            'market':      obj.market,
+            'modal_price': float(obj.modal_price or 0),
+            'min_price':   float(obj.min_price   or 0),
+            'max_price':   float(obj.max_price   or 0),
+        }
+        for obj in qs
+    ]
     return JsonResponse({'data': data})
 
 
 def api_get_prediction(request):
     market = request.GET.get('market', '')
     try:
-        import tensorflow as tf
-        tf.config.threading.set_intra_op_parallelism_threads(1)
-        tf.config.threading.set_inter_op_parallelism_threads(1)
-        
         from .ml_model.price_predictor import RealTimePredictor
         predictor   = RealTimePredictor()
         predictions = predictor.predict_next_7_days(market=market)
@@ -534,10 +482,6 @@ def user_recommendations(request):
         messages.info(request, 'Complete your profile for personalised recommendations.')
 
     try:
-        import tensorflow as tf
-        tf.config.threading.set_intra_op_parallelism_threads(1)
-        tf.config.threading.set_inter_op_parallelism_threads(1)
-        
         from .ml_model.price_predictor import RealTimePredictor
         predictor       = RealTimePredictor()
         recommendations = predictor.get_recommendation(user_type)
@@ -549,6 +493,11 @@ def user_recommendations(request):
     context = {'user_type': user_type, 'recommendations': recommendations, 'trend': trend}
     return render(request, 'forecast_app/recommendations.html', context)
 
+from django.shortcuts import render, redirect
+from django.contrib import messages
+from django.core.mail import send_mail
+from django.conf import settings
+from .models import ContactMessage
 
 def contact_view(request):
     if request.method == 'POST':
@@ -564,7 +513,7 @@ def contact_view(request):
             messages.error(request, "Please fill in all required fields.")
             return render(request, 'forecast_app/contact.html')
 
-        # 1. Saves to Database
+        # 1. Saves to SQLite database
         ContactMessage.objects.create(
             name=name,
             email=email,
@@ -575,7 +524,7 @@ def contact_view(request):
             subscribed_to_alerts=subscribe
         )
 
-        # 2. Send confirmation email directly to the user
+        # 2. SEND AUTO-REPLY CONFIRMATION DIRECTLY TO THE USER
         try:
             user_email_body = f"""Hello {name},
 
@@ -585,22 +534,24 @@ We have successfully received your inquiry regarding "{subject or 'General Inqui
 
 Best regards,
 The OnionPulse AI Team
+https://greenhorizon.pythonanywhere.com
 """
+            
             send_mail(
                 subject="We received your message! — OnionPulse AI",
                 message=user_email_body,
                 from_email=settings.DEFAULT_FROM_EMAIL,
-                recipient_list=[email],
+                recipient_list=[email],  # <--- This sends it straight to the user's input email
                 fail_silently=False,
             )
         except Exception as e:
+            # Prevents a mail server configuration issue from crashing the whole page layout
             print(f"SMTP Auto-reply failure: {e}")
 
         messages.success(request, "Your message has been sent successfully! We'll get back to you within 24 hours.")
         return redirect('contact') 
 
     return render(request, 'forecast_app/contact.html')
-
 
 def about(request):
     return render(request, 'forecast_app/about.html')

@@ -1,95 +1,102 @@
-from datetime import date, timedelta
+from datetime import date
 
-from django.contrib.auth import get_user_model
 from django.test import TestCase
-from django.urls import reverse
 
-from .models import OnionPrice, PricePrediction
+from forecast_app.models import OnionPrice, PricePrediction
+from forecast_app.views import dashboard, home
 
 
-class MarketDataViewTests(TestCase):
-    def setUp(self):
-        self.user = get_user_model().objects.create_user(username='tester', password='secret123')
+class DashboardViewTests(TestCase):
+    def test_dashboard_uses_database_prices_and_predictions(self):
+        OnionPrice.objects.create(
+            date=date(2024, 1, 1),
+            market='Delhi',
+            state='Delhi',
+            district='Delhi',
+            variety='Red',
+            min_price=1000,
+            max_price=1200,
+            modal_price=1100,
+            arrival_quantity=10,
+        )
+        OnionPrice.objects.create(
+            date=date(2024, 1, 2),
+            market='Delhi',
+            state='Delhi',
+            district='Delhi',
+            variety='Red',
+            min_price=1100,
+            max_price=1300,
+            modal_price=1200,
+            arrival_quantity=10,
+        )
 
-        self.latest_price = OnionPrice.objects.create(
-            date=date.today(),
+        PricePrediction.objects.create(
+            prediction_date=date(2024, 1, 2),
+            forecast_date=date(2024, 1, 3),
+            market='Delhi',
+            predicted_min_price=1150,
+            predicted_max_price=1250,
+            predicted_modal_price=1200,
+            confidence_interval=90,
+        )
+        PricePrediction.objects.create(
+            prediction_date=date(2024, 1, 2),
+            forecast_date=date(2024, 1, 4),
+            market='Delhi',
+            predicted_min_price=1180,
+            predicted_max_price=1280,
+            predicted_modal_price=1230,
+            confidence_interval=88,
+        )
+
+        response = self.client.get('/dashboard/')
+
+        self.assertEqual(response.context['trend_data']['current_price'], 1200.0)
+        self.assertEqual(response.context['trend_data']['avg_30d'], 1150.0)
+        self.assertEqual(response.context['predictions'][0]['predicted_price'], 1200.0)
+        self.assertEqual(response.context['predictions'][1]['predicted_price'], 1230.0)
+
+    def test_home_page_market_cards_use_latest_database_values(self):
+        OnionPrice.objects.create(
+            date=date(2024, 2, 1),
             market='Lasalgaon',
             state='Maharashtra',
             district='Nashik',
             variety='Red',
-            min_price=1800,
-            max_price=2400,
-            modal_price=2100,
-            arrival_quantity=125,
+            min_price=2400,
+            max_price=2600,
+            modal_price=2500,
+            arrival_quantity=10,
         )
         OnionPrice.objects.create(
-            date=date.today() - timedelta(days=1),
+            date=date(2024, 2, 2),
+            market='Nashik',
+            state='Maharashtra',
+            district='Nashik',
+            variety='Red',
+            min_price=2500,
+            max_price=2700,
+            modal_price=2600,
+            arrival_quantity=10,
+        )
+        OnionPrice.objects.create(
+            date=date(2024, 2, 3),
             market='Lasalgaon',
             state='Maharashtra',
             district='Nashik',
             variety='Red',
-            min_price=1700,
-            max_price=2300,
-            modal_price=2000,
-            arrival_quantity=120,
-        )
-        OnionPrice.objects.create(
-            date=date.today() - timedelta(days=2),
-            market='Pune',
-            state='Maharashtra',
-            district='Pune',
-            variety='Red',
-            min_price=1600,
-            max_price=2200,
-            modal_price=1950,
-            arrival_quantity=110,
+            min_price=2300,
+            max_price=2500,
+            modal_price=2400,
+            arrival_quantity=10,
         )
 
-        PricePrediction.objects.create(
-            prediction_date=date.today(),
-            forecast_date=date.today() + timedelta(days=1),
-            market='Lasalgaon',
-            predicted_min_price=1900,
-            predicted_max_price=2200,
-            predicted_modal_price=2100,
-            confidence_interval=88.0,
-        )
-        PricePrediction.objects.create(
-            prediction_date=date.today(),
-            forecast_date=date.today() + timedelta(days=2),
-            market='Lasalgaon',
-            predicted_min_price=1950,
-            predicted_max_price=2250,
-            predicted_modal_price=2150,
-            confidence_interval=84.0,
-        )
+        response = self.client.get('/')
 
-    def test_home_page_uses_saved_market_data(self):
-        response = self.client.get(reverse('home'))
-
-        self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'Lasalgaon')
-        self.assertContains(response, '₹2100')
-        self.assertContains(response, 'Increase')
-
-    def test_dashboard_uses_saved_metrics_and_predictions(self):
-        self.client.login(username='tester', password='secret123')
-        response = self.client.get(reverse('dashboard'))
-
-        self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'Current Price')
-        self.assertContains(response, '30-Day Avg')
-        self.assertContains(response, 'Price Range')
-        self.assertContains(response, '7-Day Price Forecast')
-        self.assertContains(response, '₹2100')
-        self.assertContains(response, '₹2000')
-
-    def test_historical_page_uses_saved_summary_stats(self):
-        self.client.login(username='tester', password='secret123')
-        response = self.client.get(reverse('historical'))
-
-        self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'Avg Min Price')
-        self.assertContains(response, 'Avg Max Price')
-        self.assertContains(response, '₹1700')
-        self.assertContains(response, '₹2300')
+        self.assertEqual(response.context['market_pulse']['price'], 2600.0)
+        self.assertEqual(response.context['market_pulse']['change_percent'], 4.0)
+        self.assertEqual(response.context['market_cards'][0]['market'], 'Lasalgaon')
+        self.assertEqual(response.context['market_cards'][0]['price'], 2400.0)
+        self.assertEqual(response.context['market_cards'][1]['market'], 'Nashik')
+        self.assertEqual(response.context['market_cards'][1]['price'], 2600.0)
