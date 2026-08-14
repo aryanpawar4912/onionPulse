@@ -18,11 +18,13 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from forecast_app.views import health_check
 
 urlpatterns = [
     path('admin/', admin.site.urls),  # Django admin
     path('admin-panel/', include('custom_admin.urls')),  # Custom admin
     path('', include('forecast_app.urls')),  # Main app
+    path('health/', health_check, name='health_check'), # For health check
 ]
 
 if settings.DEBUG:
