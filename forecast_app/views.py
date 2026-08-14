@@ -555,3 +555,12 @@ https://greenhorizon.pythonanywhere.com
 
 def about(request):
     return render(request, 'forecast_app/about.html')
+
+# ====================================
+# Send request to render server
+# ====================================
+
+from django.http import JsonResponse
+
+def health_check(request):
+    return JsonResponse({"status": "alive"}, status=200)
